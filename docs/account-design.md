@@ -14,7 +14,7 @@ Considering the integration of login methods from multiple third-party platforms
 || feature | platform | docs |
 |:----:|----|----|:----:|
 |Goth (4.6k star) | 1. Package goth provides a simple, clean, and idiomatic way to write authentication packages for Go web applications. <br> 2. Unlike other similar packages, Goth, lets you write OAuth, OAuth2, or any other protocol providers, as long as they implement the Provider and Session interfaces. | [✓]Facebook  <br>  [✓]Twitter  <br>  [✗]Wechat  <br>  [✓]WeCom(but) | [github.com/markbates/goth](https://github.com/markbates/goth) |
-| Casdoor (7.7k star) | A UI-first Identity Access Management (IAM) / Single-Sign-On (SSO) platform supporting OAuth 2.0, OIDC, SAML and CAS, integrated with Casbin RBAC and ABAC permission management | [✓]Facebook  <br>  [✓]Twitter  <br>  [✓]Wechat | [casdoor.org](https://casdoor.org)|
+| Casdoor (7.7k star) | A UI-first Identity Access Management (IAM) / Single-Sign-On (SSO) platform supporting OAuth 2.0, OIDC, SAML and CAS, integrated with Casbin RBAC and ABAC permission management | [✓]Facebook  <br>  [✓]Twitter  <br>  [✓]Wechat | [casdoor.org](https://casdoor.org) [github.com/casbin/casdoor](https://github.com/casbin/casdoor) |
 | Ory Hydra (14.7k star) | Highly configurable, suitable for large and complex security requirements |  [✓]Facebook  <br>  [✓]Twitter  <br>  [✗]Wechat | [github.com/ory/hydra](https://github.com/ory/hydra) |
 #### Platform analysis 
 ##### Twitter:X
