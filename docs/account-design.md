@@ -1,6 +1,7 @@
 # Account Subsystem Design
 
-## Technical Challenges Analysis
+## Technical Analysis
+
 ### third-party login plathform
 
 Third-party login platforms need to integrate with APIs from various third-party service providers. Different service providers may use different API protocols, data formats, and versions, making it a challenge to ensure compatibility between the platform and different third-party service providers' APIs.
