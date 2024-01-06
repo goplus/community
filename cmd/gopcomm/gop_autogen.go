@@ -6,7 +6,7 @@ import (
 	"github.com/goplus/yap"
 	"github.com/qiniu/x/errors"
 )
-
+//go:embed yap
 var yapFS embed.FS
 //line cmd/gopcomm/community.gop:11
 func main() {
@@ -29,6 +29,10 @@ func main() {
 //line cmd/gopcomm/community.gop:12:1
 	y := yap.New(fsYap)
 //line cmd/gopcomm/community.gop:14:1
-	y.Handle("/p/", func(ctx *yap.Context) {
+	y.GET("/p/:id", func(ctx *yap.Context) {
+//line cmd/gopcomm/community.gop:15:1
+		ctx.YAP(200, "article", yap.H{"id": ctx.Param("id")})
 	})
+//line cmd/gopcomm/community.gop:20:1
+	y.Run(":8080")
 }
