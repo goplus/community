@@ -1,4 +1,4 @@
-Go+ Community
+Go+ Community written in Go+
 =====
 
 [![Build Status](https://github.com/goplus/community/actions/workflows/go.yml/badge.svg)](https://github.com/goplus/community/actions/workflows/go.yml)

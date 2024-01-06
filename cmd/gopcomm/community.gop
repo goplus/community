@@ -11,5 +11,10 @@ var yapFS embed.FS
 fsYap := fs.sub(yapFS, "yap")!
 y := yap.new(fsYap)
 
-y.handle "/p/", ctx => {
+y.GET "/p/:id", ctx => {
+	ctx.YAP 200, "article", yap.H{
+		"id": ctx.param("id"),
+	}
 }
+
+y.run ":8080"
