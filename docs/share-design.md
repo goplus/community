@@ -7,7 +7,7 @@
 | Facebook | [FaceBook deverloper platform](https://developers.facebook.com/docs/sharing/best-practices) | |  |
 | Discord | [Discord deverloper platform](https://discord.com/developers/docs/topics/oauth2#shared-resources) | |  |
 
-## Community Libraries/Demos
+## Libraries/Demos
 
 ### Twitter
 
