@@ -8,7 +8,7 @@ TODO
 #### Yap
 
 * https://github.com/goplus/yap (from Dec 2023)
-* demo ([blog.go](https://github.com/goplus/yap/blob/main/demo/blog/blog.go))
+* demo ([blog.go](https://github.com/goplus/yap/blob/main/demo/blog/blog.go), [article.yap](https://github.com/goplus/yap/blob/main/demo/blog/yap/article.yap))
 
 ```go
 type article struct {
