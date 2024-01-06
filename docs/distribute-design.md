@@ -1,6 +1,4 @@
-# Distribute Subsystem Design
-
-## Feasibility Study of Community Distribution
+# Distribute to
 
 | Community | Usage | Description | Usage Method | Challenges |
 | --- | --- | --- | --- | --- |
@@ -8,14 +6,9 @@
 | Medium | ❌ | Not allowed to use API |  |  |
 | Substack | ❌ | Not allowed to use API |  |  |
 
-## Community API-Related Libraries
+## Libraries
 
-| Community | Library | Usage Method | Description |
-| --- | --- | --- | --- |
-| WeChat Official Account | [powerWeChat](https://github.com/ArtisanCloud/PowerWeChat)（926star） | API Calls | 1. Easy to get started<br>2. Complete demos |
+### WeChat Official Account
 
-## Technical Challenges
-
-| Community | Challenges | Status | Solution |
-| --- | --- | --- | --- |
-| WeChat Official Account | Formatting | Solved | [WeChat Official Account Formatting Converter](https://github.com/zkqiang/wechat-mdeditor) |
+* [powerWeChat](https://github.com/ArtisanCloud/PowerWeChat)（926star）
+* [WeChat Official Account Formatting Converter](https://github.com/zkqiang/wechat-mdeditor)
