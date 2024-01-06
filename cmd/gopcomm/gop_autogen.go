@@ -19,7 +19,7 @@ func main() {
 //line cmd/gopcomm/community.gop:11:1
 		if _gop_err != nil {
 //line cmd/gopcomm/community.gop:11:1
-			_gop_err = errors.NewFrame(_gop_err, "fs.sub(yapFS, \"yap\")", "/Users/xushiwei/work/community/cmd/gopcomm/community.gop", 11, "main.main")
+			_gop_err = errors.NewFrame(_gop_err, "fs.sub(yapFS, \"yap\")", "cmd/gopcomm/community.gop", 11, "main.main")
 //line cmd/gopcomm/community.gop:11:1
 			panic(_gop_err)
 		}
