@@ -5,6 +5,31 @@ Web Framework
 
 TODO
 
+#### Yap
+
+* https://github.com/goplus/yap (from Dec 2023)
+* demo ([blog.go](https://github.com/goplus/yap/blob/main/demo/blog/blog.go))
+
+```go
+type article struct {
+	ID string
+}
+
+//go:embed yap
+var yapFS embed.FS
+
+fsYap, _ := fs.Sub(yapFS, "yap")
+y := yap.New(fsYap)
+
+y.GET("/p/:id", func(ctx *yap.Context) {
+	ctx.YAP(200, "article", article{
+		ID: ctx.Param("id"),
+	})
+})
+
+y.Run(":8080")
+```
+
 #### Gin
 
 * https://github.com/gin-gonic/gin (73.5k+ stars, from Jun 2014)
