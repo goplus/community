@@ -1,23 +1,14 @@
 import (
 	"embed"
 	"io/fs"
-	"log"
 
 	"github.com/goplus/yap"
 )
 
-func check(err error) {
-	if err != nil {
-		log.panicln err
-	}
-}
-
 //go:embed yap
 var yapFS embed.FS
 
-fsYap, err := fs.sub(yapFS, "yap")
-check(err)
-
+fsYap := fs.sub(yapFS, "yap")!
 y := yap.new(fsYap)
 
 y.handle "/p/", ctx => {

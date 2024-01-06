@@ -1,2 +1,4 @@
 github.com/goplus/yap v0.1.0 h1:POiEaS0ZlHPOo6Vw8guq+i9sOUfzF3ZHiSmK0NC+9I8=
 github.com/goplus/yap v0.1.0/go.mod h1:VCbGlZo2lUgRWciTZwA5JEOuCUf8T2PhxZZ0HXqzgBk=
+github.com/qiniu/x v1.13.2 h1:mgWOfB9Rpk6AEtlBoObZVxH+b2FHSntYrxc4KX5Ta98=
+github.com/qiniu/x v1.13.2/go.mod h1:INZ2TSWSJVWO/RuELQROERcslBwVgFG7MkTfEdaQz9E=
