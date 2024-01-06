@@ -6,7 +6,7 @@ import (
 	"github.com/goplus/yap"
 	"github.com/qiniu/x/errors"
 )
-
+//go:embed yap
 var yapFS embed.FS
 //line cmd/gopcomm/community.gop:11
 func main() {
