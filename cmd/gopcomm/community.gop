@@ -5,6 +5,10 @@ import (
 	"github.com/goplus/yap"
 )
 
+type article struct {
+	ID string
+}
+
 //go:embed yap
 var yapFS embed.FS
 
@@ -12,8 +16,8 @@ fsYap := fs.sub(yapFS, "yap")!
 y := yap.new(fsYap)
 
 y.GET "/p/:id", ctx => {
-	ctx.YAP 200, "article", yap.H{
-		"id": ctx.param("id"),
+	ctx.YAP 200, "article", article{
+		ID: ctx.param("id"),
 	}
 }
 
