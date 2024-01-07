@@ -42,10 +42,10 @@ Create a Facebook developer account and integrate it with our website to obtain 
 
 #### result
 
-After researching goth, cashdoor, and Ory Hydra, the following conclusions have been drawn:
+After researching goth, casdoor, and Ory Hydra, the following conclusions have been drawn:
 
 1. goth provides example function calls for each platform, allowing integration with just a few lines of code. However, account functionality needs to be implemented separately.
 2. Ory Hydra is complex and requires high configuration, but it does not support platforms like WeChat or WeChat for Enterprise as they primarily focus on international platforms.
-3. cashdoor offers simple deployment, configuration, and integration, and it provides the necessary functionalities for a user system. We do not need to develop any additional features related to account verification.
+3. casdoor offers simple deployment, configuration, and integration, and it provides the necessary functionalities for a user system. We do not need to develop any additional features related to account verification.
 
-Based on the above findings, it has been decided to use **Cashdoor** for quick implementation of account login and third-party platform login. 
+Based on the above findings, it has been decided to use **Casdoor** for quick implementation of account login and third-party platform login. 
