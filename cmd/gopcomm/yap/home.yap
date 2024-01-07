@@ -3,6 +3,6 @@
 <meta charset="utf-8"/>
 </head>
 <body>
-Article {{.id}}
+Go+ Community <a href="/p/123">written in Go+</a>
 </body>
 </html>
