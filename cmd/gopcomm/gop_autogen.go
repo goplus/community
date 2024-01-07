@@ -1,42 +1,26 @@
 package main
 
-import (
-	"embed"
-	"io/fs"
-	"github.com/goplus/yap"
-	"github.com/qiniu/x/errors"
-)
+import "github.com/goplus/yap"
 
-type article struct {
-	ID string
+type community_yap struct {
+	yap.App
 }
-//go:embed yap
-var yapFS embed.FS
-//line cmd/gopcomm/community.gop:15
-func main() {
-//line cmd/gopcomm/community.gop:15:1
-	fsYap := func() (_gop_ret fs.FS) {
-//line cmd/gopcomm/community.gop:15:1
-		var _gop_err error
-//line cmd/gopcomm/community.gop:15:1
-		_gop_ret, _gop_err = fs.Sub(yapFS, "yap")
-//line cmd/gopcomm/community.gop:15:1
-		if _gop_err != nil {
-//line cmd/gopcomm/community.gop:15:1
-			_gop_err = errors.NewFrame(_gop_err, "fs.sub(yapFS, \"yap\")", "cmd/gopcomm/community.gop", 15, "main.main")
-//line cmd/gopcomm/community.gop:15:1
-			panic(_gop_err)
-		}
-//line cmd/gopcomm/community.gop:15:1
-		return
-	}()
-//line cmd/gopcomm/community.gop:16:1
-	y := yap.New(fsYap)
-//line cmd/gopcomm/community.gop:18:1
-	y.GET("/p/:id", func(ctx *yap.Context) {
-//line cmd/gopcomm/community.gop:19:1
-		ctx.YAP(200, "article", article{ID: ctx.Param("id")})
+//line cmd/gopcomm/community_yap.gox:1
+func (this *community_yap) MainEntry() {
+//line cmd/gopcomm/community_yap.gox:1:1
+	this.Get("/p/:id", func(ctx *yap.Context) {
+//line cmd/gopcomm/community_yap.gox:2:1
+		ctx.Yap__1("article", map[string]string{"id": ctx.Param("id")})
 	})
-//line cmd/gopcomm/community.gop:24:1
-	y.Run(":8080")
+//line cmd/gopcomm/community_yap.gox:6:1
+	this.Get("/", func(ctx *yap.Context) {
+//line cmd/gopcomm/community_yap.gox:7:1
+		ctx.Yap__1("home", map[string]interface {
+		}{})
+	})
+//line cmd/gopcomm/community_yap.gox:10:1
+	this.Run__1(":8080")
+}
+func main() {
+	yap.Gopt_App_Main(new(community_yap))
 }
