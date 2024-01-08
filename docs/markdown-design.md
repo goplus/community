@@ -44,12 +44,25 @@ Based on the above tabular analysis,the following conclusions have been drawn:
 1. The disadvantages of Blackfriday and gomarkdown are more obvious,it is difficult to meet the needs of community articles.
 2. Compared with Goldmark, Lute has fewer users and starts late, so we chose **Goldmark**.
 
-### result
+### scheme
 
----
+#### Go+JS Markdown Parser
 
-After researching some existing blog systems, including [Feishu Online Documents](https://eq2pyit41ih.feishu.cn/drive/home/), [CSDN](https://www.csdn.net/), [Chaindrop](https://ld246.com/), etc., which are all parsed by the back-end markdown parser when displaying articles,  then directly return to the front-end static page. When editing, they use the front-end markdown editor (except for Chaindrop, which does not have a real-time preview function). GitHub's markdown is also compiled by the back-end, so **we also plan to use the back-end markdown to parse**. There is a high probability that it will not be modified after the article is published, so the back-end analysis only needs to be parsed and stored, while the front-end markdown parser, everyone needs to parse it every time when it is opened.
+After researching some existing blog systems, including [Feishu Online Documents](https://eq2pyit41ih.feishu.cn/drive/home/), [CSDN](https://www.csdn.net/), [Chaindrop](https://ld246.com/), etc., which are all  return to the front-end static page. When editing, they use the front-end markdown editor (except for Chaindrop, which does not have a real-time preview function). GitHub's markdown is compiled by the back-end, so **we also plan to use the back-end markdown to parse**. There is a high probability that it will not be modified after the article is published, so the back-end analysis only needs to be parsed and stored, while the front-end markdown parser, everyone needs to parse it every time when it is opened.
 
 Although the back-end parser is used when displaying the article, the real-time preview effect must be better when writing the article using front-end markdown parser, because the modification is particularly frequent at this time, and there is no need to send it to the back-end to parse and then return to the front-end, which is sure to be real-time is not good, so the **front-end parser is used when writing the article**.
 
-Based on the above analysis, it has been decided to use **cherry(js markdown parser)** when writing the article for real-time compilation, while use **goldmark(go markdown parser)** when publishing and presenting articles for one-time compilation.
+Based on the above analysis, it has been decided to use **cherry-markdown(js markdown parser)** when writing the article for real-time compilation, while using **goldmark(go markdown parser)** to publish articles for one-time compilation.
+
+#### JS Markdown Parser
+
+Another scheme is using the front-end markdown editor to parse and then transfer the parsed HTML results to the back-end for storage. In this way, it is possible to use only one markdown parser to parse the article once when we publish it, and we don't need to parse it again when  viewing it. 
+
+Based on the above analysis, **We can implement both real-time preview and one-time compilation by using a front-end parser,  named cherry-markdown.**
+
+#### result
+
+---
+
+Although *Go+JS Markdown Parser* is more flexible, due to the different parsers of the two parsers, there may be a situation where the format of the article previewed and displayed in real time does not match, so we choose ***JS Markdown Parser Scheme（cherry-markdown）*** for markdown parsing. 
+
