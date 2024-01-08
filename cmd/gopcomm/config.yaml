@@ -1,0 +1,13 @@
+app:
+  version: 0.0.1
+  debug: true
+  log_file: /var/log/gopcomm.log
+server:
+  ip: 0.0.0.0
+  port: 8080
+mysql:
+  ip: 127.0.0.1
+  port: 6379
+  username: root
+  password: goplus
+  database: community
