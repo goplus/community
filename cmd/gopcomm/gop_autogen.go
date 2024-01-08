@@ -2,11 +2,11 @@ package main
 
 import "github.com/goplus/yap"
 
-type community_yap struct {
+type community struct {
 	yap.App
 }
 //line cmd/gopcomm/community_yap.gox:1
-func (this *community_yap) MainEntry() {
+func (this *community) MainEntry() {
 //line cmd/gopcomm/community_yap.gox:1:1
 	this.Get("/p/:id", func(ctx *yap.Context) {
 //line cmd/gopcomm/community_yap.gox:2:1
@@ -22,5 +22,5 @@ func (this *community_yap) MainEntry() {
 	this.Run__1(":8080")
 }
 func main() {
-	yap.Gopt_App_Main(new(community_yap))
+	yap.Gopt_App_Main(new(community))
 }
