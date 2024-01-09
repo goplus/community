@@ -19,7 +19,6 @@ database/sql has the following characteristics:
 - Driver support: By importing third-party database drivers, database/sql can interact with a variety of common relational database systems, such as MySQL, PostgreSQL, SQLite, etc.
 - Prevent SQL injection: The database/sql library effectively prevents SQL injection attacks by using technologies such as precompiled statements and parameterized queries.
 - Support for transactions: Transactions are a must-have feature for a good SQL package.
-![Alt text](image.png)
 
 
 # go-sql-driver
@@ -30,7 +29,6 @@ Compared with Go's built-in database access interface (database/sql), go-sql-dri
 3. Update and Maintenance: go-sql-driver/mysql is an active open-source project that is widely supported and maintained by the community. It is frequently updated, bug fixes and new features are added to adapt to the latest changes and needs of MySQL databases.
 4. Ecosystem support: go-sql-driver/mysql is one of the most widely used MySQL drivers in the Go language, so it has a rich ecosystem and community support. You can find many examples, documentation, and solutions in the community to help you better use and understand the driver.
 Although go-sql-driver/mysql is superior to the built-in database/sql interface in many ways, in some cases it may also be appropriate to use the built-in interface. For example, if you want to keep your code generic and can easily switch to a different database if needed, then using the built-in interface may be more appropriate. Ultimately, you can choose the right database access based on your project needs and preferences.
-![Alt text](image-1.png)
 
 # go-mysql/mysql
 Compared with Go's built-in database access interface (database/sql), go-mysql has the following advantages:
