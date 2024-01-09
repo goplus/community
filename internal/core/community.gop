@@ -1,0 +1,12 @@
+package core
+
+type Config struct {
+}
+
+type Community struct {
+}
+
+func New(conf *Config) *Community {
+  return &Community{}
+}
+
