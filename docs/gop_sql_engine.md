@@ -1,5 +1,5 @@
 # 论go的mysql依赖库哪家合适
-1. "database/sql" 包：这是Go语言内置的数据库访问接口，可以与各种数据库进行交互，包括MySQL。它提供了一组通用的接口和方法，可以通过适配不同的数据库驱动程序来实现对MySQL的访问。
+1. "database/sql" ：这是Go语言内置的数据库访问接口，可以与各种数据库进行交互，包括MySQL。它提供了一组通用的接口和方法，可以通过适配不同的数据库驱动程序来实现对MySQL的访问。
 2. "github.com/go-sql-driver/mysql"：这是一个流行的MySQL驱动程序，它实现了database/sql接口，可以直接在Go中使用。它提供了与MySQL数据库的连接、查询和事务等操作的功能。
 3. "https://github.com/go-mysql-org/go-mysql"：这是一个纯Go语言实现的MySQL客户端库，提供了对MySQL协议的底层访问。它具有较低级别的API，可用于实现自定义的MySQL客户端功能 //一些限制。由于它是底层的MySQL客户端库，使用它需要对MySQL协议有一定的了解，并且可能需要编写更多的代码来处理数据库操作
 
