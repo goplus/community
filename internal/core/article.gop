@@ -13,16 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package core
-
-type Config struct {
-}
-
-type Community struct {
-}
-
-func New(conf *Config) *Community {
-  return &Community{}
-}
 

@@ -1,6 +1,4 @@
-import "github.com/goplus/community/cmd/gopcomm/internal/config"
-
-get "/p/:id", ctx => {
+get "/article/:id", ctx => {
 	ctx.yap "article", {
 		"id": ctx.param("id"),
 	}
@@ -14,14 +12,6 @@ get "/user/:id", ctx => {
 		"id": ctx.param("id"),
 	}
 }
-get "/login", ctx => {
-	ctx.yap "login", {}
-}
-get "/register", ctx => {
-	ctx.yap "register", {}
-}
 
-config.ConfigInit("./config.yaml")
-println(config.Config)
 println "Community server running on :8080"
 run ":8080"
