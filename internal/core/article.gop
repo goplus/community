@@ -16,14 +16,40 @@
 
 package core
 
-type ArticleService struct {
+// Check interface implementation.
+var _ articleHandler = (*articleHandlerImpl)(nil)
+
+// Article Config
+//
+// ArticleConfig is the config for article.
+type ArticleConfig struct {
 }
 
-func NewArticleService() *ArticleService {
-	return &ArticleService{}
+// articleHandler
+//
+// articleHandler is the interface for article handler,
+// which defines the methods that must be implemented by the article handler.
+// We need to implement this interface in the community/internal/core package.
+type articleHandler interface {
+	GetArticle(id string) (Article, error)
 }
 
-func (s *ArticleService) GetArticle(id string) (Article, error) {
+// ArticleHandler
+//
+// ArticleHandler is the handler for article.
+type articleHandlerImpl struct {
+	config *ArticleConfig
+}
+
+// NewArticleHandler creates a new article handler.
+func newArticleHandler(conf *ArticleConfig) *articleHandlerImpl {
+	return &articleHandlerImpl{
+		config: conf,
+	}
+}
+
+// GetArticle gets article by id.
+func (h *articleHandlerImpl) GetArticle(id string) (Article, error) {
 	// TODO: get data from db.
 
 	return Article{

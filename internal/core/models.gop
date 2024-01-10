@@ -18,7 +18,7 @@ package core
 
 //Article Article struct
 type Article struct {
-	Id      string  `json:"id"`
+	Id      string `json:"id"`
 	Title   string `json:"title"`
 	Content string `json:"content"`
 }

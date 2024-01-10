@@ -1,10 +1,17 @@
 import "github.com/goplus/community/internal/core"
 
+// TODO: Config Init
+config := &core.Config{
+	core.ArticleConfig{},
+}
+community := core.New(config)
+
 get "/article/:id", ctx => {
 	param := ctx.param("id")
 	println "Visiting article " + param
-	s := core.NewArticleService()
-	info, _ := s.GetArticle(param)
+
+	h := community.GetArticleHandler()
+	info, _ := h.GetArticle(param)
 
 	ctx.yap "article", {
 		"id": info.Id,
