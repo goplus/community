@@ -81,6 +81,10 @@ func (p *Community) PutArticle(ctx context.Context, uid string, article *Article
 	return
 }
 
+func (p *Community) DeleteArticle(ctx context.Context, uid, id string) (err error) {
+	return
+}
+
 const (
 	MarkBegin = ""
 	MarkEnd   = "eof"
