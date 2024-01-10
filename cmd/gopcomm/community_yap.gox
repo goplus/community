@@ -1,10 +1,33 @@
-get "/p/:id", ctx => {
+import "github.com/goplus/community/internal/core"
+
+// TODO: Config Init
+config := &core.Config{
+	core.ArticleConfig{},
+}
+community := core.New(config)
+
+get "/article/:id", ctx => {
+	param := ctx.param("id")
+	println "Visiting article " + param
+
+	h := community.GetArticleHandler()
+	info, _ := h.GetArticle(param)
+
 	ctx.yap "article", {
-		"id": ctx.param("id"),
+		"id": info.Id,
+		"title": info.Title,
+		"content": info.Content,
 	}
 }
 get "/", ctx => {
-	ctx.yap "home", {}
+	ctx.yap "home", {
+	}
+}
+get "/user/:id", ctx => {
+	ctx.yap "user", { 
+		"id": ctx.param("id"),
+	}
 }
 
+println "Community server running on :8080"
 run ":8080"

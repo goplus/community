@@ -1,12 +1,56 @@
+/*
+ * Copyright (c) 2023 The GoPlus Authors (goplus.org). All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package core
 
+// Check interface implementation.
+var _ communityHandler = (*communityHandlerImpl)(nil)
+
+// Config
+//
+// Top level config for community handlers.
 type Config struct {
+	ArticleConfig
 }
 
-type Community struct {
+// communityHandler
+//
+// communityHandler is the interface for community handler,
+// which defines the methods that must be implemented by the community handler.
+// It returns the handler for each service.
+type communityHandler interface {
+	GetArticleHandler() articleHandler
 }
 
-func New(conf *Config) *Community {
-  return &Community{}
+// CommunityHandler
+//
+// CommunityHandler is the top handler for community.
+// It contains all the handlers for each service.
+type communityHandlerImpl struct {
+	articleHandler
 }
 
+// New creates a new community handler.
+func New(conf *Config) *communityHandlerImpl {
+	return &communityHandlerImpl{
+		articleHandler: newArticleHandler(&conf.ArticleConfig),
+	}
+}
+
+// GetArticleHandler gets article handler.
+func (p *communityHandlerImpl) GetArticleHandler() articleHandler {
+	return p.articleHandler
+}
