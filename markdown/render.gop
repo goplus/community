@@ -13,19 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-package config
 
-//Config contains all application configurations in goplus community
-type Config struct {
-	App
-	Database
-}
+package markdown
 
-//App contains application configurations
-type App struct {
-}
-
-// Database contains database configurations
-type Database struct {
+// Render renders a markdown text into html.
+func Render(md []byte) (html []byte, err error) {
+	return md, nil
 }
