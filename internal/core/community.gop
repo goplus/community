@@ -39,7 +39,7 @@ type ArticleEntry struct {
 
 type Article struct {
 	ArticleEntry
-	Content []byte // in markdown
+	Content string // in markdown
 }
 
 type Community struct {
@@ -64,7 +64,7 @@ func (p *Community) Article(ctx context.Context, id string) (article *Article, e
 				ID:    id,
 				Title: "Title",
 			},
-			[]byte(contentSummary),
+			contentSummary,
 		}
 		return
 	}
@@ -73,7 +73,7 @@ func (p *Community) Article(ctx context.Context, id string) (article *Article, e
 
 // CanEditable
 func (p *Community) CanEditable(ctx context.Context, uid, id string) (editable bool, err error) {
-	return
+	return true, nil
 }
 
 // PutArticle adds new article (ID == "") or edits an existing article (ID != "").

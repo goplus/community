@@ -17,6 +17,6 @@
 package markdown
 
 // Render renders a markdown text into html.
-func Render(md []byte) (html []byte, err error) {
+func Render(md string) (html string, err error) {
 	return md, nil
 }
