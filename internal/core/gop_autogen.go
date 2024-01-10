@@ -85,6 +85,7 @@ func (p *Community) ListArticle(ctx context.Context, from string, limit int) (it
 //
 //line internal/core/media.gop:6:1
 func (p *Community) PutMedia(ctx context.Context, uid string, media []byte) (id string, err error) {
+	return
 }
 //line internal/core/media.gop:9:1
 func (p *Community) DeleteMedia(ctx context.Context, uid string, id string) (err error) {
