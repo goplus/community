@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-package models
+package core
 
-import "time"
-
-//Model base model.
-type Model struct {
-	ID        uint64     `form:"id"`
-	CreatedAt time.Time  `binding:"-" form:"-"`
-	UpdatedAt time.Time  `binding:"-" form:"-"`
-	DeletedAt *time.Time `binding:"-" form:"-"`
+//Article Article struct
+type Article struct {
+	Id      string  `json:"id"`
+	Title   string `json:"title"`
+	Content string `json:"content"`
 }

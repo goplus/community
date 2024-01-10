@@ -1,0 +1,15 @@
+package config
+
+//Config contains all application configurations in goplus community
+type Config struct {
+	App
+	Database
+}
+
+//App contains application configurations
+type App struct {
+}
+
+// Database contains database configurations
+type Database struct {
+}

@@ -16,3 +16,19 @@
 
 package core
 
+type ArticleService struct {
+}
+
+func NewArticleService() *ArticleService {
+	return &ArticleService{}
+}
+
+func (s *ArticleService) GetArticle(id string) (Article, error) {
+	// TODO: get data from db.
+
+	return Article{
+		Id:      id,
+		Title:   "Goplus Community Article Content: " + string(id),
+		Content: "Goplus Community Article Content: " + string(id),
+	}, nil
+}

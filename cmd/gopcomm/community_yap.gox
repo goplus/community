@@ -1,6 +1,15 @@
+import "github.com/goplus/community/internal/core"
+
 get "/article/:id", ctx => {
+	param := ctx.param("id")
+	println "Visiting article " + param
+	s := core.NewArticleService()
+	info, _ := s.GetArticle(param)
+
 	ctx.yap "article", {
-		"id": ctx.param("id"),
+		"id": info.Id,
+		"title": info.Title,
+		"content": info.Content,
 	}
 }
 get "/", ctx => {
@@ -8,7 +17,7 @@ get "/", ctx => {
 	}
 }
 get "/user/:id", ctx => {
-	ctx.yap "user", {
+	ctx.yap "user", { 
 		"id": ctx.param("id"),
 	}
 }
