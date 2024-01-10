@@ -3,10 +3,12 @@
 <meta charset="utf-8"/>
 </head>
 <body>
-Go+ Community <a href="/p/123">written in Go+</a>
+<p>Go+ Community <a href="/p/123">written in Go+</a></p>
+<p><a href="/edit">New Article</a></p>
+<p>Article List:</p>
 <ul>
 {{range .Items}}
-<li>Title: <a href="/p/{{.ID}}">{{.Title}}</a></li>
+<li>Title: <a href="/p/{{.ID}}">{{.Title}}</a> (<a href="/edit?id={{.ID}}">edit</a>)</li>
 {{end}}
 </ul>
 </body>
