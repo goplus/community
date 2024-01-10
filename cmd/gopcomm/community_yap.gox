@@ -1,33 +1,35 @@
-import "github.com/goplus/community/internal/core"
+import (
+	"github.com/goplus/community/internal/core"
+	"github.com/goplus/community/markdown"
+)
 
-// TODO: Config Init
-config := &core.Config{
-	core.ArticleConfig{},
-}
-community := core.New(config)
+var (
+	community *core.Community
+)
 
-get "/article/:id", ctx => {
-	param := ctx.param("id")
-	println "Visiting article " + param
-
-	h := community.GetArticleHandler()
-	info, _ := h.GetArticle(param)
-
+get "/p/:id", ctx => {
+	id := ctx.param("id")
+	article, _ := community.article(id)
+	html, _ := markdown.render(article.Content)
 	ctx.yap "article", {
-		"id": info.Id,
-		"title": info.Title,
-		"content": info.Content,
+		"ID":    id,
+		"Title": article.Title,
+		"Body":  string(html),
 	}
 }
 get "/", ctx => {
+	articles, _, _ := community.listArticle(core.MarkBegin, 20)
 	ctx.yap "home", {
+		"Items": articles,
 	}
 }
-get "/user/:id", ctx => {
-	ctx.yap "user", { 
-		"id": ctx.param("id"),
+get "/edit", ctx => {
+	ctx.yap "edit", {
+		"ID": ctx.param("id"),
 	}
 }
 
-println "Community server running on :8080"
+config := &core.Config{}
+community, _ = core.New(config)
+
 run ":8080"

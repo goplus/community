@@ -1,79 +1,75 @@
 package core
-// Article Config
-//
-// ArticleConfig is the config for article.
-type ArticleConfig struct {
-}
-// articleHandler
-//
-// articleHandler is the interface for article handler,
-// which defines the methods that must be implemented by the article handler.
-// We need to implement this interface in the community/internal/core package.
-type articleHandler interface {
-	GetArticle(id string) (Article, error)
-}
-// ArticleHandler
-//
-// ArticleHandler is the handler for article.
-type articleHandlerImpl struct {
-	config *ArticleConfig
-}
-// Config
-//
-// Top level config for community handlers.
+
+import (
+	"os"
+	"io"
+	"time"
+)
+
 type Config struct {
-	ArticleConfig
 }
-// communityHandler
-//
-// communityHandler is the interface for community handler,
-// which defines the methods that must be implemented by the community handler.
-// It returns the handler for each service.
-type communityHandler interface {
-	GetArticleHandler() articleHandler
+type ArticleEntry struct {
+	ID    string
+	Title string
+	Ctime time.Time
+	Mtime time.Time
 }
-// CommunityHandler
-//
-// CommunityHandler is the top handler for community.
-// It contains all the handlers for each service.
-type communityHandlerImpl struct {
-	articleHandler
-}
-//Article Article struct
 type Article struct {
-	Id      string `json:"id"`
-	Title   string `json:"title"`
-	Content string `json:"content"`
+	ArticleEntry
+	Content []byte
 }
-// GetArticle gets article by id.
-//
-//line internal/core/article.gop:52:1
-func (h *articleHandlerImpl) GetArticle(id string) (Article, error) {
-//line internal/core/article.gop:55:1
-	return Article{Id: id, Title: "Goplus Community Article Content: " + string(id), Content: "Goplus Community Article Content: " + string(id)}, nil
+type Community struct {
 }
-// NewArticleHandler creates a new article handler.
+
+const contentSummary = `
+Content
+====
+
+Text body
+`
+const (
+	MarkBegin = ""
+	MarkEnd   = "eof"
+)
+
+var ErrNotExist = os.ErrNotExist
+// Article returns an article.
 //
-//line internal/core/article.gop:45:1
-func newArticleHandler(conf *ArticleConfig) *articleHandlerImpl {
-//line internal/core/article.gop:46:1
-	return &articleHandlerImpl{config: conf}
+//line internal/core/community.gop:59:1
+func (p *Community) Article(id string) (article *Article, err error) {
+//line internal/core/community.gop:60:1
+	if id == "123" {
+//line internal/core/community.gop:61:1
+		article = &Article{ArticleEntry{ID: id, Title: "Title"}, []byte(contentSummary)}
+//line internal/core/community.gop:68:1
+		return
+	}
+//line internal/core/community.gop:70:1
+	return nil, ErrNotExist
 }
-// GetArticleHandler gets article handler.
+// PutArticle adds new article (ID == "") or edits an existing article (ID != "").
 //
-//line internal/core/community.gop:54:1
-func (p *communityHandlerImpl) GetArticleHandler() articleHandler {
-//line internal/core/community.gop:55:1
-	return p.articleHandler
+//line internal/core/community.gop:74:1
+func (p *Community) PutArticle(article *Article) (id string, err error) {
+//line internal/core/community.gop:75:1
+	return
 }
-// New creates a new community handler.
+// ListArticle lists articles from an position.
 //
+//line internal/core/community.gop:84:1
+func (p *Community) ListArticle(from string, limit int) (items []*ArticleEntry, next string, err error) {
+//line internal/core/community.gop:85:1
+	if from == MarkBegin {
+//line internal/core/community.gop:86:1
+		item := &ArticleEntry{ID: "123", Title: "Title"}
+//line internal/core/community.gop:90:1
+		return []*ArticleEntry{item}, MarkEnd, nil
+	}
+//line internal/core/community.gop:92:1
+	return nil, MarkEnd, io.EOF
+}
 //line internal/core/community.gop:47:1
-func New(conf *Config) *communityHandlerImpl {
+func New(conf *Config) (*Community, error) {
 //line internal/core/community.gop:48:1
-	return &communityHandlerImpl{articleHandler: newArticleHandler(&conf.ArticleConfig)}
+	return &Community{}, nil
 }
-// Check interface implementation.
-var _ articleHandler = (*articleHandlerImpl)(nil)
-// Check interface implementation.
-var _ communityHandler = (*communityHandlerImpl)(nil)

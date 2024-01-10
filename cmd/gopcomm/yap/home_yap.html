@@ -4,5 +4,10 @@
 </head>
 <body>
 Go+ Community <a href="/p/123">written in Go+</a>
+<ul>
+{{range .Items}}
+<li>Title: <a href="/p/{{.ID}}">{{.Title}}</a></li>
+{{end}}
+</ul>
 </body>
 </html>

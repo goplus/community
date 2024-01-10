@@ -16,41 +16,78 @@
 
 package core
 
-// Check interface implementation.
-var _ communityHandler = (*communityHandlerImpl)(nil)
+import (
+	"io"
+	"os"
+	"time"
+)
 
-// Config
-//
-// Top level config for community handlers.
+var (
+	ErrNotExist = os.ErrNotExist
+)
+
 type Config struct {
-	ArticleConfig
 }
 
-// communityHandler
-//
-// communityHandler is the interface for community handler,
-// which defines the methods that must be implemented by the community handler.
-// It returns the handler for each service.
-type communityHandler interface {
-	GetArticleHandler() articleHandler
+type ArticleEntry struct {
+	ID    string
+	Title string
+	Ctime time.Time
+	Mtime time.Time
 }
 
-// CommunityHandler
-//
-// CommunityHandler is the top handler for community.
-// It contains all the handlers for each service.
-type communityHandlerImpl struct {
-	articleHandler
+type Article struct {
+	ArticleEntry
+	Content []byte // in markdown
 }
 
-// New creates a new community handler.
-func New(conf *Config) *communityHandlerImpl {
-	return &communityHandlerImpl{
-		articleHandler: newArticleHandler(&conf.ArticleConfig),
+type Community struct {
+}
+
+func New(conf *Config) (*Community, error) {
+	return &Community{}, nil
+}
+
+const contentSummary = `
+Content
+====
+
+Text body
+`
+
+// Article returns an article.
+func (p *Community) Article(id string) (article *Article, err error) {
+	if id == "123" {
+		article = &Article{
+			ArticleEntry{
+				ID:    id,
+				Title: "Title",
+			},
+			[]byte(contentSummary),
+		}
+		return
 	}
+	return nil, ErrNotExist
 }
 
-// GetArticleHandler gets article handler.
-func (p *communityHandlerImpl) GetArticleHandler() articleHandler {
-	return p.articleHandler
+// PutArticle adds new article (ID == "") or edits an existing article (ID != "").
+func (p *Community) PutArticle(article *Article) (id string, err error) {
+	return
+}
+
+const (
+	MarkBegin = ""
+	MarkEnd   = "eof"
+)
+
+// ListArticle lists articles from an position.
+func (p *Community) ListArticle(from string, limit int) (items []*ArticleEntry, next string, err error) {
+	if from == MarkBegin {
+		item := &ArticleEntry{
+			ID:    "123",
+			Title: "Title",
+		}
+		return []*ArticleEntry{item}, MarkEnd, nil
+	}
+	return nil, MarkEnd, io.EOF
 }

@@ -1,49 +1,45 @@
 package main
 
 import (
-	"fmt"
 	"github.com/goplus/yap"
 	"github.com/goplus/community/internal/core"
+	"github.com/goplus/community/markdown"
 )
 
 type community struct {
 	yap.App
+	community *core.Community
 }
-// TODO: Config Init
-//
-//line cmd/gopcomm/community_yap.gox:4
+//line cmd/gopcomm/community_yap.gox:10
 func (this *community) MainEntry() {
-//line cmd/gopcomm/community_yap.gox:4:1
-	config := &core.Config{core.ArticleConfig{}}
-//line cmd/gopcomm/community_yap.gox:7:1
-	community := core.New(config)
-//line cmd/gopcomm/community_yap.gox:9:1
-	this.Get("/article/:id", func(ctx *yap.Context) {
 //line cmd/gopcomm/community_yap.gox:10:1
-		param := ctx.Param("id")
+	this.Get("/p/:id", func(ctx *yap.Context) {
 //line cmd/gopcomm/community_yap.gox:11:1
-		fmt.Println("Visiting article " + param)
+		id := ctx.Param("id")
+//line cmd/gopcomm/community_yap.gox:12:1
+		article, _ := this.community.Article(id)
 //line cmd/gopcomm/community_yap.gox:13:1
-		h := community.GetArticleHandler()
+		html, _ := markdown.Render(article.Content)
 //line cmd/gopcomm/community_yap.gox:14:1
-		info, _ := h.GetArticle(param)
-//line cmd/gopcomm/community_yap.gox:16:1
-		ctx.Yap__1("article", map[string]string{"id": info.Id, "title": info.Title, "content": info.Content})
+		ctx.Yap__1("article", map[string]string{"ID": id, "Title": article.Title, "Body": string(html)})
 	})
-//line cmd/gopcomm/community_yap.gox:22:1
+//line cmd/gopcomm/community_yap.gox:20:1
 	this.Get("/", func(ctx *yap.Context) {
-//line cmd/gopcomm/community_yap.gox:23:1
-		ctx.Yap__1("home", map[string]interface {
-		}{})
+//line cmd/gopcomm/community_yap.gox:21:1
+		articles, _, _ := this.community.ListArticle(core.MarkBegin, 20)
+//line cmd/gopcomm/community_yap.gox:22:1
+		ctx.Yap__1("home", map[string][]*core.ArticleEntry{"Items": articles})
 	})
 //line cmd/gopcomm/community_yap.gox:26:1
-	this.Get("/user/:id", func(ctx *yap.Context) {
+	this.Get("/edit", func(ctx *yap.Context) {
 //line cmd/gopcomm/community_yap.gox:27:1
-		ctx.Yap__1("user", map[string]string{"id": ctx.Param("id")})
+		ctx.Yap__1("edit", map[string]string{"ID": ctx.Param("id")})
 	})
 //line cmd/gopcomm/community_yap.gox:32:1
-	fmt.Println("Community server running on :8080")
+	config := &core.Config{}
 //line cmd/gopcomm/community_yap.gox:33:1
+	this.community, _ = core.New(config)
+//line cmd/gopcomm/community_yap.gox:35:1
 	this.Run__1(":8080")
 }
 func main() {
