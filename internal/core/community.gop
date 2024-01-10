@@ -17,6 +17,7 @@
 package core
 
 import (
+	"context"
 	"io"
 	"os"
 	"time"
@@ -56,7 +57,7 @@ Text body
 `
 
 // Article returns an article.
-func (p *Community) Article(id string) (article *Article, err error) {
+func (p *Community) Article(ctx context.Context, id string) (article *Article, err error) {
 	if id == "123" {
 		article = &Article{
 			ArticleEntry{
@@ -70,8 +71,13 @@ func (p *Community) Article(id string) (article *Article, err error) {
 	return nil, ErrNotExist
 }
 
+// CanEditable
+func (p *Community) CanEditable(ctx context.Context, uid, id string) (editable bool, err error) {
+	return
+}
+
 // PutArticle adds new article (ID == "") or edits an existing article (ID != "").
-func (p *Community) PutArticle(article *Article) (id string, err error) {
+func (p *Community) PutArticle(ctx context.Context, uid string, article *Article) (id string, err error) {
 	return
 }
 
@@ -81,7 +87,7 @@ const (
 )
 
 // ListArticle lists articles from an position.
-func (p *Community) ListArticle(from string, limit int) (items []*ArticleEntry, next string, err error) {
+func (p *Community) ListArticle(ctx context.Context, from string, limit int) (items []*ArticleEntry, next string, err error) {
 	if from == MarkBegin {
 		item := &ArticleEntry{
 			ID:    "123",
