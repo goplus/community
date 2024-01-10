@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package core
 
-type Config struct {
+//Article Article struct
+type Article struct {
+	Id      string  `json:"id"`
+	Title   string `json:"title"`
+	Content string `json:"content"`
 }
-
-type Community struct {
-}
-
-func New(conf *Config) *Community {
-  return &Community{}
-}
-

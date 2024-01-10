@@ -13,16 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package core
 
-type Config struct {
+type ArticleService struct {
 }
 
-type Community struct {
+func NewArticleService() *ArticleService {
+	return &ArticleService{}
 }
 
-func New(conf *Config) *Community {
-  return &Community{}
-}
+func (s *ArticleService) GetArticle(id string) (Article, error) {
+	// TODO: get data from db.
 
+	return Article{
+		Id:      id,
+		Title:   "Goplus Community Article Content: " + string(id),
+		Content: "Goplus Community Article Content: " + string(id),
+	}, nil
+}
