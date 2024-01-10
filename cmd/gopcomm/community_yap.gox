@@ -9,7 +9,7 @@ var (
 
 get "/p/:id", ctx => {
 	id := ctx.param("id")
-	article, _ := community.article(id)
+	article, _ := community.article(nil, id)
 	html, _ := markdown.render(article.Content)
 	ctx.yap "article", {
 		"ID":    id,
@@ -18,15 +18,19 @@ get "/p/:id", ctx => {
 	}
 }
 get "/", ctx => {
-	articles, _, _ := community.listArticle(core.MarkBegin, 20)
+	articles, _, _ := community.listArticle(nil, core.MarkBegin, 20)
 	ctx.yap "home", {
 		"Items": articles,
 	}
 }
 get "/edit", ctx => {
+	// canEditable
 	ctx.yap "edit", {
 		"ID": ctx.param("id"),
 	}
+}
+post "/commit", ctx => {
+	// ...
 }
 
 config := &core.Config{}
