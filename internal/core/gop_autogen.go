@@ -17,7 +17,7 @@ type ArticleEntry struct {
 }
 type Article struct {
 	ArticleEntry
-	Content []byte
+	Content string
 }
 type Community struct {
 }
@@ -41,7 +41,7 @@ func (p *Community) Article(ctx context.Context, id string) (article *Article, e
 //line internal/core/community.gop:61:1
 	if id == "123" {
 //line internal/core/community.gop:62:1
-		article = &Article{ArticleEntry{ID: id, Title: "Title"}, []byte(contentSummary)}
+		article = &Article{ArticleEntry{ID: id, Title: "Title"}, contentSummary}
 //line internal/core/community.gop:69:1
 		return
 	}
@@ -53,7 +53,7 @@ func (p *Community) Article(ctx context.Context, id string) (article *Article, e
 //line internal/core/community.gop:75:1
 func (p *Community) CanEditable(ctx context.Context, uid string, id string) (editable bool, err error) {
 //line internal/core/community.gop:76:1
-	return
+	return true, nil
 }
 // PutArticle adds new article (ID == "") or edits an existing article (ID != "").
 //
@@ -85,16 +85,17 @@ func (p *Community) ListArticle(ctx context.Context, from string, limit int) (it
 //
 //line internal/core/media.gop:6:1
 func (p *Community) PutMedia(ctx context.Context, uid string, media []byte) (id string, err error) {
+//line internal/core/media.gop:7:1
 	return
 }
-//line internal/core/media.gop:9:1
-func (p *Community) DeleteMedia(ctx context.Context, uid string, id string) (err error) {
 //line internal/core/media.gop:10:1
+func (p *Community) DeleteMedia(ctx context.Context, uid string, id string) (err error) {
+//line internal/core/media.gop:11:1
 	return
 }
-//line internal/core/media.gop:13:1
-func (p *Community) MediaURL(id string) (url string) {
 //line internal/core/media.gop:14:1
+func (p *Community) MediaURL(id string) (url string) {
+//line internal/core/media.gop:15:1
 	return
 }
 //line internal/core/community.gop:48:1
