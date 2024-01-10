@@ -62,19 +62,39 @@ func (p *Community) PutArticle(ctx context.Context, uid string, article *Article
 //line internal/core/community.gop:81:1
 	return
 }
+//line internal/core/community.gop:84:1
+func (p *Community) DeleteArticle(ctx context.Context, uid string, id string) (err error) {
+//line internal/core/community.gop:85:1
+	return
+}
 // ListArticle lists articles from an position.
 //
-//line internal/core/community.gop:90:1
+//line internal/core/community.gop:94:1
 func (p *Community) ListArticle(ctx context.Context, from string, limit int) (items []*ArticleEntry, next string, err error) {
-//line internal/core/community.gop:91:1
+//line internal/core/community.gop:95:1
 	if from == MarkBegin {
-//line internal/core/community.gop:92:1
-		item := &ArticleEntry{ID: "123", Title: "Title"}
 //line internal/core/community.gop:96:1
+		item := &ArticleEntry{ID: "123", Title: "Title"}
+//line internal/core/community.gop:100:1
 		return []*ArticleEntry{item}, MarkEnd, nil
 	}
-//line internal/core/community.gop:98:1
+//line internal/core/community.gop:102:1
 	return nil, MarkEnd, io.EOF
+}
+// PutMedia uploads media.
+//
+//line internal/core/media.gop:6:1
+func (p *Community) PutMedia(ctx context.Context, uid string, media []byte) (id string, err error) {
+}
+//line internal/core/media.gop:9:1
+func (p *Community) DeleteMedia(ctx context.Context, uid string, id string) (err error) {
+//line internal/core/media.gop:10:1
+	return
+}
+//line internal/core/media.gop:13:1
+func (p *Community) MediaURL(id string) (url string) {
+//line internal/core/media.gop:14:1
+	return
 }
 //line internal/core/community.gop:48:1
 func New(conf *Config) (*Community, error) {
