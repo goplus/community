@@ -81,23 +81,6 @@ func (p *Community) ListArticle(ctx context.Context, from string, limit int) (it
 //line internal/core/community.gop:102:1
 	return nil, MarkEnd, io.EOF
 }
-// PutMedia uploads media.
-//
-//line internal/core/media.gop:6:1
-func (p *Community) PutMedia(ctx context.Context, uid string, media []byte) (id string, err error) {
-//line internal/core/media.gop:7:1
-	return
-}
-//line internal/core/media.gop:10:1
-func (p *Community) DeleteMedia(ctx context.Context, uid string, id string) (err error) {
-//line internal/core/media.gop:11:1
-	return
-}
-//line internal/core/media.gop:14:1
-func (p *Community) MediaURL(id string) (url string) {
-//line internal/core/media.gop:15:1
-	return
-}
 //line internal/core/community.gop:48:1
 func New(conf *Config) (*Community, error) {
 //line internal/core/community.gop:49:1

@@ -1,16 +1,143 @@
 package core
 
-import "context"
+import (
+	"context"
+	"database/sql"
+	"fmt"
+	"time"
 
-// PutMedia uploads media.
-func (p *Community) PutMedia(ctx context.Context, uid string, media []byte) (id string, err error) {
-	return
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/qiniu/go-sdk/v7/auth"
+	"github.com/qiniu/go-sdk/v7/storage"
+)
+
+var DB *sql.DB
+
+type Kodo struct {
+	bucket    string
+	accessKey string
+	secretKey string
 }
 
-func (p *Community) DeleteMedia(ctx context.Context, uid, id string) (err error) {
-	return
+type File struct {
+	Id       int
+	fileKey  string
+	format   string
+	userId   int
+	size     int64
+	createAt time.Time
+	updateAt time.Time
 }
 
-func (p *Community) MediaURL(id string) (url string) {
-	return
+func InitMysqlDB() {
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		"username",
+		"password",
+		"ip",
+		"port",
+		"database",
+	)
+
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
+	err = db.Ping()
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	DB = db
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(10)
+
+	println("mysql connected")
+}
+
+func getKodo() *Kodo {
+	return &Kodo{bucket: "bucket", accessKey: "", secretKey: ""}
+}
+
+// get upload token TODO: limit file upload format
+func (c *Community) getUploadToken(userId int) string {
+
+	kodo := getKodo()
+	putPolicy := storage.PutPolicy{
+		Scope: kodo.bucket,
+	}
+	mac := auth.New(kodo.accessKey, kodo.secretKey)
+	upToken := putPolicy.UploadToken(mac)
+	return upToken
+}
+
+func (c *Community) getBucketManager() *storage.BucketManager {
+	kodo := getKodo()
+	mac := auth.New(kodo.accessKey, kodo.secretKey)
+	cfg := storage.Config{
+		UseHTTPS: true,
+	}
+
+	return storage.NewBucketManager(mac, &cfg)
+}
+
+func (c *Community) DelMedia(userId int, fileKey string) error {
+	ctx := context.Background()
+	res, err := DB.ExecContext(ctx, "delete from file where user_id = ? and file_key = ?", userId, fileKey)
+	if err != nil {
+
+		return err
+	}
+	aff, err := res.RowsAffected()
+	if err != nil {
+
+		return err
+	}
+	if aff == 0 {
+		fmt.Println("no need del data")
+	}
+	return nil
+}
+
+// get file key
+func (c *Community) getMediaUrl(id int) string {
+	row := DB.QueryRow(`select file_key from file where id = ?`, id)
+	var fileKey string
+	row.Scan(&fileKey)
+
+	return fileKey
+}
+
+func (c *Community) SaveMedia(userId int, fileKey string) (int64, error) {
+	// todo: query user legal
+
+	// query fileInfo by fileKey
+	fileInfo, err := c.GetMediaInfo(fileKey)
+	if err != nil {
+
+		return 0, err
+	}
+
+	// save
+	stem, _ := DB.Prepare(`insert into file (file_key,format,size,user_id,create_at,update_at) VALUES (?,?,?,?,?,?)`)
+	defer DB.Close()
+	res, err := stem.Exec(fileKey, fileInfo.MimeType, fileInfo.Fsize, userId, time.Now(), time.Now())
+
+	if err != nil {
+		fmt.Println(err.Error())
+		return 0, err
+	}
+	return res.LastInsertId()
+}
+
+func (c *Community) GetMediaInfo(key string) (*storage.FileInfo, error) {
+
+	fileInfo, sErr := c.getBucketManager().Stat(getKodo().bucket, key)
+	if sErr != nil {
+
+		return nil, sErr
+	}
+	return &fileInfo, nil
+
 }
