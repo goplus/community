@@ -17,16 +17,61 @@
 package translation
 
 import (
+	"encoding/json"
+	"errors"
+	"io"
+	"net/http"
+	"net/url"
+	"strings"
+
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/text"
 )
 
+var (
+	RequestFailed = errors.New("request failed")
+)
+
+const (
+	// APIURL is the url of translation api server
+	niuTransAPI = "http://api.niutrans.com/NiuTransServer/translation"
+
+	// RequestHeaders
+	contentType = "application/x-www-form-urlencoded;charset=utf-8"
+	userAgent   = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+)
+
 type Language string
 
-// TranslateMarkdown translate markdown text
-func TranslateMarkdown(src string, from, to Language) (string, error) {
+// Language type
+const (
+	English Language = "en"
+	Chinese Language = "zh"
+	Auto    Language = "auto"
+)
 
+// TranslateConfig is the config of translation server
+type TranslateConfig struct {
+	apiKey string // api key of translation server
+}
+
+// TranslateResponse is the response of translation server
+type TranslateResponse struct {
+	From    string `json:"from"`
+	To      string `json:"to"`
+	TgtText string `json:"tgt_text"`
+}
+
+// NewTranslateConfig create a new TranslateConfig
+func NewTranslateConfig(apiKey string) *TranslateConfig {
+	return &TranslateConfig{
+		apiKey: apiKey,
+	}
+}
+
+// TranslateMarkdown translate markdown text
+func (c *TranslateConfig) TranslateMarkdown(src string, from, to Language) (string, error) {
 	md := goldmark.New(goldmark.WithExtensions())
 	reader := text.NewReader([]byte(src))
 	doc := md.Parser().Parse(reader)
@@ -36,7 +81,7 @@ func TranslateMarkdown(src string, from, to Language) (string, error) {
 		pointer = pointer.NextSibling()
 		raw_text := extractText(pointer, []byte(src))
 		// Translate ast node
-		to_text, _ := TranslateSeq(raw_text, "zh", "en")
+		to_text, _ := c.TranslateSeq(raw_text, "zh", "en")
 		_ = to_text
 	}
 	// TODO: Reconstrcut ast node to markdown text
@@ -53,8 +98,49 @@ func nodeToMarkdown(n ast.Node, source []byte) string {
 }
 
 // Translate translate sequence of text
-func TranslateSeq(src string, from, to Language) (string, error) {
+func (c *TranslateConfig) TranslateSeq(src string, from, to Language) (string, error) {
 	// Get translate result from api server
+	// Request form data
+	formData := url.Values{
+		"from":     {string(from)},
+		"to":       {string(to)},
+		"apikey":   {c.apiKey},
+		"src_text": {src},
+	}
 
-	return "", nil
+	var req *http.Request
+	req, err := http.NewRequest("POST", niuTransAPI, strings.NewReader(formData.Encode()))
+	if err != nil {
+		return "", RequestFailed
+	}
+
+	// Set request headers
+	req.Header.Set("Content-Type", contentType)
+	req.Header.Set("User-Agent", userAgent)
+
+	if resp, err := http.DefaultClient.Do(req); err != nil {
+		return "", RequestFailed
+	} else {
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return "", RequestFailed
+		}
+
+		// Parse response body
+		var raw []byte
+		if raw, err = io.ReadAll(resp.Body); err != nil {
+			return "", RequestFailed
+		}
+
+		// Parse json result
+		var response TranslateResponse
+		if err = json.Unmarshal(raw, &response); err != nil {
+			return "", RequestFailed
+		}
+
+		return response.TgtText, nil
+	}
+
+	return "", RequestFailed
 }

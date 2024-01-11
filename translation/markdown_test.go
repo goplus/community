@@ -24,18 +24,24 @@ import (
 	"github.com/yuin/goldmark/text"
 )
 
+const (
+	// Your api key
+	mockKey = "xxx"
+)
+
 func TestTranslateSeq(t *testing.T) {
 	tests := []struct {
 		src  string
 		from Language
 		to   Language
 	}{
-		{"hello", "en", "zh"},
 		{"你好", "zh", "en"},
+		{"hello", "en", "zh"},
 	}
 
+	trans := NewTranslateConfig(mockKey)
 	for _, test := range tests {
-		_, err := TranslateSeq(test.src, test.from, test.to)
+		_, err := trans.TranslateSeq(test.src, test.from, test.to)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -52,8 +58,9 @@ func TestTranslateMarkdown(t *testing.T) {
 		{`# 你好`, "zh", "en"},
 	}
 
+	trans := NewTranslateConfig(mockKey)
 	for _, test := range tests {
-		_, err := TranslateMarkdown(test.src, test.from, test.to)
+		_, err := trans.TranslateMarkdown(test.src, test.from, test.to)
 		if err != nil {
 			t.Fatal(err)
 		}
