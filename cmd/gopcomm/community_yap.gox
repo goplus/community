@@ -46,6 +46,14 @@ post "/commit", ctx => {
 	// ...
 }
 
+get "/getMedia",ctx => {
+	mediaId:=ctx.param("id")
+	// todo the err not empty return 404 for image
+	fileKey,_:=community.GetMediaUrl(ctx,mediaId)
+
+	http.Redirect(ctx.ResponseWriter, ctx.Request, "qiniu demain"+fileKey, http.StatusTemporaryRedirect)
+}
+
 conf := &core.Config{}
 community, _ = core.New(todo, conf)
 

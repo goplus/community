@@ -8,7 +8,10 @@ require (
 	gocloud.dev v0.36.0
 )
 
-require golang.org/x/text v0.14.0
+require (
+	github.com/google/uuid v1.4.0
+	golang.org/x/text v0.14.0
+)
 
 require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
