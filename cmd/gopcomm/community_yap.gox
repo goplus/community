@@ -1,6 +1,7 @@
 import (
 	"github.com/goplus/community/internal/core"
 	"github.com/goplus/community/markdown"
+	"github.com/spf13/viper"
 )
 
 var (
@@ -10,11 +11,11 @@ var (
 get "/p/:id", ctx => {
 	id := ctx.param("id")
 	article, _ := community.article(nil, id)
-	html, _ := markdown.render(article.Content)
+	// html, _ := markdown.render(article.Content)
 	ctx.yap "article", {
 		"ID":    id,
 		"Title": article.Title,
-		"Body":  string(html),
+		"Body":  article.HtmlText,
 	}
 }
 get "/", ctx => {
@@ -33,7 +34,27 @@ post "/commit", ctx => {
 	// ...
 }
 
-config := &core.Config{}
-community, _ = core.New(config)
+viper.SetConfigFile("./config.yaml")
+viper.AddConfigPath(".") 
+// viper.ReadInConfig()?
+if err := viper.ReadInConfig();err != nil { // 处理错误
+	println err
+	return
+}
 
+config := &core.Config{
+	Mysql: core.Mysql{
+		Ip:           viper.GetString("mysql.ip"),
+		Port:         viper.GetInt("mysql.port"),
+		Username:     viper.GetString("mysql.username"),
+		Password:     viper.GetString("mysql.password"),
+		Database:     viper.GetString("mysql.database"),
+	},
+}
+
+// config := &core.Config{}
+community, _ = core.New(config)
+core.InitMysqlDB(config)
+
+println "start"
 run ":8080"

@@ -21,13 +21,28 @@ import (
 	"io"
 	"os"
 	"time"
+	"fmt"
+	"database/sql"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 var (
 	ErrNotExist = os.ErrNotExist
+	// Config *Config
+	DB *sql.DB
 )
 
+// Mysql config.
+type Mysql struct {
+	Ip           string
+	Port         int
+	Username     string
+	Password     string
+	Database     string
+}
+
 type Config struct {
+	Mysql
 }
 
 type ArticleEntry struct {
@@ -39,7 +54,13 @@ type ArticleEntry struct {
 
 type Article struct {
 	ArticleEntry
-	Content []byte // in markdown
+	AccountId string
+	Tags string
+	Status int
+	CoverId int
+	MarkdownText string
+	HtmlText string
+	// Content []byte // in markdown
 }
 
 type Community struct {
@@ -49,26 +70,47 @@ func New(conf *Config) (*Community, error) {
 	return &Community{}, nil
 }
 
-const contentSummary = `
-Content
-====
+// InitMysqlDB init mysql connection.
+func InitMysqlDB(conf *Config) {
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+	conf.Mysql.Username,
+	conf.Mysql.Password,
+	conf.Mysql.Ip,
+	conf.Mysql.Port,
+	conf.Mysql.Database,
+	)
 
-Text body
-`
+	db, err := sql.Open("mysql", dsn)
+	if err!=nil{
+        println err
+        return
+    }
+
+    err =db.Ping()
+    if err!=nil{
+        println err
+        return
+    }
+
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(10)
+
+	DB = db
+
+	println "mysql connected"
+}
+
 
 // Article returns an article.
 func (p *Community) Article(ctx context.Context, id string) (article *Article, err error) {
-	if id == "123" {
-		article = &Article{
-			ArticleEntry{
-				ID:    id,
-				Title: "Title",
-			},
-			[]byte(contentSummary),
-		}
-		return
+	article = &Article{}
+	sqlStr := "select id,title,account_id,status,markdown_text,html_text from article where id=?"
+	err = DB.QueryRow(sqlStr, id).Scan(&article.ID,&article.Title,&article.AccountId,&article.Status,&article.MarkdownText,&article.HtmlText)
+	if err != nil {
+		println "not found the article"
+		return article, ErrNotExist
 	}
-	return nil, ErrNotExist
+	return
 }
 
 // CanEditable
