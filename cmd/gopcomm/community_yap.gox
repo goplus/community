@@ -1,7 +1,7 @@
 import (
 	"github.com/goplus/community/internal/core"
 	"github.com/goplus/community/markdown"
-	"github.com/spf13/viper"
+	// "github.com/spf13/viper"
 )
 
 var (
@@ -25,34 +25,44 @@ get "/", ctx => {
 	}
 }
 get "/edit", ctx => {
-	// canEditable
-	ctx.yap "edit", {
-		"ID": ctx.param("id"),
+	uid := ""
+	id := ctx.param("id")
+	doc := {
+		"ID": id,
 	}
+	if id != "" {
+		if editable, _ := community.canEditable(nil, uid, id); !editable {
+			// TODO: can't edit this article
+			return
+		}
+		article, _ := community.article(nil, id)
+		doc["Title"] = article.Title
+		doc["Content"] = string(article.Content)
+	}
+	ctx.yap "edit", doc
 }
 post "/commit", ctx => {
 	// ...
 }
 
-viper.SetConfigFile("./config.yaml")
-viper.AddConfigPath(".") 
-// viper.ReadInConfig()?
-if err := viper.ReadInConfig();err != nil { // 处理错误
-	println err
-	return
-}
+// viper.SetConfigFile("./config.yaml")
+// viper.AddConfigPath(".") 
+// // viper.ReadInConfig()?
+// if err := viper.ReadInConfig();err != nil { // 处理错误
+// 	println err
+// 	return
+// }
+// config := &core.Config{
+// 	Mysql: core.Mysql{
+// 		Ip:           viper.GetString("mysql.ip"),
+// 		Port:         viper.GetInt("mysql.port"),
+// 		Username:     viper.GetString("mysql.username"),
+// 		Password:     viper.GetString("mysql.password"),
+// 		Database:     viper.GetString("mysql.database"),
+// 	},
+// }
 
-config := &core.Config{
-	Mysql: core.Mysql{
-		Ip:           viper.GetString("mysql.ip"),
-		Port:         viper.GetInt("mysql.port"),
-		Username:     viper.GetString("mysql.username"),
-		Password:     viper.GetString("mysql.password"),
-		Database:     viper.GetString("mysql.database"),
-	},
-}
-
-// config := &core.Config{}
+config := &core.Config{}
 community, _ = core.New(config)
 core.InitMysqlDB(config)
 

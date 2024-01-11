@@ -60,7 +60,7 @@ type Article struct {
 	CoverId int
 	MarkdownText string
 	HtmlText string
-	// Content []byte // in markdown
+	Content []byte // in markdown
 }
 
 type Community struct {
@@ -72,13 +72,14 @@ func New(conf *Config) (*Community, error) {
 
 // InitMysqlDB init mysql connection.
 func InitMysqlDB(conf *Config) {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-	conf.Mysql.Username,
-	conf.Mysql.Password,
-	conf.Mysql.Ip,
-	conf.Mysql.Port,
-	conf.Mysql.Database,
-	)
+	// dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+	// conf.Mysql.Username,
+	// conf.Mysql.Password,
+	// conf.Mysql.Ip,
+	// conf.Mysql.Port,
+	// conf.Mysql.Database,
+	// )
+	dsn := "root:password@tcp(127.0.0.1:3306)/community"
 
 	db, err := sql.Open("mysql", dsn)
 	if err!=nil{
@@ -115,7 +116,7 @@ func (p *Community) Article(ctx context.Context, id string) (article *Article, e
 
 // CanEditable
 func (p *Community) CanEditable(ctx context.Context, uid, id string) (editable bool, err error) {
-	return
+	return true, nil
 }
 
 // PutArticle adds new article (ID == "") or edits an existing article (ID != "").

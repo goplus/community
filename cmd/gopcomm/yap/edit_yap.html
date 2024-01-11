@@ -3,6 +3,11 @@
 <meta charset="utf-8"/>
 </head>
 <body>
-Edit {{.ID}}
+<form action="/commit" method="post">
+<input type="hidden" name="id" value="{{.ID}}">
+<p><input type="text" name="title" value="{{.Title}}"></p>
+<p><textarea name="content" rows="10" cols="30">{{.Content}}</textarea></p>
+<p><input type="submit" value="Submit"></p>
+</form>
 </body>
 </html>
