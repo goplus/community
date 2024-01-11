@@ -1,7 +1,7 @@
 import (
 	"github.com/goplus/community/internal/core"
 	"github.com/goplus/community/markdown"
-	// "github.com/spf13/viper"
+	"time"
 )
 
 var (
@@ -15,17 +15,17 @@ get "/p/:id", ctx => {
 	ctx.yap "article", {
 		"ID":    id,
 		"Title": article.Title,
-		"Body":  article.HtmlText,
+		"Body":  article.Content,
 	}
 }
 get "/", ctx => {
-	articles, _, _ := community.listArticle(nil, core.MarkBegin, 20)
+	articles, _, _ := community.listArticle(nil, 0, 20)
 	ctx.yap "home", {
 		"Items": articles,
 	}
 }
 get "/edit", ctx => {
-	uid := ""
+	uid := "12"
 	id := ctx.param("id")
 	doc := {
 		"ID": id,
@@ -33,36 +33,40 @@ get "/edit", ctx => {
 	if id != "" {
 		if editable, _ := community.canEditable(nil, uid, id); !editable {
 			// TODO: can't edit this article
+			println "no permissions"
 			return
 		}
 		article, _ := community.article(nil, id)
 		doc["Title"] = article.Title
-		doc["Content"] = string(article.Content)
+		doc["Content"] = article.Content
 	}
 	ctx.yap "edit", doc
 }
 post "/commit", ctx => {
-	// ...
+	uid := "12"
+	id := ctx.param("id")
+	article := &core.Article{
+		ArticleEntry: core.ArticleEntry{
+			ID:    id,
+			Title: "Sample Title",
+			UId:   "1",
+			Cover: "sample_cover",
+			Tags:  "tag1, tag2",
+			Ctime: time.Now(),
+			Mtime: time.Now(),
+		},
+		Status:  1,
+		Content: "Sample Markdown Content",
+		HtmlUrl: "/sample-html-url",
+	}
+	// TODO check author exist
+	_, _ = community.putArticle(nil, uid, article)
+	ctx.yap "edit", *article
 }
 
-// viper.SetConfigFile("./config.yaml")
-// viper.AddConfigPath(".") 
-// // viper.ReadInConfig()?
-// if err := viper.ReadInConfig();err != nil { // 处理错误
-// 	println err
-// 	return
-// }
-// config := &core.Config{
-// 	Mysql: core.Mysql{
-// 		Ip:           viper.GetString("mysql.ip"),
-// 		Port:         viper.GetInt("mysql.port"),
-// 		Username:     viper.GetString("mysql.username"),
-// 		Password:     viper.GetString("mysql.password"),
-// 		Database:     viper.GetString("mysql.database"),
-// 	},
-// }
-
-config := &core.Config{}
+config := &core.Config{
+	DNS: "root:password@tcp(127.0.0.1:3306)/community?parseTime=true",
+}
 community, _ = core.New(config)
 core.InitMysqlDB(config)
 

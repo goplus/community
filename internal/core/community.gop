@@ -18,12 +18,13 @@ package core
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
+	_ "github.com/go-sql-driver/mysql"
 	"io"
 	"os"
+	"strconv"
 	"time"
-	"fmt"
-	"database/sql"
-	_ "github.com/go-sql-driver/mysql"
 )
 
 var (
@@ -32,35 +33,25 @@ var (
 	DB *sql.DB
 )
 
-// Mysql config.
-type Mysql struct {
-	Ip           string
-	Port         int
-	Username     string
-	Password     string
-	Database     string
-}
-
 type Config struct {
-	Mysql
+	DNS string
 }
 
 type ArticleEntry struct {
 	ID    string
 	Title string
+	UId   string
+	Cover string
+	Tags  string
 	Ctime time.Time
 	Mtime time.Time
 }
 
 type Article struct {
 	ArticleEntry
-	AccountId string
-	Tags string
-	Status int
-	CoverId int
-	MarkdownText string
-	HtmlText string
-	Content []byte // in markdown
+	Status  int    // published or draft
+	Content string // markdown text
+	HtmlUrl string // parsed html file url
 }
 
 type Community struct {
@@ -72,26 +63,17 @@ func New(conf *Config) (*Community, error) {
 
 // InitMysqlDB init mysql connection.
 func InitMysqlDB(conf *Config) {
-	// dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-	// conf.Mysql.Username,
-	// conf.Mysql.Password,
-	// conf.Mysql.Ip,
-	// conf.Mysql.Port,
-	// conf.Mysql.Database,
-	// )
-	dsn := "root:password@tcp(127.0.0.1:3306)/community"
+	db, err := sql.Open("mysql", conf.DNS)
+	if err != nil {
+		println err
+		return
+	}
 
-	db, err := sql.Open("mysql", dsn)
-	if err!=nil{
-        println err
-        return
-    }
-
-    err =db.Ping()
-    if err!=nil{
-        println err
-        return
-    }
+	err = db.Ping()
+	if err != nil {
+		println err
+		return
+	}
 
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(10)
@@ -101,46 +83,92 @@ func InitMysqlDB(conf *Config) {
 	println "mysql connected"
 }
 
-
 // Article returns an article.
 func (p *Community) Article(ctx context.Context, id string) (article *Article, err error) {
 	article = &Article{}
-	sqlStr := "select id,title,account_id,status,markdown_text,html_text from article where id=?"
-	err = DB.QueryRow(sqlStr, id).Scan(&article.ID,&article.Title,&article.AccountId,&article.Status,&article.MarkdownText,&article.HtmlText)
+	sqlStr := "select id,title,user_id,status,content,html_url from article where id=?"
+	err = DB.QueryRow(sqlStr, id).Scan(&article.ID, &article.Title, &article.UId, &article.Status, &article.Content, &article.HtmlUrl)
 	if err != nil {
 		println "not found the article"
 		return article, ErrNotExist
 	}
+	// TODO add author
 	return
 }
 
 // CanEditable
 func (p *Community) CanEditable(ctx context.Context, uid, id string) (editable bool, err error) {
+	sqlStr := "select id from article where id=? and user_id = ?"
+	err = DB.QueryRow(sqlStr, id, uid).Scan(&id)
+	if err != nil {
+		return false, err
+	}
 	return true, nil
 }
 
 // PutArticle adds new article (ID == "") or edits an existing article (ID != "").
 func (p *Community) PutArticle(ctx context.Context, uid string, article *Article) (id string, err error) {
-	return
+	// new article
+	if article.ID == "" {
+		sqlStr := "insert into article (title, ctime, mtime, user_id, tags, status, cover, content, html_url) values (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+		res, err := DB.Exec(sqlStr, &article.Title, time.Now(), time.Now(), &article.UId, &article.Tags, &article.Status, &article.Cover, &article.Content, &article.HtmlUrl)
+		if err != nil {
+			return "", err
+		}
+		idInt, err := res.LastInsertId()
+		return strconv.FormatInt(idInt, 10), nil
+	}
+	// edit article
+	// can uid edit the article
+	canEdit, err := p.CanEditable(ctx, uid, article.ID)
+	if !canEdit {
+		println "no permissions"
+		return
+	}
+	sqlStr := "update article set title=?, mtime=?, tags=?, status=?, cover=?, content=?, html_url=? where id=?"
+	_, err = DB.Exec(sqlStr, &article.Title, time.Now(), &article.Tags, &article.Status, &article.Cover, &article.Content, &article.HtmlUrl, &article.ID)
+	return article.ID, err
 }
 
 func (p *Community) DeleteArticle(ctx context.Context, uid, id string) (err error) {
+	// can uid delete the article
+	canEdit, err := p.CanEditable(ctx, uid, id)
+	if !canEdit {
+		println "no permissions"
+		return
+	}
+	sqlStr := "delete from article where id=?"
+	_, err = DB.Exec(sqlStr, id)
+	// TODO delete the media
 	return
 }
 
 const (
-	MarkBegin = ""
-	MarkEnd   = "eof"
+	published = 1
+	draft     = 0
 )
 
 // ListArticle lists articles from an position.
-func (p *Community) ListArticle(ctx context.Context, from string, limit int) (items []*ArticleEntry, next string, err error) {
-	if from == MarkBegin {
-		item := &ArticleEntry{
-			ID:    "123",
-			Title: "Title",
-		}
-		return []*ArticleEntry{item}, MarkEnd, nil
+func (p *Community) ListArticle(ctx context.Context, from int, limit int) (items []*ArticleEntry, next int, err error) {
+	sqlStr := "select id, title, ctime, user_id, tags, cover from article where status = ? limit ? offset ?"
+	rows, err := DB.Query(sqlStr, published, limit, from)
+	if err != nil {
+		println err
+		return []*ArticleEntry{}, from, err
 	}
-	return nil, MarkEnd, io.EOF
+	defer rows.Close()
+
+	var rowLen int
+	for rows.Next() {
+		article := &ArticleEntry{}
+		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Cover)
+		if err != nil {
+			println err
+			return []*ArticleEntry{}, from, err
+		}
+		// TODO add author
+		items = append(items, article)
+		rowLen++
+	}
+	return items, from + rowLen, nil
 }
