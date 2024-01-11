@@ -79,10 +79,10 @@ func (c *TranslateConfig) TranslateMarkdown(src string, from, to Language) (stri
 	pointer := doc.FirstChild()
 	for pointer != nil {
 		pointer = pointer.NextSibling()
-		raw_text := extractText(pointer, []byte(src))
+		rawText := extractText(pointer, []byte(src))
 		// Translate ast node
-		to_text, _ := c.TranslateSeq(raw_text, "zh", "en")
-		_ = to_text
+		toText, _ := c.TranslateSeq(rawText, "zh", "en")
+		_ = toText
 	}
 	// TODO: Reconstrcut ast node to markdown text
 

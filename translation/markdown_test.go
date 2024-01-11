@@ -26,7 +26,7 @@ import (
 
 const (
 	// Your api key
-	mockKey = "xxx"
+	mockKey = ""
 )
 
 func TestTranslateSeq(t *testing.T) {
@@ -35,13 +35,15 @@ func TestTranslateSeq(t *testing.T) {
 		from Language
 		to   Language
 	}{
-		{"你好", "zh", "en"},
-		{"hello", "en", "zh"},
+		{"你好", Auto, English},
+		{"你好", Chinese, English},
+		{"hello", English, Chinese},
 	}
 
 	trans := NewTranslateConfig(mockKey)
 	for _, test := range tests {
-		_, err := trans.TranslateSeq(test.src, test.from, test.to)
+		to, err := trans.TranslateSeq(test.src, test.from, test.to)
+		fmt.Println(to, err)
 		if err != nil {
 			t.Fatal(err)
 		}
