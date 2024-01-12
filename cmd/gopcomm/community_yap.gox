@@ -1,6 +1,5 @@
 import (
 	"github.com/goplus/community/internal/core"
-	"github.com/goplus/community/markdown"
 )
 
 var (
@@ -10,11 +9,10 @@ var (
 get "/p/:id", ctx => {
 	id := ctx.param("id")
 	article, _ := community.article(nil, id)
-	html, _ := markdown.render(article.Content)
 	ctx.yap "article", {
-		"ID":    id,
-		"Title": article.Title,
-		"Body":  html,
+		"ID":      id,
+		"Title":   article.Title,
+		"Content": article.Content,
 	}
 }
 get "/", ctx => {
