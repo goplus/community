@@ -22,6 +22,8 @@ import (
 	"io"
 	"os"
 	"time"
+
+	"gocloud.dev/blob"
 )
 
 var (
@@ -47,10 +49,11 @@ type Article struct {
 }
 
 type Community struct {
-	db *sql.DB
+	bucket *blob.Bucket
+	db     *sql.DB
 }
 
-func New(conf *Config) (ret *Community, err error) {
+func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 	if conf == nil {
 		conf = new(Config)
 	}
@@ -66,11 +69,15 @@ func New(conf *Config) (ret *Community, err error) {
 	if bus == "" {
 		bus = os.Getenv("GOP_COMMUNITY_BLOBUS")
 	}
+	bucket, err := blob.OpenBucket(ctx, bus)
+	if err != nil {
+		return
+	}
 	db, err := sql.Open(driver, dsn)
 	if err != nil {
 		return
 	}
-	return &Community{db}, nil
+	return &Community{bucket, db}, nil
 }
 
 const contentSummary = `
