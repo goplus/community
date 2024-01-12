@@ -1,6 +1,6 @@
 module github.com/goplus/community
 
-go 1.18
+go 1.19
 
 require (
 	github.com/goplus/yap v0.6.0 //gop:class
