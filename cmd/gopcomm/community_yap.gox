@@ -1,4 +1,6 @@
 import (
+	"context"
+
 	"github.com/goplus/community/internal/core"
 	"github.com/goplus/community/markdown"
 	"time"
@@ -8,35 +10,36 @@ var (
 	community *core.Community
 )
 
+todo := context.TODO()
+
 get "/p/:id", ctx => {
 	id := ctx.param("id")
-	article, _ := community.article(nil, id)
-	// html, _ := markdown.render(article.Content)
+	article, _ := community.article(todo, id)
 	ctx.yap "article", {
-		"ID":    id,
-		"Title": article.Title,
-		"Body":  article.Content,
+		"ID":      id,
+		"Title":   article.Title,
+		"Content": article.Content,
 	}
 }
 get "/", ctx => {
-	articles, _, _ := community.listArticle(nil, 0, 20)
+	articles, _, _ := community.listArticle(todo, 0, 20)
 	ctx.yap "home", {
 		"Items": articles,
 	}
 }
 get "/edit", ctx => {
-	uid := "12"
+	uid := ""
 	id := ctx.param("id")
 	doc := {
 		"ID": id,
 	}
 	if id != "" {
-		if editable, _ := community.canEditable(nil, uid, id); !editable {
+		if editable, _ := community.canEditable(todo, uid, id); !editable {
 			// TODO: can't edit this article
 			println "no permissions"
 			return
 		}
-		article, _ := community.article(nil, id)
+		article, _ := community.article(todo, id)
 		doc["Title"] = article.Title
 		doc["Content"] = article.Content
 	}
@@ -51,24 +54,21 @@ post "/commit", ctx => {
 			Title: "Sample Title",
 			UId:   "1",
 			Cover: "sample_cover",
-			Tags:  "tag1, tag2",
+			Tags:  "tag1",
 			Ctime: time.Now(),
 			Mtime: time.Now(),
 		},
-		Status:  1,
+		// Status:  1,
 		Content: "Sample Markdown Content",
-		HtmlUrl: "/sample-html-url",
+		// HtmlUrl: "/sample-html-url",
 	}
 	// TODO check author exist
-	_, _ = community.putArticle(nil, uid, article)
+	_, _ = community.putArticle(todo, uid, article)
 	ctx.yap "edit", *article
 }
 
-config := &core.Config{
-	DNS: "root:password@tcp(127.0.0.1:3306)/community?parseTime=true",
-}
-community, _ = core.New(config)
-core.InitMysqlDB(config)
+conf := &core.Config{}
+community, _ = core.New(todo, conf)
 
 println "start"
 run ":8080"

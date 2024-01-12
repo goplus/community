@@ -19,22 +19,24 @@ package core
 import (
 	"context"
 	"database/sql"
-	"fmt"
-	_ "github.com/go-sql-driver/mysql"
-	"io"
+	"gocloud.dev/blob"
+	"log"
 	"os"
 	"strconv"
 	"time"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 var (
-	ErrNotExist = os.ErrNotExist
-	// Config *Config
-	DB *sql.DB
+	ErrNotExist   = os.ErrNotExist
+	ErrPermission = os.ErrPermission
 )
 
 type Config struct {
-	DNS string
+	Driver string // database driver. default is `mysql`.
+	DSN    string // database data source name
+	BlobUS string // blob URL scheme
 }
 
 type ArticleEntry struct {
@@ -49,57 +51,62 @@ type ArticleEntry struct {
 
 type Article struct {
 	ArticleEntry
-	Status  int    // published or draft
+	// Status  int    // published or draft
 	Content string // markdown text
-	HtmlUrl string // parsed html file url
+	// HtmlUrl string // parsed html file url
 }
 
 type Community struct {
+	bucket *blob.Bucket
+	db     *sql.DB
 }
 
-func New(conf *Config) (*Community, error) {
-	return &Community{}, nil
-}
-
-// InitMysqlDB init mysql connection.
-func InitMysqlDB(conf *Config) {
-	db, err := sql.Open("mysql", conf.DNS)
+func New(ctx context.Context, conf *Config) (ret *Community, err error) {
+	if conf == nil {
+		conf = new(Config)
+	}
+	driver := conf.Driver
+	dsn := conf.DSN
+	bus := conf.BlobUS
+	if driver == "" {
+		driver = "mysql"
+	}
+	if dsn == "" {
+		dsn = os.Getenv("GOP_COMMUNITY_DSN")
+	}
+	if bus == "" {
+		bus = os.Getenv("GOP_COMMUNITY_BLOBUS")
+	}
+	bucket, err := blob.OpenBucket(ctx, bus)
 	if err != nil {
-		println err
 		return
 	}
-
-	err = db.Ping()
+	db, err := sql.Open(driver, dsn)
 	if err != nil {
-		println err
 		return
 	}
-
-	db.SetMaxOpenConns(10)
-	db.SetMaxIdleConns(10)
-
-	DB = db
-
-	println "mysql connected"
+	return &Community{bucket, db}, nil
 }
 
 // Article returns an article.
 func (p *Community) Article(ctx context.Context, id string) (article *Article, err error) {
 	article = &Article{}
-	sqlStr := "select id,title,user_id,status,content,html_url from article where id=?"
-	err = DB.QueryRow(sqlStr, id).Scan(&article.ID, &article.Title, &article.UId, &article.Status, &article.Content, &article.HtmlUrl)
-	if err != nil {
-		println "not found the article"
+	sqlStr := "select id,title,user_id,cover,tags,content,ctime,mtime from article where id=?"
+	err = p.db.QueryRow(sqlStr, id).Scan(&article.ID, &article.Title, &article.UId, &article.Cover, &article.Tags, &article.Content, &article.Ctime, &article.Mtime)
+	if err == sql.ErrNoRows {
+		log.Println("not found the article")
 		return article, ErrNotExist
+	} else if err != nil {
+		return article, err
 	}
-	// TODO add author
+	// TODO add author info
 	return
 }
 
-// CanEditable
+// CanEditable determine whether the user has the permission to operate.
 func (p *Community) CanEditable(ctx context.Context, uid, id string) (editable bool, err error) {
 	sqlStr := "select id from article where id=? and user_id = ?"
-	err = DB.QueryRow(sqlStr, id, uid).Scan(&id)
+	err = p.db.QueryRow(sqlStr, id, uid).Scan(&id)
 	if err != nil {
 		return false, err
 	}
@@ -110,8 +117,8 @@ func (p *Community) CanEditable(ctx context.Context, uid, id string) (editable b
 func (p *Community) PutArticle(ctx context.Context, uid string, article *Article) (id string, err error) {
 	// new article
 	if article.ID == "" {
-		sqlStr := "insert into article (title, ctime, mtime, user_id, tags, status, cover, content, html_url) values (?, ?, ?, ?, ?, ?, ?, ?, ?)"
-		res, err := DB.Exec(sqlStr, &article.Title, time.Now(), time.Now(), &article.UId, &article.Tags, &article.Status, &article.Cover, &article.Content, &article.HtmlUrl)
+		sqlStr := "insert into article (title, ctime, mtime, user_id, tags, cover, content) values (?, ?, ?, ?, ?, ?, ?)"
+		res, err := p.db.Exec(sqlStr, &article.Title, time.Now(), time.Now(), &article.UId, &article.Tags, &article.Cover, &article.Content)
 		if err != nil {
 			return "", err
 		}
@@ -122,38 +129,33 @@ func (p *Community) PutArticle(ctx context.Context, uid string, article *Article
 	// can uid edit the article
 	canEdit, err := p.CanEditable(ctx, uid, article.ID)
 	if !canEdit {
-		println "no permissions"
-		return
+		log.Println("no permissions")
+		return "", ErrPermission
 	}
-	sqlStr := "update article set title=?, mtime=?, tags=?, status=?, cover=?, content=?, html_url=? where id=?"
-	_, err = DB.Exec(sqlStr, &article.Title, time.Now(), &article.Tags, &article.Status, &article.Cover, &article.Content, &article.HtmlUrl, &article.ID)
+	sqlStr := "update article set title=?, mtime=?, tags=?, cover=?, content=? where id=?"
+	_, err = p.db.Exec(sqlStr, &article.Title, time.Now(), &article.Tags, &article.Cover, &article.Content, &article.ID)
 	return article.ID, err
 }
 
+// DeleteArticle delete the article.
 func (p *Community) DeleteArticle(ctx context.Context, uid, id string) (err error) {
 	// can uid delete the article
 	canEdit, err := p.CanEditable(ctx, uid, id)
 	if !canEdit {
-		println "no permissions"
-		return
+		log.Println("no permissions")
+		return ErrPermission
 	}
 	sqlStr := "delete from article where id=?"
-	_, err = DB.Exec(sqlStr, id)
+	_, err = p.db.Exec(sqlStr, id)
 	// TODO delete the media
 	return
 }
 
-const (
-	published = 1
-	draft     = 0
-)
-
 // ListArticle lists articles from an position.
 func (p *Community) ListArticle(ctx context.Context, from int, limit int) (items []*ArticleEntry, next int, err error) {
-	sqlStr := "select id, title, ctime, user_id, tags, cover from article where status = ? limit ? offset ?"
-	rows, err := DB.Query(sqlStr, published, limit, from)
+	sqlStr := "select id, title, ctime, user_id, tags, cover from article limit ? offset ?"
+	rows, err := p.db.Query(sqlStr, limit, from)
 	if err != nil {
-		println err
 		return []*ArticleEntry{}, from, err
 	}
 	defer rows.Close()
@@ -163,10 +165,9 @@ func (p *Community) ListArticle(ctx context.Context, from int, limit int) (items
 		article := &ArticleEntry{}
 		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Cover)
 		if err != nil {
-			println err
 			return []*ArticleEntry{}, from, err
 		}
-		// TODO add author
+		// TODO add author info
 		items = append(items, article)
 		rowLen++
 	}
