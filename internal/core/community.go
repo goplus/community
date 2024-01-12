@@ -18,9 +18,12 @@ package core
 
 import (
 	"context"
+	"database/sql"
 	"io"
 	"os"
 	"time"
+
+	"gocloud.dev/blob"
 )
 
 var (
@@ -28,6 +31,9 @@ var (
 )
 
 type Config struct {
+	Driver string // database driver. default is `mysql`.
+	DSN    string // database data source name
+	BlobUS string // blob URL scheme
 }
 
 type ArticleEntry struct {
@@ -43,10 +49,35 @@ type Article struct {
 }
 
 type Community struct {
+	bucket *blob.Bucket
+	db     *sql.DB
 }
 
-func New(conf *Config) (*Community, error) {
-	return &Community{}, nil
+func New(ctx context.Context, conf *Config) (ret *Community, err error) {
+	if conf == nil {
+		conf = new(Config)
+	}
+	driver := conf.Driver
+	dsn := conf.DSN
+	bus := conf.BlobUS
+	if driver == "" {
+		driver = "mysql"
+	}
+	if dsn == "" {
+		dsn = os.Getenv("GOP_COMMUNITY_DSN")
+	}
+	if bus == "" {
+		bus = os.Getenv("GOP_COMMUNITY_BLOBUS")
+	}
+	bucket, err := blob.OpenBucket(ctx, bus)
+	if err != nil {
+		return
+	}
+	db, err := sql.Open(driver, dsn)
+	if err != nil {
+		return
+	}
+	return &Community{bucket, db}, nil
 }
 
 const contentSummary = `
