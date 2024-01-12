@@ -23,6 +23,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
@@ -143,4 +144,36 @@ func (c *TranslateConfig) TranslateSeq(src string, from, to Language) (string, e
 	}
 
 	return "", RequestFailed
+}
+
+// TranslateBatchSeq translate a series of sequences of text
+func (c *TranslateConfig) TranslateBatchSeq(src []string, from, to Language) ([]string, error) {
+	// Max batch size is 50
+	sem := make(chan struct{}, 50)
+	defer close(sem)
+
+	// TODO: Max tokens of src is 5000, need to split src
+	var wg sync.WaitGroup
+	result := make([]string, len(src))
+	for i, s := range src {
+		wg.Add(1)
+		go func(i int, s string) {
+			defer wg.Done()
+
+			sem <- struct{}{}
+			defer func() { <-sem }()
+
+			toText, err := c.TranslateSeq(s, from, to)
+			if err != nil {
+				result[i] = ""
+			} else {
+				result[i] = toText
+			}
+		}(i, s)
+	}
+
+	// Wait for all goroutines to finish
+	wg.Wait()
+
+	return result, nil
 }
