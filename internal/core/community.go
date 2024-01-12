@@ -19,13 +19,14 @@ package core
 import (
 	"context"
 	"database/sql"
-	"gocloud.dev/blob"
+	"io"
 	"log"
 	"os"
 	"strconv"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"gocloud.dev/blob"
 )
 
 var (
@@ -51,8 +52,8 @@ type ArticleEntry struct {
 
 type Article struct {
 	ArticleEntry
+	Content string // in markdown
 	// Status  int    // published or draft
-	Content string // markdown text
 	// HtmlUrl string // parsed html file url
 }
 
@@ -108,7 +109,7 @@ func (p *Community) CanEditable(ctx context.Context, uid, id string) (editable b
 	sqlStr := "select id from article where id=? and user_id = ?"
 	err = p.db.QueryRow(sqlStr, id, uid).Scan(&id)
 	if err != nil {
-		return false, err
+		return false, ErrPermission
 	}
 	return true, nil
 }
@@ -118,7 +119,7 @@ func (p *Community) PutArticle(ctx context.Context, uid string, article *Article
 	// new article
 	if article.ID == "" {
 		sqlStr := "insert into article (title, ctime, mtime, user_id, tags, cover, content) values (?, ?, ?, ?, ?, ?, ?)"
-		res, err := p.db.Exec(sqlStr, &article.Title, time.Now(), time.Now(), &article.UId, &article.Tags, &article.Cover, &article.Content)
+		res, err := p.db.Exec(sqlStr, &article.Title, time.Now(), time.Now(), uid, &article.Tags, &article.Cover, &article.Content)
 		if err != nil {
 			return "", err
 		}
@@ -126,12 +127,6 @@ func (p *Community) PutArticle(ctx context.Context, uid string, article *Article
 		return strconv.FormatInt(idInt, 10), nil
 	}
 	// edit article
-	// can uid edit the article
-	canEdit, err := p.CanEditable(ctx, uid, article.ID)
-	if !canEdit {
-		log.Println("no permissions")
-		return "", ErrPermission
-	}
 	sqlStr := "update article set title=?, mtime=?, tags=?, cover=?, content=? where id=?"
 	_, err = p.db.Exec(sqlStr, &article.Title, time.Now(), &article.Tags, &article.Cover, &article.Content, &article.ID)
 	return article.ID, err
@@ -139,22 +134,30 @@ func (p *Community) PutArticle(ctx context.Context, uid string, article *Article
 
 // DeleteArticle delete the article.
 func (p *Community) DeleteArticle(ctx context.Context, uid, id string) (err error) {
-	// can uid delete the article
-	canEdit, err := p.CanEditable(ctx, uid, id)
-	if !canEdit {
-		log.Println("no permissions")
-		return ErrPermission
-	}
-	sqlStr := "delete from article where id=?"
-	_, err = p.db.Exec(sqlStr, id)
+	sqlStr := "delete from article where id=? and user_id=?"
+	_, err = p.db.Exec(sqlStr, id, uid)
 	// TODO delete the media
 	return
 }
 
+const (
+	MarkBegin = ""
+	MarkEnd   = "eof"
+)
+
 // ListArticle lists articles from an position.
-func (p *Community) ListArticle(ctx context.Context, from int, limit int) (items []*ArticleEntry, next int, err error) {
+func (p *Community) ListArticle(ctx context.Context, from string, limit int) (items []*ArticleEntry, next string, err error) {
+	if from == MarkBegin {
+		from = "0"
+	} else if from == MarkEnd {
+		return []*ArticleEntry{}, from, nil
+	}
+	fromInt, err := strconv.Atoi(from)
+	if err != nil {
+		return []*ArticleEntry{}, from, err
+	}
 	sqlStr := "select id, title, ctime, user_id, tags, cover from article limit ? offset ?"
-	rows, err := p.db.Query(sqlStr, limit, from)
+	rows, err := p.db.Query(sqlStr, limit, fromInt)
 	if err != nil {
 		return []*ArticleEntry{}, from, err
 	}
@@ -171,5 +174,10 @@ func (p *Community) ListArticle(ctx context.Context, from int, limit int) (items
 		items = append(items, article)
 		rowLen++
 	}
-	return items, from + rowLen, nil
+	// have no article
+	if rowLen == 0 {
+		return []*ArticleEntry{}, MarkEnd, io.EOF
+	}
+	next = strconv.Itoa(fromInt + rowLen)
+	return items, next, nil
 }

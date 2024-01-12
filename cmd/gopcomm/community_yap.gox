@@ -1,9 +1,10 @@
 import (
 	"context"
+	"time"
+	"log"
 
 	"github.com/goplus/community/internal/core"
 	"github.com/goplus/community/markdown"
-	"time"
 )
 
 var (
@@ -22,13 +23,13 @@ get "/p/:id", ctx => {
 	}
 }
 get "/", ctx => {
-	articles, _, _ := community.listArticle(todo, 0, 20)
+	articles, _, _ := community.listArticle(todo, core.MarkBegin, 20)
 	ctx.yap "home", {
 		"Items": articles,
 	}
 }
 get "/edit", ctx => {
-	uid := ""
+	uid := "1"
 	id := ctx.param("id")
 	doc := {
 		"ID": id,
@@ -36,7 +37,7 @@ get "/edit", ctx => {
 	if id != "" {
 		if editable, _ := community.canEditable(todo, uid, id); !editable {
 			// TODO: can't edit this article
-			println "no permissions"
+			log.Println("no permissions")
 			return
 		}
 		article, _ := community.article(todo, id)

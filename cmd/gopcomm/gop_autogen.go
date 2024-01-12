@@ -3,9 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/goplus/community/internal/core"
 	"github.com/goplus/yap"
-	"time"
 )
 
 type community struct {
@@ -29,14 +30,14 @@ func (this *community) MainEntry() {
 	//line cmd/gopcomm/community_yap.gox:24:1
 	this.Get("/", func(ctx *yap.Context) {
 		//line cmd/gopcomm/community_yap.gox:25:1
-		articles, _, _ := this.community.ListArticle(todo, 0, 20)
+		articles, _, _ := this.community.ListArticle(todo, core.MarkBegin, 20)
 		//line cmd/gopcomm/community_yap.gox:26:1
 		ctx.Yap__1("home", map[string][]*core.ArticleEntry{"Items": articles})
 	})
 	//line cmd/gopcomm/community_yap.gox:30:1
 	this.Get("/edit", func(ctx *yap.Context) {
 		//line cmd/gopcomm/community_yap.gox:31:1
-		uid := ""
+		uid := "1"
 		//line cmd/gopcomm/community_yap.gox:32:1
 		id := ctx.Param("id")
 		//line cmd/gopcomm/community_yap.gox:33:1
