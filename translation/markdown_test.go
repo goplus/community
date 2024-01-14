@@ -18,18 +18,16 @@ package translation
 
 import (
 	"fmt"
+	"os"
 	"testing"
-
-	"github.com/yuin/goldmark"
-	"github.com/yuin/goldmark/text"
 )
 
-const (
+var (
 	// Your api key
-	mockKey = ""
+	mockKey = os.Getenv("NIUTRANS_API_KEY")
 )
 
-func TestTranslateSeq(t *testing.T) {
+func TestTranslatePlainText(t *testing.T) {
 	tests := []struct {
 		src  string
 		from Language
@@ -40,9 +38,9 @@ func TestTranslateSeq(t *testing.T) {
 		{"hello", English, Chinese},
 	}
 
-	trans := NewTranslateConfig(mockKey)
+	trans := New(mockKey)
 	for _, test := range tests {
-		to, err := trans.TranslateSeq(test.src, test.from, test.to)
+		to, err := trans.TranslatePlainText(test.src, test.from, test.to)
 		fmt.Println(to, err)
 		if err != nil {
 			t.Fatal(err)
@@ -56,45 +54,69 @@ func TestTranslateMarkdown(t *testing.T) {
 		from Language
 		to   Language
 	}{
-		{`# Hello`, "en", "zh"},
-		{`# 你好`, "zh", "en"},
+		// {`# Hello`, "en", "zh"},
+		// {`# 你好`, "zh", "en"},
+		{`
+# Heading
+
+## 这是一个二级标题
+
+这是一段普通的文本。
+
+这是一段*粗体*的文本。
+
+这是一段**粗体**的文本。
+
+这是一段***粗斜体***的文本。
+
+这是一段` + "`" + `行内代码` + "`" + `。
+
+这是一段代码块：
+
+` + "```" + `go
+func main() {
+	fmt.Println("Hello, World!")
+}
+` + "```" + `
+
+这是一个列表：
+
+- 列表项 1
+- 列表项 2
+	- 列表项 2.1
+	- 列表项 2.2
+- 列表项 3
+
+这是一个有序列表：
+
+1. 列表项 1
+2. 列表项 2
+	1. 列表项 2.1
+	2. 列表项 2.2
+3. 列表项 3
+
+这是一个引用：
+
+> 这是一段引用。
+
+这里一个缩进代码块：
+
+	func main() {
+		fmt.Println("Hello, World!")
 	}
 
-	trans := NewTranslateConfig(mockKey)
+这是一段[链接](https://www.example.com)
+
+这是一段![图像](https://www.example.com/image.jpg)
+`, "zh", "en"},
+	}
+
+	trans := New(mockKey)
 	for _, test := range tests {
-		_, err := trans.TranslateMarkdown(test.src, test.from, test.to)
+		translatedResult, err := trans.TranslateMarkdownText(test.src, test.from, test.to)
+		fmt.Println(translatedResult, err)
 		if err != nil {
 			t.Fatal(err)
 		}
-	}
-}
-
-func TestExtractText(t *testing.T) {
-	tests := []struct {
-		src string
-	}{
-		{`# Title
-
-		This is a paragraph.
-		This is a paragraph.
-		This is a paragraph.
-		This is a paragraph.
-		
-		- This is a list item.`,
-		},
-		{`# Title
-
-		This is a paragraph.
-		
-		- This is a list item.`,
-		},
-	}
-
-	for _, test := range tests {
-		markdown := goldmark.New(goldmark.WithExtensions())
-		reader := text.NewReader([]byte(test.src))
-		doc := markdown.Parser().Parse(reader)
-
-		fmt.Printf("%#v\n", doc)
 	}
 }

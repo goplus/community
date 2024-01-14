@@ -19,11 +19,13 @@ package translation
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
@@ -31,7 +33,8 @@ import (
 )
 
 var (
-	RequestFailed = errors.New("request failed")
+	ErrRequestFailed       = errors.New("request failed")
+	ErrTranslationNotMatch = errors.New("translation result length not match")
 )
 
 const (
@@ -52,9 +55,9 @@ const (
 	Auto    Language = "auto"
 )
 
-// TranslateConfig is the config of translation server
-type TranslateConfig struct {
-	apiKey string // api key of translation server
+// Engine is the config of translation server
+type Engine struct {
+	APIKey string // api key of translation server
 }
 
 // TranslateResponse is the response of translation server
@@ -64,55 +67,97 @@ type TranslateResponse struct {
 	TgtText string `json:"tgt_text"`
 }
 
-// NewTranslateConfig create a new TranslateConfig
-func NewTranslateConfig(apiKey string) *TranslateConfig {
-	return &TranslateConfig{
-		apiKey: apiKey,
+// New create a new TranslateConfig
+func New(APIKey string) *Engine {
+	return &Engine{
+		APIKey: APIKey,
 	}
+}
+
+// TranslateMarkdown translate markdown with bytes
+func (c *Engine) TranslateMarkdown(src []byte, from, to Language) (ret []byte, err error) {
+	// Init markdown parser
+	md := goldmark.New(goldmark.WithExtensions())
+	reader := text.NewReader(src)
+	doc := md.Parser().Parse(reader)
+
+	// Prepare translation
+	translationSep := generateSeparator()
+	translationVec := make([]string, 0)
+	translationSeg := make([]text.Segment, 0) // location of text in src
+
+	// Walk through the AST
+	ast.Walk(doc, func(node ast.Node, entering bool) (ast.WalkStatus, error) {
+		switch n := node.(type) {
+		case *ast.Text:
+			if entering {
+				translationVec = append(translationVec, string(n.Segment.Value(src)))
+				translationSeg = append(translationSeg, n.Segment)
+			}
+		}
+		// TODO: Skip for custom node in goplus markdown
+
+		return ast.WalkContinue, nil
+	})
+
+	// Translate
+	toBeTranslatedStr := strings.Join(translationVec, fmt.Sprintf("\n%s\n", translationSep))
+	translatedStr, err := c.TranslatePlainText(toBeTranslatedStr, from, to)
+	if err != nil {
+		return []byte(""), err
+	}
+
+	// Replace text
+	resultVec := strings.Split(translatedStr, translationSep)
+	if len(resultVec) != len(translationVec) {
+		return []byte(""), ErrTranslationNotMatch
+	}
+
+	result := make([]byte, 0)
+	result = append(result, src[:translationSeg[0].Start]...)
+	result = append(result, []byte(resultVec[0])...)
+	for idx := 1; idx < len(resultVec); idx++ {
+		result = append(result, src[translationSeg[idx-1].Stop:translationSeg[idx].Start]...)
+		result = append(result, []byte(strings.TrimSpace(resultVec[idx]))...)
+	}
+	result = append(result, src[translationSeg[len(translationSeg)-1].Stop:]...)
+
+	return result, nil
 }
 
 // TranslateMarkdown translate markdown text
-func (c *TranslateConfig) TranslateMarkdown(src string, from, to Language) (string, error) {
-	md := goldmark.New(goldmark.WithExtensions())
-	reader := text.NewReader([]byte(src))
-	doc := md.Parser().Parse(reader)
+func (c *Engine) TranslateMarkdownText(src string, from, to Language) (ret string, err error) {
+	retByte, err := c.TranslateMarkdown([]byte(src), from, to)
 
-	pointer := doc.FirstChild()
-	for pointer != nil {
-		pointer = pointer.NextSibling()
-		rawText := extractText(pointer, []byte(src))
-		// Translate ast node
-		toText, _ := c.TranslateSeq(rawText, "zh", "en")
-		_ = toText
-	}
-	// TODO: Reconstrcut ast node to markdown text
-
-	return "", nil
+	return string(retByte), err
 }
 
-func extractText(n ast.Node, source []byte) string {
-	return ""
+func generateSeparator() string {
+	return fmt.Sprintf("%d", time.Now().Unix())
 }
 
-func nodeToMarkdown(n ast.Node, source []byte) string {
-	return ""
+// Translate translate sequence of bytes
+func (c *Engine) TranslatePlain(src []byte, from, to Language) (ret []byte, err error) {
+	retString, err := c.TranslatePlainText(string(src), from, to)
+
+	return []byte(retString), err
 }
 
 // Translate translate sequence of text
-func (c *TranslateConfig) TranslateSeq(src string, from, to Language) (string, error) {
+func (c *Engine) TranslatePlainText(src string, from, to Language) (ret string, err error) {
 	// Get translate result from api server
 	// Request form data
 	formData := url.Values{
 		"from":     {string(from)},
 		"to":       {string(to)},
-		"apikey":   {c.apiKey},
+		"apikey":   {c.APIKey},
 		"src_text": {src},
 	}
 
 	var req *http.Request
-	req, err := http.NewRequest("POST", niuTransAPI, strings.NewReader(formData.Encode()))
+	req, err = http.NewRequest("POST", niuTransAPI, strings.NewReader(formData.Encode()))
 	if err != nil {
-		return "", RequestFailed
+		return "", ErrRequestFailed
 	}
 
 	// Set request headers
@@ -120,34 +165,35 @@ func (c *TranslateConfig) TranslateSeq(src string, from, to Language) (string, e
 	req.Header.Set("User-Agent", userAgent)
 
 	if resp, err := http.DefaultClient.Do(req); err != nil {
-		return "", RequestFailed
+		return "", ErrRequestFailed
 	} else {
 		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
-			return "", RequestFailed
+			return "", ErrRequestFailed
 		}
 
 		// Parse response body
 		var raw []byte
 		if raw, err = io.ReadAll(resp.Body); err != nil {
-			return "", RequestFailed
+			return "", ErrRequestFailed
 		}
 
 		// Parse json result
 		var response TranslateResponse
 		if err = json.Unmarshal(raw, &response); err != nil {
-			return "", RequestFailed
+			return "", ErrRequestFailed
 		}
 
 		return response.TgtText, nil
 	}
 
-	return "", RequestFailed
+	return "", ErrRequestFailed
 }
 
 // TranslateBatchSeq translate a series of sequences of text
-func (c *TranslateConfig) TranslateBatchSeq(src []string, from, to Language) ([]string, error) {
+// Deprecated: use TranslatePlainXXX instead
+func (c *Engine) TranslateBatchSeq(src []string, from, to Language) ([]string, error) {
 	// Max batch size is 50
 	sem := make(chan struct{}, 50)
 	defer close(sem)
@@ -163,7 +209,7 @@ func (c *TranslateConfig) TranslateBatchSeq(src []string, from, to Language) ([]
 			sem <- struct{}{}
 			defer func() { <-sem }()
 
-			toText, err := c.TranslateSeq(s, from, to)
+			toText, err := c.TranslatePlainText(s, from, to)
 			if err != nil {
 				result[i] = ""
 			} else {
