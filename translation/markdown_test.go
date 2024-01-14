@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"os"
 	"testing"
+
+	language "golang.org/x/text/language"
 )
 
 var (
@@ -28,14 +30,17 @@ var (
 )
 
 func TestTranslatePlainText(t *testing.T) {
+	if mockKey == "" {
+		t.Skip("NIUTRANS_API_KEY not set")
+	}
+
 	tests := []struct {
 		src  string
-		from Language
-		to   Language
+		from language.Tag
+		to   language.Tag
 	}{
-		{"你好", Auto, English},
-		{"你好", Chinese, English},
-		{"hello", English, Chinese},
+		{"你好", language.Chinese, language.English},
+		{"hello", language.English, language.Chinese},
 	}
 
 	trans := New(mockKey)
@@ -49,10 +54,14 @@ func TestTranslatePlainText(t *testing.T) {
 }
 
 func TestTranslateMarkdown(t *testing.T) {
+	if mockKey == "" {
+		t.Skip("NIUTRANS_API_KEY not set")
+	}
+
 	tests := []struct {
 		src  string
-		from Language
-		to   Language
+		from language.Tag
+		to   language.Tag
 	}{
 		// {`# Hello`, "en", "zh"},
 		// {`# 你好`, "zh", "en"},
@@ -108,7 +117,7 @@ func main() {
 这是一段[链接](https://www.example.com)
 
 这是一段![图像](https://www.example.com/image.jpg)
-`, "zh", "en"},
+`, language.Chinese, language.English},
 	}
 
 	trans := New(mockKey)

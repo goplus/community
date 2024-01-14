@@ -30,6 +30,7 @@ import (
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/text"
+	language "golang.org/x/text/language"
 )
 
 var (
@@ -44,15 +45,6 @@ const (
 	// RequestHeaders
 	contentType = "application/x-www-form-urlencoded;charset=utf-8"
 	userAgent   = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-)
-
-type Language string
-
-// Language type
-const (
-	English Language = "en"
-	Chinese Language = "zh"
-	Auto    Language = "auto"
 )
 
 // Engine is the config of translation server
@@ -75,7 +67,7 @@ func New(APIKey string) *Engine {
 }
 
 // TranslateMarkdown translate markdown with bytes
-func (c *Engine) TranslateMarkdown(src []byte, from, to Language) (ret []byte, err error) {
+func (c *Engine) TranslateMarkdown(src []byte, from, to language.Tag) (ret []byte, err error) {
 	// Init markdown parser
 	md := goldmark.New(goldmark.WithExtensions())
 	reader := text.NewReader(src)
@@ -126,7 +118,7 @@ func (c *Engine) TranslateMarkdown(src []byte, from, to Language) (ret []byte, e
 }
 
 // TranslateMarkdown translate markdown text
-func (c *Engine) TranslateMarkdownText(src string, from, to Language) (ret string, err error) {
+func (c *Engine) TranslateMarkdownText(src string, from, to language.Tag) (ret string, err error) {
 	retByte, err := c.TranslateMarkdown([]byte(src), from, to)
 
 	return string(retByte), err
@@ -137,19 +129,19 @@ func generateSeparator() string {
 }
 
 // Translate translate sequence of bytes
-func (c *Engine) TranslatePlain(src []byte, from, to Language) (ret []byte, err error) {
+func (c *Engine) TranslatePlain(src []byte, from, to language.Tag) (ret []byte, err error) {
 	retString, err := c.TranslatePlainText(string(src), from, to)
 
 	return []byte(retString), err
 }
 
 // Translate translate sequence of text
-func (c *Engine) TranslatePlainText(src string, from, to Language) (ret string, err error) {
+func (c *Engine) TranslatePlainText(src string, from, to language.Tag) (ret string, err error) {
 	// Get translate result from api server
 	// Request form data
 	formData := url.Values{
-		"from":     {string(from)},
-		"to":       {string(to)},
+		"from":     {from.String()},
+		"to":       {to.String()},
 		"apikey":   {c.APIKey},
 		"src_text": {src},
 	}
@@ -193,7 +185,7 @@ func (c *Engine) TranslatePlainText(src string, from, to Language) (ret string, 
 
 // TranslateBatchSeq translate a series of sequences of text
 // Deprecated: use TranslatePlainXXX instead
-func (c *Engine) TranslateBatchSeq(src []string, from, to Language) ([]string, error) {
+func (c *Engine) TranslateBatchSeq(src []string, from, to language.Tag) ([]string, error) {
 	// Max batch size is 50
 	sem := make(chan struct{}, 50)
 	defer close(sem)
