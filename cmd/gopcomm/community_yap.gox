@@ -1,24 +1,26 @@
 import (
+	"context"
+
 	"github.com/goplus/community/internal/core"
-	"github.com/goplus/community/markdown"
 )
 
 var (
 	community *core.Community
 )
 
+todo := context.TODO()
+
 get "/p/:id", ctx => {
 	id := ctx.param("id")
-	article, _ := community.article(nil, id)
-	html, _ := markdown.render(article.Content)
+	article, _ := community.article(todo, id)
 	ctx.yap "article", {
-		"ID":    id,
-		"Title": article.Title,
-		"Body":  html,
+		"ID":      id,
+		"Title":   article.Title,
+		"Content": article.Content,
 	}
 }
 get "/", ctx => {
-	articles, _, _ := community.listArticle(nil, core.MarkBegin, 20)
+	articles, _, _ := community.listArticle(todo, core.MarkBegin, 20)
 	ctx.yap "home", {
 		"Items": articles,
 	}
@@ -30,11 +32,11 @@ get "/edit", ctx => {
 		"ID": id,
 	}
 	if id != "" {
-		if editable, _ := community.canEditable(nil, uid, id); !editable {
+		if editable, _ := community.canEditable(todo, uid, id); !editable {
 			// TODO: can't edit this article
 			return
 		}
-		article, _ := community.article(nil, id)
+		article, _ := community.article(todo, id)
 		doc["Title"] = article.Title
 		doc["Content"] = article.Content
 	}
@@ -44,7 +46,7 @@ post "/commit", ctx => {
 	// ...
 }
 
-config := &core.Config{}
-community, _ = core.New(config)
+conf := &core.Config{}
+community, _ = core.New(todo, conf)
 
 run ":8080"
