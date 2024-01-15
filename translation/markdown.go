@@ -42,32 +42,35 @@ const (
 	// APIURL is the url of translation api server
 	niuTransAPI = "http://api.niutrans.com/NiuTransServer/translation"
 
+	// Max content length of request
+	maxContentLength = 5000
+
 	// RequestHeaders
 	contentType = "application/x-www-form-urlencoded;charset=utf-8"
 	userAgent   = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 )
 
-// Engine is the config of translation server
-type Engine struct {
+// engine is the config of translation server
+type engine struct {
 	APIKey string // api key of translation server
 }
 
-// TranslateResponse is the response of translation server
-type TranslateResponse struct {
+// translateResponse is the response of translation server
+type translateResponse struct {
 	From    string `json:"from"`
 	To      string `json:"to"`
 	TgtText string `json:"tgt_text"`
 }
 
 // New create a new TranslateConfig
-func New(APIKey string) *Engine {
-	return &Engine{
+func New(APIKey string) *engine {
+	return &engine{
 		APIKey: APIKey,
 	}
 }
 
 // TranslateMarkdown translate markdown with bytes
-func (c *Engine) TranslateMarkdown(src []byte, from, to language.Tag) (ret []byte, err error) {
+func (c *engine) TranslateMarkdown(src []byte, from, to language.Tag) (ret []byte, err error) {
 	// Init markdown parser
 	md := goldmark.New(goldmark.WithExtensions())
 	reader := text.NewReader(src)
@@ -93,16 +96,28 @@ func (c *Engine) TranslateMarkdown(src []byte, from, to language.Tag) (ret []byt
 	})
 
 	// Translate
-	toBeTranslatedStr := strings.Join(translationVec, fmt.Sprintf("\n%s\n", translationSep))
-	translatedStr, err := c.TranslatePlainText(toBeTranslatedStr, from, to)
-	if err != nil {
-		return []byte(""), err
+	// toBeTranslatedStr := strings.Join(translationVec, fmt.Sprintf("\n%s\n", translationSep))
+	var translatedStr string
+	// Judge whether to use batch translate(over 5000 characters)
+	toBeTranslatedStrList := joinWithMaxLength(translationVec, fmt.Sprintf("\n%s\n", translationSep), maxContentLength)
+	if len(toBeTranslatedStrList) == 1 {
+		translatedStr, err = c.TranslatePlainText(toBeTranslatedStrList[0], from, to)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		translatedStrList, err := c.TranslateBatchPlain(toBeTranslatedStrList, from, to)
+		if err != nil {
+			return nil, err
+		}
+
+		translatedStr = strings.Join(translatedStrList, fmt.Sprintf("\n%s\n", translationSep))
 	}
 
 	// Replace text
 	resultVec := strings.Split(translatedStr, translationSep)
 	if len(resultVec) != len(translationVec) {
-		return []byte(""), ErrTranslationNotMatch
+		return nil, ErrTranslationNotMatch
 	}
 
 	result := make([]byte, 0)
@@ -118,10 +133,35 @@ func (c *Engine) TranslateMarkdown(src []byte, from, to language.Tag) (ret []byt
 }
 
 // TranslateMarkdown translate markdown text
-func (c *Engine) TranslateMarkdownText(src string, from, to language.Tag) (ret string, err error) {
+func (c *engine) TranslateMarkdownText(src string, from, to language.Tag) (ret string, err error) {
 	retByte, err := c.TranslateMarkdown([]byte(src), from, to)
 
 	return string(retByte), err
+}
+
+// joinWithMaxLength join []string with sep, and make sure the length of joined string is less than maxLen
+// if the length of joined string is greater than maxLen, create a new string with sep
+// and append it to the result
+func joinWithMaxLength(src []string, sep string, maxLen int) []string {
+	ret := make([]string, 0)
+	cur := ""
+	for _, s := range src {
+		if len(cur)+len(s)+len(sep) > maxLen {
+			// start to create new string
+			ret = append(ret, cur)
+			cur = ""
+		}
+
+		if cur == "" {
+			cur = s
+		} else {
+			cur = fmt.Sprintf("%s%s%s", cur, sep, s)
+		}
+	}
+
+	ret = append(ret, cur)
+
+	return ret
 }
 
 func generateSeparator() string {
@@ -129,14 +169,14 @@ func generateSeparator() string {
 }
 
 // Translate translate sequence of bytes
-func (c *Engine) TranslatePlain(src []byte, from, to language.Tag) (ret []byte, err error) {
+func (c *engine) TranslatePlain(src []byte, from, to language.Tag) (ret []byte, err error) {
 	retString, err := c.TranslatePlainText(string(src), from, to)
 
 	return []byte(retString), err
 }
 
 // Translate translate sequence of text
-func (c *Engine) TranslatePlainText(src string, from, to language.Tag) (ret string, err error) {
+func (c *engine) TranslatePlainText(src string, from, to language.Tag) (ret string, err error) {
 	// Get translate result from api server
 	// Request form data
 	formData := url.Values{
@@ -149,43 +189,40 @@ func (c *Engine) TranslatePlainText(src string, from, to language.Tag) (ret stri
 	var req *http.Request
 	req, err = http.NewRequest("POST", niuTransAPI, strings.NewReader(formData.Encode()))
 	if err != nil {
-		return "", ErrRequestFailed
+		return "", err
 	}
 
 	// Set request headers
 	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("User-Agent", userAgent)
 
-	if resp, err := http.DefaultClient.Do(req); err != nil {
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
 		return "", ErrRequestFailed
-	} else {
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-			return "", ErrRequestFailed
-		}
-
-		// Parse response body
-		var raw []byte
-		if raw, err = io.ReadAll(resp.Body); err != nil {
-			return "", ErrRequestFailed
-		}
-
-		// Parse json result
-		var response TranslateResponse
-		if err = json.Unmarshal(raw, &response); err != nil {
-			return "", ErrRequestFailed
-		}
-
-		return response.TgtText, nil
 	}
 
-	return "", ErrRequestFailed
+	// Parse response body
+	var raw []byte
+	if raw, err = io.ReadAll(resp.Body); err != nil {
+		return "", err
+	}
+
+	// Parse json result
+	var response translateResponse
+	if err = json.Unmarshal(raw, &response); err != nil {
+		return "", err
+	}
+
+	return response.TgtText, nil
 }
 
 // TranslateBatchSeq translate a series of sequences of text
-// Deprecated: use TranslatePlainXXX instead
-func (c *Engine) TranslateBatchSeq(src []string, from, to language.Tag) ([]string, error) {
+func (c *engine) TranslateBatchPlain(src []string, from, to language.Tag) ([]string, error) {
 	// Max batch size is 50
 	sem := make(chan struct{}, 50)
 	defer close(sem)
