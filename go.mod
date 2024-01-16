@@ -3,7 +3,7 @@ module github.com/goplus/community
 go 1.19
 
 require (
-	github.com/goplus/yap v0.6.0 //gop:class
+	github.com/goplus/yap v0.6.1-0.20240116144354-b9560645016b //gop:class
 	github.com/yuin/goldmark v1.6.0
 	gocloud.dev v0.36.0
 )
