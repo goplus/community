@@ -50,9 +50,9 @@ const (
 	userAgent   = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 )
 
-// engine is the config of translation server
-type engine struct {
-	APIKey string // api key of translation server
+// Engine is the config of translation server
+type Engine struct {
+	apiKey string // api key of translation server
 }
 
 // translateResponse is the response of translation server
@@ -63,14 +63,14 @@ type translateResponse struct {
 }
 
 // New create a new TranslateConfig
-func New(APIKey string) *engine {
-	return &engine{
-		APIKey: APIKey,
+func New(apiKey string) *Engine {
+	return &Engine{
+		apiKey: apiKey,
 	}
 }
 
 // TranslateMarkdown translate markdown with bytes
-func (c *engine) TranslateMarkdown(src []byte, from, to language.Tag) (ret []byte, err error) {
+func (c *Engine) TranslateMarkdown(src []byte, from, to language.Tag) (ret []byte, err error) {
 	// Init markdown parser
 	md := goldmark.New(goldmark.WithExtensions())
 	reader := text.NewReader(src)
@@ -133,7 +133,7 @@ func (c *engine) TranslateMarkdown(src []byte, from, to language.Tag) (ret []byt
 }
 
 // TranslateMarkdown translate markdown text
-func (c *engine) TranslateMarkdownText(src string, from, to language.Tag) (ret string, err error) {
+func (c *Engine) TranslateMarkdownText(src string, from, to language.Tag) (ret string, err error) {
 	retByte, err := c.TranslateMarkdown([]byte(src), from, to)
 
 	return string(retByte), err
@@ -169,20 +169,20 @@ func generateSeparator() string {
 }
 
 // Translate translate sequence of bytes
-func (c *engine) TranslatePlain(src []byte, from, to language.Tag) (ret []byte, err error) {
+func (c *Engine) TranslatePlain(src []byte, from, to language.Tag) (ret []byte, err error) {
 	retString, err := c.TranslatePlainText(string(src), from, to)
 
 	return []byte(retString), err
 }
 
 // Translate translate sequence of text
-func (c *engine) TranslatePlainText(src string, from, to language.Tag) (ret string, err error) {
+func (c *Engine) TranslatePlainText(src string, from, to language.Tag) (ret string, err error) {
 	// Get translate result from api server
 	// Request form data
 	formData := url.Values{
 		"from":     {from.String()},
 		"to":       {to.String()},
-		"apikey":   {c.APIKey},
+		"apikey":   {c.apiKey},
 		"src_text": {src},
 	}
 
@@ -222,7 +222,7 @@ func (c *engine) TranslatePlainText(src string, from, to language.Tag) (ret stri
 }
 
 // TranslateBatchSeq translate a series of sequences of text
-func (c *engine) TranslateBatchPlain(src []string, from, to language.Tag) ([]string, error) {
+func (c *Engine) TranslateBatchPlain(src []string, from, to language.Tag) ([]string, error) {
 	// Max batch size is 50
 	sem := make(chan struct{}, 50)
 	defer close(sem)
