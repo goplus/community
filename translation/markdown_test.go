@@ -30,10 +30,6 @@ var (
 )
 
 func TestTranslatePlainText(t *testing.T) {
-	if mockKey == "" {
-		t.Skip("NIUTRANS_API_KEY not set")
-	}
-
 	tests := []struct {
 		src  string
 		from language.Tag
@@ -54,10 +50,6 @@ func TestTranslatePlainText(t *testing.T) {
 }
 
 func TestTranslateMarkdown(t *testing.T) {
-	if mockKey == "" {
-		t.Skip("NIUTRANS_API_KEY not set")
-	}
-
 	tests := []struct {
 		src  string
 		from language.Tag
@@ -384,10 +376,6 @@ cl 模块则需要测试是否正确将 Go+ 的代码转成期望的 Go 代码�
 }
 
 func TestTranslateBatch(t *testing.T) {
-	if mockKey == "" {
-		t.Skip("NIUTRANS_API_KEY not set")
-	}
-
 	tests := []struct {
 		src  []string
 		from language.Tag
