@@ -4,8 +4,11 @@ go 1.19
 
 require (
 	github.com/goplus/yap v0.6.0 //gop:class
+	github.com/yuin/goldmark v1.6.0
 	gocloud.dev v0.36.0
 )
+
+require golang.org/x/text v0.14.0
 
 require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
@@ -14,7 +17,6 @@ require (
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/net v0.18.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 	google.golang.org/api v0.151.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231120223509-83a465c0220f // indirect
