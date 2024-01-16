@@ -52,7 +52,9 @@ const (
 
 // Engine is the config of translation server
 type Engine struct {
-	apiKey string // api key of translation server
+	translationAPIKey string // api key of translation server
+	qiniuAccessKey    string // access key of qiniu
+	qiniuSecretKey    string // secret key of qiniu
 }
 
 // translateResponse is the response of translation server
@@ -63,9 +65,11 @@ type translateResponse struct {
 }
 
 // New create a new TranslateConfig
-func New(apiKey string) *Engine {
+func New(translationAPIKey string, qiniuAccessKey string, qiniuSecretKey string) *Engine {
 	return &Engine{
-		apiKey: apiKey,
+		translationAPIKey: translationAPIKey,
+		qiniuAccessKey:    qiniuAccessKey,
+		qiniuSecretKey:    qiniuSecretKey,
 	}
 }
 
@@ -180,10 +184,10 @@ func (c *Engine) TranslatePlainText(src string, from, to language.Tag) (ret stri
 	// Get translate result from api server
 	// Request form data
 	formData := url.Values{
-		"from":     {from.String()},
-		"to":       {to.String()},
-		"apikey":   {c.apiKey},
-		"src_text": {src},
+		"from":              {from.String()},
+		"to":                {to.String()},
+		"translationAPIKey": {c.translationAPIKey},
+		"src_text":          {src},
 	}
 
 	var req *http.Request
