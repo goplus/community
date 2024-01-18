@@ -20,23 +20,24 @@ func init() {
 	certificate := conf.certificate
 	organizationName := conf.organizationName
 	applicationName := conf.applicationName
+	//TODO Post insertion of environmental variables
 	if endPoint == "" {
-		endPoint = "https://casdoor-community.qiniu.io"
+		endPoint = os.Getenv("GOP_CASDOOR_ENDPOINT")
 	}
 	if clientID == "" {
-		clientID = "49a8ac9729e314a05bf0"
+		clientID = os.Getenv("GOP_CASDOOR_CLIENTID")
 	}
 	if clientSecret == "" {
-		clientSecret = "9ff5d5be617618c92180c668ff28562271f310b4"
+		clientSecret = os.Getenv("GOP_CASDOOR_CLIENTSECRET")
 	}
 	if certificate == "" {
-		certificate = "-----BEGIN CERTIFICATE-----\nMIIE3TCCAsWgAwIBAgIDAeJAMA0GCSqGSIb3DQEBCwUAMCgxDjAMBgNVBAoTBWFk\nbWluMRYwFAYDVQQDEw1jZXJ0LWJ1aWx0LWluMB4XDTI0MDExMDA5MjUxNVoXDTQ0\nMDExMDA5MjUxNVowKDEOMAwGA1UEChMFYWRtaW4xFjAUBgNVBAMTDWNlcnQtYnVp\nbHQtaW4wggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIKAoICAQDZ6k0hJ5aCOgHI\nkLY+doPSYI/WB0F36saOKtGolxA1j6p99sJZTVRDocsseQj6EGIXKdRi58H5ncfG\nIjE7ePoKVI+U4e67VtE1Y5fmI6Dg740tSh7q1+IJkCHZ06dz24irzgVDWMiEl5eQ\n+ekq5ebN0zCIK/MFE0QEraWp3jX3MXiiBshnZgbI8TMyQCD0CNR/OiB+9VEzUlQO\nBQAGefzOZkj7NxV9USnVu5TsQBvEzL43hlrQ5c5NgbRg8VGKluByNCniSftRP08H\nUebc2nFc0cbV9vkyCmR9gHAsFyJBH8593q5sahXoUaZYcwpu7aieH9dUqSitsOm8\n5gGA/Aueude29kKrFSDwzdg5l1qYDOdpnPsJ2282EmM+/V8EG0S8+y4sWSFDo6km\n6JZhi0ULHjJI0kCjDzykrpoEgzroN1Zfdk33MH2EecUBirnJ0d+t+VOzB2z7O/Ve\n+bKlniZs9SEIVQCIStOTxXGx6gmMZyXQJzTaaBfN6Y2N/IXAimrbgaAXwtTJAimk\nCRT13sMDpdGBCMzWAG4NVl2mTT+NrbbYT2GS3MgqBLZCLcbWb6zXb0WUbmn/fmMl\nbJO4ilzTOm1cmZ9W5NyZFexiOFFt1YadMqcE9tttDLiBIsG3v4p4mhUDY19GUHWI\nrM651V/nP9WqM79N6zYJGc/hf1kpcwIDAQABoxAwDjAMBgNVHRMBAf8EAjAAMA0G\nCSqGSIb3DQEBCwUAA4ICAQCpBBW8zfljoCNBTra7pf5KSrwriDt+v+svkF3NStnQ\nz4VhSRTJtmhrMPhIOTFPNd1spmtqux6ph8Xdom3vnk5ZyZAOo9RefFmaiBjJ5BL8\nvD6KEj1f0tMs2HzgVeJe8fMKO9OC2Ltz0f8bzZiIFDySwdTaya6XgCjNgSyN+3hW\nQRklKtljSWsTxtUfvdPr5r4j62f13Jvm5rjrHk9YH0/lvKG+JVLoLFiJTntPZNdL\niCo7o7nu2xuSJo4ds3cgKfAdbRTU9smyLTNSdaGSI4r02sLvXDVEx99hquGGB8FO\nQg9mqmP83QsuXdNot23vcWoh+1jCZ/KIu77x2DqwtZn8Lh77V0lO18pQYeLC1QSc\nfnK6gliAmB86HeYSxUscimTXOtdRNNopuik4x36V1q3ZislEXOUgiGJvx/rGVicC\nTVXs8+5eexakcGteA3FDp95RCVFBedMGzjXPEbnNs2th4DPUQZvOLUtCB1BZwfE8\nEXkJGv/WFKqdQszfKl3hFxocmZppciLV+rTFMnZNNSXcIZIn1n7kEPy/2Teq0ObI\n7FqI+/gZu2Shw82RBcVtrTfRqY51S/a/lB9Ofu2kGnR05XzVX3gtJMx1GVjMhNck\npOXpMCdMP22XpVFd/uKXdCd9tGGJUd5C+ZvcsThY9susU/LilAL9WQbhH1amJDsG\nbQ==\n-----END CERTIFICATE-----"
+		certificate = os.Getenv("GOP_CASDOOR_CERTIFICATE")	
 	}
 	if organizationName == "" {
-		organizationName = "built-in"
+		organizationName = os.Getenv("GOP_CASDOOR_ORGANIZATIONNAME")
 	}
 	if applicationName == "" {
-		applicationName = "application_ot2837"
+		applicationName = os.Getenv("GOP_CASDOOR_APPLICATONNAME")
 	}
 	casdoorsdk.InitConfig(endPoint, clientID, clientSecret, certificate, organizationName, applicationName)
 }
