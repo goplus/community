@@ -47,7 +47,6 @@ get "/callback", ctx => {
 	if err != nil {
 		log.Fatal("err",err)
 	}
-	fmt.Println("============================================================")
 	username := claim.User.Name
 	ctx.yap "callback", {
 		"username": username,
