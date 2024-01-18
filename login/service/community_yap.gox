@@ -4,21 +4,8 @@ import (
 	"log"
 	"net/http"
 	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
-
+	"os"
 )
-
-// store := sessions.NewCookieStore([]byte("QiNiu"))
-
-// 创建一个全局的存储会话的map  
-// var sessionMap = make(map[string]*http.Cookie)  
-
-endPoint := "https://casdoor-community.qiniu.io"
-clientID := "49a8ac9729e314a05bf0"
-clientSecret := "9ff5d5be617618c92180c668ff28562271f310b4"
-certificate := "-----BEGIN CERTIFICATE-----\nMIIE3TCCAsWgAwIBAgIDAeJAMA0GCSqGSIb3DQEBCwUAMCgxDjAMBgNVBAoTBWFk\nbWluMRYwFAYDVQQDEw1jZXJ0LWJ1aWx0LWluMB4XDTI0MDExMDA5MjUxNVoXDTQ0\nMDExMDA5MjUxNVowKDEOMAwGA1UEChMFYWRtaW4xFjAUBgNVBAMTDWNlcnQtYnVp\nbHQtaW4wggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIKAoICAQDZ6k0hJ5aCOgHI\nkLY+doPSYI/WB0F36saOKtGolxA1j6p99sJZTVRDocsseQj6EGIXKdRi58H5ncfG\nIjE7ePoKVI+U4e67VtE1Y5fmI6Dg740tSh7q1+IJkCHZ06dz24irzgVDWMiEl5eQ\n+ekq5ebN0zCIK/MFE0QEraWp3jX3MXiiBshnZgbI8TMyQCD0CNR/OiB+9VEzUlQO\nBQAGefzOZkj7NxV9USnVu5TsQBvEzL43hlrQ5c5NgbRg8VGKluByNCniSftRP08H\nUebc2nFc0cbV9vkyCmR9gHAsFyJBH8593q5sahXoUaZYcwpu7aieH9dUqSitsOm8\n5gGA/Aueude29kKrFSDwzdg5l1qYDOdpnPsJ2282EmM+/V8EG0S8+y4sWSFDo6km\n6JZhi0ULHjJI0kCjDzykrpoEgzroN1Zfdk33MH2EecUBirnJ0d+t+VOzB2z7O/Ve\n+bKlniZs9SEIVQCIStOTxXGx6gmMZyXQJzTaaBfN6Y2N/IXAimrbgaAXwtTJAimk\nCRT13sMDpdGBCMzWAG4NVl2mTT+NrbbYT2GS3MgqBLZCLcbWb6zXb0WUbmn/fmMl\nbJO4ilzTOm1cmZ9W5NyZFexiOFFt1YadMqcE9tttDLiBIsG3v4p4mhUDY19GUHWI\nrM651V/nP9WqM79N6zYJGc/hf1kpcwIDAQABoxAwDjAMBgNVHRMBAf8EAjAAMA0G\nCSqGSIb3DQEBCwUAA4ICAQCpBBW8zfljoCNBTra7pf5KSrwriDt+v+svkF3NStnQ\nz4VhSRTJtmhrMPhIOTFPNd1spmtqux6ph8Xdom3vnk5ZyZAOo9RefFmaiBjJ5BL8\nvD6KEj1f0tMs2HzgVeJe8fMKO9OC2Ltz0f8bzZiIFDySwdTaya6XgCjNgSyN+3hW\nQRklKtljSWsTxtUfvdPr5r4j62f13Jvm5rjrHk9YH0/lvKG+JVLoLFiJTntPZNdL\niCo7o7nu2xuSJo4ds3cgKfAdbRTU9smyLTNSdaGSI4r02sLvXDVEx99hquGGB8FO\nQg9mqmP83QsuXdNot23vcWoh+1jCZ/KIu77x2DqwtZn8Lh77V0lO18pQYeLC1QSc\nfnK6gliAmB86HeYSxUscimTXOtdRNNopuik4x36V1q3ZislEXOUgiGJvx/rGVicC\nTVXs8+5eexakcGteA3FDp95RCVFBedMGzjXPEbnNs2th4DPUQZvOLUtCB1BZwfE8\nEXkJGv/WFKqdQszfKl3hFxocmZppciLV+rTFMnZNNSXcIZIn1n7kEPy/2Teq0ObI\n7FqI+/gZu2Shw82RBcVtrTfRqY51S/a/lB9Ofu2kGnR05XzVX3gtJMx1GVjMhNck\npOXpMCdMP22XpVFd/uKXdCd9tGGJUd5C+ZvcsThY9susU/LilAL9WQbhH1amJDsG\nbQ==\n-----END CERTIFICATE-----"
-organizationName := "built-in"
-applicationName := "application_ot2837"
-casdoorsdk.InitConfig(endPoint, clientID, clientSecret, certificate, organizationName, applicationName)
 
 
 get "/p/:id", ctx => {
@@ -41,7 +28,6 @@ get "/login",ctx => {
 	Scope := "read"
 	State := "casdoor"
 	loginURL := fmt.Sprintf("%s/login/oauth/authorize?client_id=%s&response_type=%s&redirect_uri=%s&scope=%s&state=%s",casdoorURL,clientID,ResponseType,redirectURI,Scope,State)
-	//line cmd/gopcomm/community_yap.gox:24:1
 	http.Redirect(ctx.ResponseWriter,ctx.Request,loginURL, http.StatusFound)
 }
 
@@ -53,17 +39,13 @@ get "/callback", ctx => {
 	fmt.Println("--code and state--")
 	fmt.Println("code:",code)
 	fmt.Println("state:",state)
-	// fmt.Println("========================================println token======================================")
 	token, err := casdoorsdk.GetOAuthToken(code, state)
 	if err != nil {
 		fmt.Println("err",err)
 	} 
-	//fmt.Println("==============================================parse token==============================")
 	claim, err := casdoorsdk.ParseJwtToken(token.AccessToken)
 	if err != nil {
 		log.Fatal("err",err)
-	}else {
-		// fmt.Println(claim.User.Name)
 	}
 	fmt.Println("============================================================")
 	username := claim.User.Name
@@ -78,13 +60,13 @@ get "/callback", ctx => {
 
 get "/test", ctx => {
 	cookie, _ := ctx.Request.Cookie("token")
-	// fmt.Println("-----------------------------------------------------")
-	// fmt.Println(cookie.Value)
 	claim, err := casdoorsdk.ParseJwtToken(cookie.Value)
 	if err != nil {
 		log.Fatal("err",err)//跳转到登录界面
 	}else {
-		fmt.Println(claim.User.Name)
+		fmt.Println("username:",claim.User.Name)
+		fmt.Println("userId:",claim.User.Id)
+		fmt.Println("password:",claim.User.Password)
 	}
 	ctx.yap "test", {}
 	
