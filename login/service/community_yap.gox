@@ -31,7 +31,6 @@ get "/login",ctx => {
 	http.Redirect(ctx.ResponseWriter,ctx.Request,loginURL, http.StatusFound)
 }
 
-//获取token
 get "/callback", ctx => {
 
 	code :=ctx.URL.Query().Get("code")
