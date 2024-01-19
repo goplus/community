@@ -3,6 +3,7 @@ import (
 	"time"
 	"log"
 	"os"
+	"io"
 	"net/http"
 
 	"github.com/goplus/community/internal/core"
@@ -89,7 +90,7 @@ post "/translate", ctx => {
 get "/getMedia", ctx => {
 	mediaId := ctx.param("id")
 	// todo the err not empty return 404 for image
-	fileKey, _ := community.GetMediaUrl(ctx, mediaId)
+	fileKey, _ := community.GetMediaUrl(todo, mediaId)
 
 	http.Redirect(ctx.ResponseWriter, ctx.Request, "qiniu demain"+fileKey, http.StatusTemporaryRedirect)
 }
