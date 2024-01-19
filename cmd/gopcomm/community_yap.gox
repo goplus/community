@@ -1,5 +1,6 @@
 import (
 	"context"
+	"net/http"
 
 	"github.com/goplus/community/internal/core"
 )
@@ -44,6 +45,66 @@ get "/edit", ctx => {
 }
 post "/commit", ctx => {
 	// ...
+}
+
+get "/getMedia", ctx => {
+	mediaId := ctx.param("id")
+	// todo the err not empty return 404 for image
+	fileKey, _ := community.GetMediaUrl(ctx, mediaId)
+
+	http.Redirect(ctx.ResponseWriter, ctx.Request, "qiniu demain"+fileKey, http.StatusTemporaryRedirect)
+}
+
+post "/upload", ctx => {
+	file, header, err := ctx.FormFile("file")
+filename := header.Filename
+
+ctx.ParseMultipartForm(10 << 20)
+
+if err != nil {
+    log.Fatalln("upload file error:", filename)
+    ctx.JSON(500, err.Error())
+    return
+}
+
+
+dst, err := os.Create(filename)
+if err != nil {
+    log.Fatalln("create file error:", file)
+    ctx.JSON(500, err.Error())
+    return
+}
+defer func() {
+    file.Close()
+    dst.Close()
+    err = os.Remove(filename)
+    if err != nil {
+       log.Fatalln("delete file error:", filename)
+       return
+    }
+}()
+
+
+_, err = io.Copy(dst, file)
+if err != nil {
+    log.Fatalln("copy file errer:", filename)
+	ctx.JSON(500, err.Error())
+    return
+}
+bytes, err := os.ReadFile(filename)
+if err != nil {
+    log.Fatalln("read file errer:", filename)
+	ctx.JSON(500, err.Error())
+    return
+}
+cookie, err := ctx.Request.Cookie("user_id")
+if err != nil {
+    log.Fatalln("token不存在")
+	ctx.JSON(500, err.Error())
+	return
+}
+
+community.SaveMedia(context.Background(),cookie.Value,bytes)
 }
 
 conf := &core.Config{}

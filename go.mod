@@ -9,6 +9,7 @@ require (
 )
 
 require (
+	github.com/google/uuid v1.4.0
 	github.com/qiniu/go-sdk/v7 v7.19.0
 	golang.org/x/text v0.14.0
 )
