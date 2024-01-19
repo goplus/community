@@ -103,7 +103,6 @@ func (c *Community) SaveMedia(ctx context.Context, userId string, data []byte) (
 	if err != nil {
 		return 0, err
 	}
-	defer c.db.Close()
 	res, err := stem.Exec(fileKey, fileInfo.Format, fileInfo.Size, uId, time.Now(), time.Now())
 
 	if err != nil {
@@ -134,7 +133,7 @@ func (c *Community) getMediaInfo(fileKey string) (*File, error) {
 
 func (c *Community) uploadMedia(fileKey string, data []byte) error {
 
-	w, err := c.bucket.NewWriter(context.Background(), "", nil)
+	w, err := c.bucket.NewWriter(context.Background(), fileKey, nil)
 	if err != nil {
 		return err
 	}
