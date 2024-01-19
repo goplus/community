@@ -189,7 +189,7 @@ func (e *Engine) TranslatePlainText(src string, from, to language.Tag) (ret stri
 	formData := url.Values{
 		"from":              {from.String()},
 		"to":                {to.String()},
-		"translationAPIKey": {c.translationAPIKey},
+		"translationAPIKey": {e.translationAPIKey},
 		"src_text":          {src},
 	}
 
