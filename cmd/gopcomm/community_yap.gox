@@ -10,6 +10,7 @@ import (
 	"github.com/goplus/community/markdown"
 	"github.com/goplus/community/translation"
 	language "golang.org/x/text/language"
+	_ "github.com/joho/godotenv/autoload"
 )
 
 var (
@@ -159,5 +160,7 @@ conf := &core.Config{}
 community, _ = core.New(todo, conf)
 trans = translation.New(os.Getenv("NIUTRANS_API_KEY"), "", "")
 
+s3 := os.Getenv("S3_BUCKET")
+println s3
 println "start"
 run ":8080"
