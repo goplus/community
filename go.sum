@@ -5,6 +5,8 @@ cloud.google.com/go/compute/metadata v0.2.3 h1:mg4jlk7mCAj6xXp9UJ4fjI9VUI5rubuGB
 cloud.google.com/go/iam v1.1.5 h1:1jTsCu4bcsNsE4iiqNT5SHwrDRCfRmIaaaVFhRveTJI=
 cloud.google.com/go/storage v1.35.1 h1:B59ahL//eDfx2IIKFBeT5Atm9wnNmj3+8xG/W4WB//w=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
+github.com/IRONICBo/yap v0.6.0 h1:w5YLoKyG8akDVJpO3PaO9Jwq9N72TBIEW4kBC0/R1eQ=
+github.com/IRONICBo/yap v0.6.0/go.mod h1:VCbGlZo2lUgRWciTZwA5JEOuCUf8T2PhxZZ0HXqzgBk=
 github.com/aws/aws-sdk-go v1.49.0 h1:g9BkW1fo9GqKfwg2+zCD+TW/D36Ux+vtfJ8guF4AYmY=
 github.com/aws/aws-sdk-go-v2 v1.24.0 h1:890+mqQ+hTpNuw0gGP6/4akolQkSToDJgHfQE7AwGuk=
 github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.5.4 h1:OCs21ST2LrepDfD3lwlQiOqIGp6JiEUqG84GzTDoyJs=

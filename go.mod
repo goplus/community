@@ -17,7 +17,7 @@ require (
 	github.com/qiniu/go-cdk-driver v0.1.0
 )
 
-// replace github.com/goplus/yap => github.com/IRONICBo/yap v0.6.0
+replace github.com/goplus/yap => github.com/IRONICBo/yap v0.6.0
 
 require (
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
