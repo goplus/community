@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	_ "github.com/qiniu/go-cdk-driver/kodoblob"
 )
 
 type File struct {

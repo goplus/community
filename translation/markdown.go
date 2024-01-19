@@ -142,7 +142,6 @@ func (e *Engine) TranslateMarkdown(src []byte, from, to language.Tag) (ret []byt
 // TranslateMarkdown translate markdown text
 func (e *Engine) TranslateMarkdownText(src string, from, to language.Tag) (ret string, err error) {
 	retByte, err := e.TranslateMarkdown([]byte(src), from, to)
-
 	return string(retByte), err
 }
 
