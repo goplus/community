@@ -17,9 +17,7 @@
 package translation
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -62,88 +60,20 @@ func TestUploadVideo(t *testing.T) {
 	t.Log(ret)
 }
 
-func TestASR(t *testing.T) {
-	// {
-	// 	"audioUrl":"https://cdnfile.mp3",
-	// 	"callback":"https://callbackurl.com",
-	// 	"filedata":{
-	// 		"aue":"wav",
-	// 		"lang":"MANDARIN",
-	// 		"sampleRateHertz":"16000",
-	// 		"audioName":"这是一个示例文件.amr"
-	// 	},
-	// 	"speechConfig":{
-	// 		"scene":"GERNERL",
-	// 		"byWords":true,
-	// 		"customWords":[
-	// 			"七牛",
-	// 			"信息技术有限公司"
-	// 		],
-	// 		"addPunctuation":true,
-	// 		"wordsReplaceConfig":true,
-	// 		"numOfSpeakers":1,
-	// 		"convertNumber":true
-	// 	},
-	// 	"wordsReplaceConfig":[
-	// 		{
-	// 			"keywords":"他妈的",
-	// 			"replace":"*"
-	// 		},
-	// 		{
-	// 			"keywords":"破坏",
-	// 			"replace":"xx"
-	// 		}
-	// 	]
-	// }
-
-	requestBody := map[string]interface{}{
-		"audioUrl": "http://s7cjwtxc2.hn-bkt.clouddn.com/test.mp4",
-		"callback": "https://callbackurl.com",
-		"filedata": map[string]interface{}{
-			"aue":             "wav",
-			"lang":            "MANDARIN",
-			"sampleRateHertz": "16000",
-			"audioName":       "test.amr",
-		},
-		"speechConfig": map[string]interface{}{
-			"scene":              "GERNERL",
-			"byWords":            true,
-			"customWords":        []string{"七牛", "信息技术有限公司"},
-			"addPunctuation":     true,
-			"wordsReplaceConfig": true,
-			"numOfSpeakers":      1,
-			"convertNumber":      true,
-		},
-		"wordsReplaceConfig": []map[string]interface{}{},
-	}
-
-	jsonPayload, err := json.Marshal(requestBody)
+func TestVideo2Text(t *testing.T) {
+	e := New("", mockAccessKey, mockSecretKey)
+	resp, err := e.Video2Text("http://test.com/test.mp4", "http://test.com/callback")
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Log(resp)
+}
 
-	reqURL := "https://yitu-audio.qiniuapi.com/v4/lasr"
-
-	req, err := http.NewRequest(http.MethodPost, reqURL, bytes.NewBuffer(jsonPayload))
+func TestText2Video(t *testing.T) {
+	e := New("", mockAccessKey, mockSecretKey)
+	resp, err := e.Text2Audio("hello world")
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	mac := auth.New(mockAccessKey, mockSecretKey)
-	bearToken, err := mac.SignRequestV2(req)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", bearToken))
-
-	client := http.Client{}
-	resp, err := client.Do(req)
-	fmt.Println(resp)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	defer resp.Body.Close()
+	t.Log(resp)
 }
