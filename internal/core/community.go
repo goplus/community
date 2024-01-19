@@ -46,6 +46,7 @@ type ArticleEntry struct {
 	UId   string
 	Cover string
 	Tags  string
+	User  User
 	Ctime time.Time
 	Mtime time.Time
 }
@@ -80,10 +81,12 @@ func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 	}
 	bucket, err := blob.OpenBucket(ctx, bus)
 	if err != nil {
+		log.Println(err)
 		return
 	}
 	db, err := sql.Open(driver, dsn)
 	if err != nil {
+		log.Println(err)
 		return
 	}
 	return &Community{bucket, db}, nil
@@ -101,6 +104,11 @@ func (p *Community) Article(ctx context.Context, id string) (article *Article, e
 		return article, err
 	}
 	// TODO add author info
+	user, err := p.GetUser(ctx, article.UId)
+	if err != nil {
+		return
+	}
+	article.User = *user
 	return
 }
 
@@ -140,6 +148,14 @@ func (p *Community) DeleteArticle(ctx context.Context, uid, id string) (err erro
 	return
 }
 
+// DeleteArticles delete the articles by uid.
+func (p *Community) DeleteArticles(ctx context.Context, uid string) (err error) {
+	sqlStr := "delete from article where user_id=?"
+	_, err = p.db.Exec(sqlStr, uid)
+	// TODO delete the media
+	return
+}
+
 const (
 	MarkBegin = ""
 	MarkEnd   = "eof"
@@ -171,6 +187,12 @@ func (p *Community) ListArticle(ctx context.Context, from string, limit int) (it
 			return []*ArticleEntry{}, from, err
 		}
 		// TODO add author info
+		user, err := p.GetUser(ctx, article.UId)
+		if err != nil {
+			return []*ArticleEntry{}, from, err
+		}
+		article.User = *user
+
 		items = append(items, article)
 		rowLen++
 	}
