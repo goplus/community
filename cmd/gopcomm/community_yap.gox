@@ -1,7 +1,6 @@
 import (
 	"context"
 	"time"
-	"log"
 	"os"
 	"io"
 	"net/http"
@@ -9,6 +8,7 @@ import (
 	"github.com/goplus/community/internal/core"
 	"github.com/goplus/community/markdown"
 	"github.com/goplus/community/translation"
+	"go.uber.org/zap"
 	language "golang.org/x/text/language"
 	_ "github.com/joho/godotenv/autoload"
 )
@@ -19,6 +19,10 @@ var (
 )
 
 todo := context.TODO()
+endpoint := os.Getenv("GOP_COMMUNITY_ENDPOINT")
+logger, _ := zap.NewProduction()
+defer logger.Sync()
+zlog := logger.Sugar()
 
 get "/p/:id", ctx => {
 	id := ctx.param("id")
@@ -48,7 +52,7 @@ get "/edit", ctx => {
 	if id != "" {
 		if editable, _ := community.canEditable(todo, uid, id); !editable {
 			// TODO: can't edit this article
-			log.Println("no permissions")
+			zlog.Error("no permissions")
 			return
 		}
 		article, _ := community.article(todo, id)
@@ -102,7 +106,7 @@ post "/upload", ctx => {
 	ctx.ParseMultipartForm(10 << 20)
 
 	if err != nil {
-		log.Fatalln("upload file error:", filename)
+		zlog.Error("upload file error:", filename)
 		ctx.JSON(500, err.Error())
 		return
 	}
@@ -110,7 +114,7 @@ post "/upload", ctx => {
 
 	dst, err := os.Create(filename)
 	if err != nil {
-		log.Fatalln("create file error:", file)
+		zlog.Error("create file error:", file)
 		ctx.JSON(500, err.Error())
 		return
 	}
@@ -119,7 +123,7 @@ post "/upload", ctx => {
 		dst.Close()
 		err = os.Remove(filename)
 		if err != nil {
-		log.Fatalln("delete file error:", filename)
+		zlog.Error("delete file error:", filename)
 		return
 		}
 	}()
@@ -127,26 +131,26 @@ post "/upload", ctx => {
 
 	_, err = io.Copy(dst, file)
 	if err != nil {
-		log.Fatalln("copy file errer:", filename)
+		zlog.Error("copy file errer:", filename)
 		ctx.JSON(500, err.Error())
 		return
 	}
 	bytes, err := os.ReadFile(filename)
 	if err != nil {
-		log.Fatalln("read file errer:", filename)
+		zlog.Error("read file errer:", filename)
 		ctx.JSON(500, err.Error())
 		return
 	}
 	cookie, err := ctx.Request.Cookie("user_id")
 	if err != nil {
-		log.Fatalln("token不存在")
+		zlog.Error("token不存在")
 		ctx.JSON(500, err.Error())
 		return
 	}
 
   id,err:=community.SaveMedia(context.Background(),cookie.Value,bytes)
   if err!=nil {
-    log.Fatalln("save file",err.Error())
+    zlog.Error("save file",err.Error())
     ctx.JSON(500, err.Error())
     return
   }
@@ -159,7 +163,5 @@ conf := &core.Config{}
 community, _ = core.New(todo, conf)
 trans = translation.New(os.Getenv("NIUTRANS_API_KEY"), "", "")
 
-s3 := os.Getenv("S3_BUCKET")
-println s3
-println "start"
-run ":8080"
+zlog.Info "Started in endpoint: ", endpoint
+run endpoint

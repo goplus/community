@@ -1,0 +1,71 @@
+import (
+	"fmt"
+	"net/http"
+	"os"
+
+	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
+	"go.uber.org/zap"
+	_ "github.com/joho/godotenv/autoload"
+)
+
+endpoint := os.Getenv("GOP_ACCOUNT_ENDPOINT")
+logger, _ := zap.NewProduction()
+defer logger.Sync()
+zlog := logger.Sugar()
+
+get "/p/:id", ctx => {
+	ctx.yap "article", {
+		"id": ctx.param("id"),
+	}
+}
+get "/", ctx => {
+	ctx.yap "home", {}
+}
+
+get "/login",ctx => {
+	casdoorURL := "https://casdoor-community.qiniu.io"
+	clientID := "49a8ac9729e314a05bf0"
+	redirectURI := "http://localhost:8080/callback"
+	ResponseType := "code"
+	Scope := "read"
+	State := "casdoor"
+	loginURL := fmt.Sprintf("%s/login/oauth/authorize?client_id=%s&response_type=%s&redirect_uri=%s&scope=%s&state=%s",casdoorURL,clientID,ResponseType,redirectURI,Scope,State)
+	http.Redirect(ctx.ResponseWriter,ctx.Request,loginURL, http.StatusFound)
+}
+
+get "/callback", ctx => {
+	code :=ctx.URL.Query().Get("code")
+	state :=ctx.URL.Query().Get("state")
+	fmt.Println("--code and state--")
+	fmt.Println("code:",code)
+	fmt.Println("state:",state)
+	token, err := casdoorsdk.GetOAuthToken(code, state)
+	if err != nil {
+		fmt.Println("err",err)
+	} 
+	claim, err := casdoorsdk.ParseJwtToken(token.AccessToken)
+	if err != nil {
+		zlog.Error("err",err)
+	}
+	username := claim.User.Name
+	ctx.yap "callback", {
+		"username": username,
+		"usertoken": token.AccessToken,
+	}
+}
+
+get "/test", ctx => {
+	cookie, _ := ctx.Request.Cookie("token")
+	claim, err := casdoorsdk.ParseJwtToken(cookie.Value)
+	if err != nil {
+		zlog.Error("err",err)//跳转到登录界面
+	} else {
+		fmt.Println("username:",claim.User.Name)
+		fmt.Println("userId:",claim.User.Id)
+		fmt.Println("password:",claim.User.Password)
+	}
+	ctx.yap "test", {}
+}
+
+zlog.Info "Started in endpoint: ", endpoint
+run endpoint

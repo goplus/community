@@ -2,7 +2,6 @@ package core
 
 import (
 	"context"
-	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -53,7 +52,7 @@ func (c *Community) DelMedia(ctx context.Context, userId, mediaId string) error 
 		return err
 	}
 	if aff == 0 {
-		log.Println("no need del data")
+		c.zlog.Warn("no need del data")
 		return nil
 	}
 

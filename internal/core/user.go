@@ -3,7 +3,6 @@ package core
 import (
 	"context"
 	"database/sql"
-	"log"
 	"strconv"
 	"time"
 )
@@ -23,7 +22,7 @@ func (p *Community) GetUser(ctx context.Context, id string) (user *User, err err
 	sqlStr := "select id,name,avatar from users where id=?"
 	err = p.db.QueryRow(sqlStr, id).Scan(&user.ID, &user.Name, &user.Avatar)
 	if err == sql.ErrNoRows {
-		log.Println("not found the author")
+		p.zlog.Error("not found the author")
 		return user, ErrNotExist
 	} else if err != nil {
 		return user, err

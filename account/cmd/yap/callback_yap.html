@@ -1,0 +1,16 @@
+<html>
+<head>
+<meta charset="utf-8"/>
+</head>
+<body>
+<h1>This is callback page </h1>
+<h1> username :{{.username}} </h1>
+<h2>Go+ Community test page <a href="/test">go!</a></h2>
+<input style="display:none" id="usertoken" value="{{.usertoken}}"/>
+</body>
+
+<script>
+var token = getElementById("usertoken").value
+document.cookie = "token="+token
+</script>
+</html>
