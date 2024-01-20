@@ -57,34 +57,53 @@ get "/edit", ctx => {
 	}
 	ctx.yap "edit", doc
 }
-post "/commit", ctx => {
-	uid := "12"
+
+get "/getTrans", ctx => {
 	id := ctx.param("id")
+	htmlUrl, _ := community.transHtmlUrl(todo, id)
+	ctx.json {
+		"data": htmlUrl,
+	}
+}
+
+// click "submit" button
+post "/commit", ctx => {
+	// Whether article has been translated or not
+	trans := ctx.param("trans")   // if trans != ""， add article 
+	id := ctx.param("id")
+	mdData := ctx.param("content")
+	htmlData := ctx.param("html")
+	// TODO get user id
+	uid := "12"
+	// add article 
 	article := &core.Article{
 		ArticleEntry: core.ArticleEntry{
-			ID:    id,
-			Title: "Sample Title",
-			UId:   "1",
-			Cover: "sample_cover",
-			Tags:  "tag1",
-			Ctime: time.Now(),
-			Mtime: time.Now(),
+			ID: id,
+			Title: ctx.param("title"),
+			UId:   uid,   
+			Cover: ctx.param("cover"),
+			Tags:  ctx.param("tags"),
 		},
-		// Status:  1,
-		Content: "Sample Markdown Content",
-		// HtmlUrl: "/sample-html-url",
+		Content: mdData,
+		HtmlData:htmlData,
 	}
-	// TODO check author exist
-	_, _ = community.putArticle(todo, uid, article)
+	id, _ = community.putArticle(todo, uid, trans, article)
+	article.ID = id
 	ctx.yap "edit", *article
 }
 
-
+//  click "translate button"
 post "/translate", ctx => {
-    mdData := ctx.param("id")
-    transData, _ := trans.TranslateMarkdownText(mdData, language.Chinese, language.English)
+	// TODO get user id
+	uid := "1"
+    mdData := ctx.param("content")
+	htmlData := ctx.param("html")
+	id, _ := community.saveHtml(todo, uid, htmlData, mdData)
+	// get translation markdown
+    transData, _ := trans.translateMarkdownText(mdData, language.Chinese, language.English)
 	ctx.json {
-		"data": transData,
+		"id": id,  //article id
+		"data": transData,  // translation markdown content
 	}
 }
 
