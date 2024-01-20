@@ -138,7 +138,7 @@ func (p *Community) TransHtmlUrl(ctx context.Context, id string) (htmlUrl string
 	sqlStr := "select trans_html_id from article where id=?"
 	err = p.db.QueryRow(sqlStr, id).Scan(&htmlId)
 	if err == sql.ErrNoRows {
-		log.Println("not found the translation html")
+		p.zlog.Warn("not found the translation html")
 		return "", ErrNotExist
 	}
 
@@ -146,7 +146,7 @@ func (p *Community) TransHtmlUrl(ctx context.Context, id string) (htmlUrl string
 	fileKey, err := p.GetMediaUrl(ctx, htmlId)
 	htmlUrl = fmt.Sprintf("%s%s", p.domain, fileKey)
 	if err != nil {
-		log.Println("have no html media")
+		p.zlog.Warn("have no html media")
 		htmlUrl = ""
 	}
 	return
