@@ -10,6 +10,7 @@ import (
 	"github.com/goplus/community/markdown"
 	"github.com/goplus/community/translation"
 	language "golang.org/x/text/language"
+	_ "github.com/joho/godotenv/autoload"
 )
 
 var (
@@ -87,14 +88,13 @@ post "/translate", ctx => {
 	}
 }
 
-get "/getMedia", ctx => {
+get "/getMedia/:id", ctx => {
 	mediaId := ctx.param("id")
 	// todo the err not empty return 404 for image
-	fileKey, _ := community.GetMediaUrl(todo, mediaId)
+	fileKey, _ := community.GetMediaUrl(context.Background(),mediaId)
 
 	http.Redirect(ctx.ResponseWriter, ctx.Request, "qiniu demain"+fileKey, http.StatusTemporaryRedirect)
 }
-
 post "/upload", ctx => {
 	file, header, err := ctx.FormFile("file")
 	filename := header.Filename
@@ -144,13 +144,22 @@ post "/upload", ctx => {
 		return
 	}
 
-	community.SaveMedia(context.Background(),cookie.Value,bytes)
+  id,err:=community.SaveMedia(context.Background(),cookie.Value,bytes)
+  if err!=nil {
+    log.Fatalln("save file",err.Error())
+    ctx.JSON(500, err.Error())
+    return
+  }
+  // todo append current project ip and getMedia
+  // sample: 127.0.0.1:8080/getMedia/ + id
+  ctx.JSON(200,id)
 }
-
 
 conf := &core.Config{}
 community, _ = core.New(todo, conf)
 trans = translation.New(os.Getenv("NIUTRANS_API_KEY"), "", "")
 
+s3 := os.Getenv("S3_BUCKET")
+println s3
 println "start"
 run ":8080"
