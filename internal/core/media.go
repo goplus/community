@@ -103,7 +103,6 @@ func (c *Community) SaveMedia(ctx context.Context, userId string, data []byte) (
 	if err != nil {
 		return 0, err
 	}
-	defer c.db.Close()
 	res, err := stem.Exec(fileKey, fileInfo.Format, fileInfo.Size, uId, time.Now(), time.Now())
 
 	if err != nil {

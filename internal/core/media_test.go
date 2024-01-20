@@ -70,6 +70,6 @@ func TestDelMedias(t *testing.T) {
 }
 
 func readFileByte(filePath string) ([]byte, error) {
-	data, err := os.ReadFile("sss")
+	data, err := os.ReadFile(filePath)
 	return data, err
 }

@@ -55,12 +55,13 @@ type Article struct {
 	ArticleEntry
 	Content string // in markdown
 	// Status  int    // published or draft
-	// HtmlUrl string // parsed html file url
+	HtmlUrl string // parsed html file url
 }
 
 type Community struct {
 	bucket *blob.Bucket
 	db     *sql.DB
+	domain string
 }
 
 func New(ctx context.Context, conf *Config) (ret *Community, err error) {
@@ -79,6 +80,8 @@ func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 	if bus == "" {
 		bus = os.Getenv("GOP_COMMUNITY_BLOBUS")
 	}
+	domain := os.Getenv("GOP_COMMUNITY_DOMAIN")
+
 	bucket, err := blob.OpenBucket(ctx, bus)
 	if err != nil {
 		log.Println(err)
@@ -89,26 +92,35 @@ func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 		log.Println(err)
 		return
 	}
-	return &Community{bucket, db}, nil
+	return &Community{bucket, db, domain}, nil
 }
 
 // Article returns an article.
 func (p *Community) Article(ctx context.Context, id string) (article *Article, err error) {
 	article = &Article{}
-	sqlStr := "select id,title,user_id,cover,tags,content,ctime,mtime from article where id=?"
-	err = p.db.QueryRow(sqlStr, id).Scan(&article.ID, &article.Title, &article.UId, &article.Cover, &article.Tags, &article.Content, &article.Ctime, &article.Mtime)
+	var htmlId string
+	sqlStr := "select id,title,user_id,cover,tags,content,html_id,ctime,mtime from article where id=?"
+	err = p.db.QueryRow(sqlStr, id).Scan(&article.ID, &article.Title, &article.UId, &article.Cover, &article.Tags, &article.Content, &htmlId, &article.Ctime, &article.Mtime)
 	if err == sql.ErrNoRows {
 		log.Println("not found the article")
 		return article, ErrNotExist
 	} else if err != nil {
 		return article, err
 	}
-	// TODO add author info
+	// add author info
 	user, err := p.GetUser(ctx, article.UId)
 	if err != nil {
 		return
 	}
 	article.User = *user
+
+	// get html url
+	fileKey, err := p.GetMediaUrl(ctx, htmlId)
+	article.HtmlUrl = fmt.Sprintf("%s%s", p.domain, fileKey)
+	if err != nil {
+		log.Println("have no html media")
+		article.HtmlUrl = ""
+	}
 	return
 }
 
@@ -122,12 +134,22 @@ func (p *Community) CanEditable(ctx context.Context, uid, id string) (editable b
 	return true, nil
 }
 
+// htmlStrToUrl upload html(string) to media for html url
+func (p *Community) uploadHtml(ctx context.Context, uid, htmlStr string) (htmlId int64, err error) {
+	htmlId, err = p.SaveMedia(ctx, uid, []byte(htmlStr))
+	return
+}
+
 // PutArticle adds new article (ID == "") or edits an existing article (ID != "").
 func (p *Community) PutArticle(ctx context.Context, uid string, article *Article) (id string, err error) {
+	htmlId, err := p.uploadHtml(ctx, uid, article.Content)
+	if err != nil {
+		htmlId = 0
+	}
 	// new article
 	if article.ID == "" {
-		sqlStr := "insert into article (title, ctime, mtime, user_id, tags, cover, content) values (?, ?, ?, ?, ?, ?, ?)"
-		res, err := p.db.Exec(sqlStr, &article.Title, time.Now(), time.Now(), uid, &article.Tags, &article.Cover, &article.Content)
+		sqlStr := "insert into article (title, ctime, mtime, user_id, tags, cover, content, html_id) values (?, ?, ?, ?, ?, ?, ?, ?)"
+		res, err := p.db.Exec(sqlStr, &article.Title, time.Now(), time.Now(), uid, &article.Tags, &article.Cover, &article.Content, htmlId)
 		if err != nil {
 			return "", err
 		}
@@ -135,24 +157,49 @@ func (p *Community) PutArticle(ctx context.Context, uid string, article *Article
 		return strconv.FormatInt(idInt, 10), nil
 	}
 	// edit article
-	sqlStr := "update article set title=?, mtime=?, tags=?, cover=?, content=? where id=?"
-	_, err = p.db.Exec(sqlStr, &article.Title, time.Now(), &article.Tags, &article.Cover, &article.Content, &article.ID)
+	sqlStr := "update article set title=?, mtime=?, tags=?, cover=?, content=?, html_id=? where id=?"
+	_, err = p.db.Exec(sqlStr, &article.Title, time.Now(), &article.Tags, &article.Cover, &article.Content, htmlId, &article.ID)
 	return article.ID, err
 }
 
 // DeleteArticle delete the article.
 func (p *Community) DeleteArticle(ctx context.Context, uid, id string) (err error) {
-	sqlStr := "delete from article where id=? and user_id=?"
+	// get htmlId
+	var htmlId string
+	sqlStr := "select html_id from article where id=? and user_id=?"
+	err = p.db.QueryRow(sqlStr, id, uid).Scan(&htmlId)
+	if err != nil {
+		return
+	}
+	sqlStr = "delete from article where id=? and user_id=?"
 	_, err = p.db.Exec(sqlStr, id, uid)
-	// TODO delete the media
+	if err != nil {
+		return
+	}
+	// delete the media
+	err = p.DelMedia(ctx, uid, htmlId)
 	return
 }
 
 // DeleteArticles delete the articles by uid.
 func (p *Community) DeleteArticles(ctx context.Context, uid string) (err error) {
-	sqlStr := "delete from article where user_id=?"
+	// get htmlIds
+	var htmlIds []string
+	sqlStr := "select html_id from article where user_id=?"
+	rows, err := p.db.Query(sqlStr, uid)
+	defer rows.Close()
+	for rows.Next() {
+		var htmlId string
+		err = rows.Scan(&htmlId)
+		if err != nil {
+			return
+		}
+		htmlIds = append(htmlIds, htmlId)
+	}
+	sqlStr = "delete from article where user_id=?"
 	_, err = p.db.Exec(sqlStr, uid)
-	// TODO delete the media
+	// delete the media
+	err = p.DelMedias(ctx, uid, htmlIds)
 	return
 }
 
@@ -161,7 +208,7 @@ const (
 	MarkEnd   = "eof"
 )
 
-// ListArticle lists articles from an position.
+// ListArticle lists articles from a position.
 func (p *Community) ListArticle(ctx context.Context, from string, limit int) (items []*ArticleEntry, next string, err error) {
 	if from == MarkBegin {
 		from = "0"
@@ -186,7 +233,7 @@ func (p *Community) ListArticle(ctx context.Context, from string, limit int) (it
 		if err != nil {
 			return []*ArticleEntry{}, from, err
 		}
-		// TODO add author info
+		// add author info
 		user, err := p.GetUser(ctx, article.UId)
 		if err != nil {
 			return []*ArticleEntry{}, from, err
