@@ -56,7 +56,8 @@ type Article struct {
 	ArticleEntry
 	Content string // in markdown
 	// Status  int    // published or draft
-	HtmlUrl string // parsed html file url
+	HtmlUrl  string // parsed html file url
+	HtmlData string
 }
 
 type Community struct {
@@ -131,6 +132,26 @@ func (p *Community) Article(ctx context.Context, id string) (article *Article, e
 	return
 }
 
+// TransContent get translation html url
+func (p *Community) TransHtmlUrl(ctx context.Context, id string) (htmlUrl string, err error) {
+	var htmlId string
+	sqlStr := "select trans_html_id from article where id=?"
+	err = p.db.QueryRow(sqlStr, id).Scan(&htmlId)
+	if err == sql.ErrNoRows {
+		log.Println("not found the translation html")
+		return "", ErrNotExist
+	}
+
+	// get html url
+	fileKey, err := p.GetMediaUrl(ctx, htmlId)
+	htmlUrl = fmt.Sprintf("%s%s", p.domain, fileKey)
+	if err != nil {
+		log.Println("have no html media")
+		htmlUrl = ""
+	}
+	return
+}
+
 // CanEditable determine whether the user has the permission to operate.
 func (p *Community) CanEditable(ctx context.Context, uid, id string) (editable bool, err error) {
 	sqlStr := "select id from article where id=? and user_id = ?"
@@ -141,15 +162,28 @@ func (p *Community) CanEditable(ctx context.Context, uid, id string) (editable b
 	return true, nil
 }
 
-// htmlStrToUrl upload html(string) to media for html url
+// SaveHtml upload origin html(string) to media for html id and save id to database
+func (p *Community) SaveHtml(ctx context.Context, uid, htmlStr, mdData string) (articleId int64, err error) {
+	htmlId, err := p.SaveMedia(ctx, uid, []byte(htmlStr))
+	// save to database
+	sqlStr := "insert into article (user_id, html_id, content) values (?, ?, ?)"
+	res, err := p.db.Exec(sqlStr, uid, htmlId, mdData)
+	if err != nil {
+		return 0, err
+	}
+	articleId, err = res.LastInsertId()
+	return
+}
+
+// uploadHtml upload html(string) to media for html id
 func (p *Community) uploadHtml(ctx context.Context, uid, htmlStr string) (htmlId int64, err error) {
 	htmlId, err = p.SaveMedia(ctx, uid, []byte(htmlStr))
 	return
 }
 
 // PutArticle adds new article (ID == "") or edits an existing article (ID != "").
-func (p *Community) PutArticle(ctx context.Context, uid string, article *Article) (id string, err error) {
-	htmlId, err := p.uploadHtml(ctx, uid, article.Content)
+func (p *Community) PutArticle(ctx context.Context, uid string, trans string, article *Article) (id string, err error) {
+	htmlId, err := p.uploadHtml(ctx, uid, article.HtmlData)
 	if err != nil {
 		htmlId = 0
 	}
@@ -163,6 +197,13 @@ func (p *Community) PutArticle(ctx context.Context, uid string, article *Article
 		idInt, err := res.LastInsertId()
 		return strconv.FormatInt(idInt, 10), nil
 	}
+	if trans != "" {
+		// add article except html_id, content (trans)
+		sqlStr := "update article set title=?, mtime=?, ctime=?, tags=?, cover=?, trans_content=?, trans_html_id=? where id=?"
+		_, err = p.db.Exec(sqlStr, &article.Title, time.Now(), time.Now(), &article.Tags, &article.Cover, &article.Content, htmlId, &article.ID)
+		return article.ID, err
+	}
+
 	// edit article
 	sqlStr := "update article set title=?, mtime=?, tags=?, cover=?, content=?, html_id=? where id=?"
 	_, err = p.db.Exec(sqlStr, &article.Title, time.Now(), &article.Tags, &article.Cover, &article.Content, htmlId, &article.ID)
