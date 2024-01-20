@@ -66,7 +66,7 @@ func TestPutArticle(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		id, _ := community.PutArticle(todo, tt.uid, tt.article)
+		id, _ := community.PutArticle(todo, tt.uid, "", tt.article)
 
 		if id != tt.expectedID {
 			t.Errorf("PutArticle(%s, %+v) returned ID %s, expected: %s", tt.uid, tt.article, id, tt.expectedID)
