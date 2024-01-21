@@ -24,6 +24,8 @@ logger, _ := zap.NewProduction()
 defer logger.Sync()
 zlog := logger.Sugar()
 
+static "/"
+
 get "/p/:id", ctx => {
 	id := ctx.param("id")
 	article, _ := community.article(todo, id)
