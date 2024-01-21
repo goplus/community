@@ -8,6 +8,7 @@ import (
 	"github.com/goplus/community/internal/core"
 	"github.com/goplus/community/markdown"
 	"github.com/goplus/community/translation"
+	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 	"go.uber.org/zap"
 	language "golang.org/x/text/language"
 	_ "github.com/joho/godotenv/autoload"
@@ -35,18 +36,38 @@ get "/p/:id", ctx => {
 		"Content": article.Content,
 	}
 }
+
+get "/user/:id", ctx => {
+	id := ctx.param("id")
+	// TODO: Get User Info
+
+	ctx.yap "user", {
+		"ID": id,
+	}
+}
+
 get "/add", ctx => {
 	ctx.yap "add", {}
 }
 
 get "/", ctx => {
+	var userClaims interface{}
+	token, err := ctx.Request.Cookie("token")
+	if err == nil {
+		zlog.Info("token", token)
+		userClaims, _ := casdoorsdk.ParseJwtToken(token.Value[6:])
+		zlog.Info("userClaims", userClaims)
+	}
+
 	articles, _, _ := community.listArticle(todo, core.MarkBegin, 20)
 	ctx.yap "home", {
+		"userToken": token,
+		"User":  userClaims,
 		"Items": articles,
 	}
 }
 get "/edit", ctx => {
-	cookie, err := ctx.Request.Cookie("user_id")
+	cookie, err := ctx.Request.Cookie("token")
 	if err != nil {
 		ctx.json {
 			"code": 500,
