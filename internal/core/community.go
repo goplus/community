@@ -132,7 +132,7 @@ func (p *Community) Article(ctx context.Context, id string) (article *Article, e
 	return
 }
 
-// TransContent get translation html url
+// TransHtmlUrl get translation html url
 func (p *Community) TransHtmlUrl(ctx context.Context, id string) (htmlUrl string, err error) {
 	var htmlId string
 	sqlStr := "select trans_html_id from article where id=?"
@@ -297,4 +297,31 @@ func (p *Community) ListArticle(ctx context.Context, from string, limit int) (it
 	}
 	next = strconv.Itoa(fromInt + rowLen)
 	return items, next, nil
+}
+
+// SearchArticle search articles by title.
+func (p *Community) SearchArticle(ctx context.Context, searchValue string) (items []*ArticleEntry, err error) {
+	sqlStr := "select id, title, ctime, user_id, tags, cover from article where title like ?"
+	rows, err := p.db.Query(sqlStr, "%"+searchValue+"%")
+	if err != nil {
+		return []*ArticleEntry{}, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		article := &ArticleEntry{}
+		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Cover)
+		if err != nil {
+			return []*ArticleEntry{}, err
+		}
+		// add author info
+		user, err := p.GetUser(ctx, article.UId)
+		if err != nil {
+			return []*ArticleEntry{}, err
+		}
+		article.User = *user
+
+		items = append(items, article)
+	}
+	return items, nil
 }

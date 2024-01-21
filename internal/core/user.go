@@ -74,13 +74,8 @@ func (p *Community) DeleteUser(ctx context.Context, id string) (err error) {
 	return
 }
 
-func (p *Community) GetUserId(code, state string) (userId string, err error) {
-	token, err := casdoorsdk.GetOAuthToken(code, state)
-	if err != nil {
-		p.zlog.Error(err)
-		return "", ErrNotExist
-	}
-	claim, err := casdoorsdk.ParseJwtToken(token.AccessToken)
+func (p *Community) GetUserId(token string) (userId string, err error) {
+	claim, err := casdoorsdk.ParseJwtToken(token)
 	if err != nil {
 		p.zlog.Error(err)
 		return "", ErrNotExist
