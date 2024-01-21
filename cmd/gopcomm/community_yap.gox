@@ -46,7 +46,14 @@ get "/", ctx => {
 	}
 }
 get "/edit", ctx => {
-	uid := "3"
+	cookie, err := ctx.Request.Cookie("user_id")
+	if err != nil {
+		ctx.json {
+			"code": 500,
+			"err": err.Error(),
+		}
+	}
+	uid := cookie.Value
 	id := ctx.param("id")
 	doc := {
 		"ID": id,
@@ -66,8 +73,15 @@ get "/edit", ctx => {
 
 get "/getTrans", ctx => {
 	id := ctx.param("id")
-	htmlUrl, _ := community.transHtmlUrl(todo, id)
+	htmlUrl, err := community.transHtmlUrl(todo, id)
+	if err != nil {
+		ctx.json {
+			"code": 500,
+			"err": err.Error(), 
+		}
+	}
 	ctx.json {
+		"code": 200,
 		"data": htmlUrl,
 	}
 }
@@ -79,8 +93,15 @@ post "/commit", ctx => {
 	id := ctx.param("id")
 	mdData := ctx.param("content")
 	htmlData := ctx.param("html")
-	// TODO get user id
-	uid := "12"
+	// get user id
+	cookie, err := ctx.Request.Cookie("user_id")
+	if err != nil {
+		ctx.json {
+			"code": 500,
+			"err": err.Error(),
+		}
+	}
+	uid := cookie.Value
 	// add article 
 	article := &core.Article{
 		ArticleEntry: core.ArticleEntry{
@@ -100,14 +121,28 @@ post "/commit", ctx => {
 
 //  click "translate button"
 post "/translate", ctx => {
-	// TODO get user id
-	uid := "1"
+	// get user id
+	cookie, err := ctx.Request.Cookie("user_id")
+	if err != nil {
+		ctx.json {
+			"code": 500,
+			"err": err.Error(),
+		}
+	}
+	uid := cookie.Value
     mdData := ctx.param("content")
 	htmlData := ctx.param("html")
 	id, _ := community.saveHtml(todo, uid, htmlData, mdData)
 	// get translation markdown
-    transData, _ := trans.translateMarkdownText(mdData, language.Chinese, language.English)
+    transData, err := trans.translateMarkdownText(mdData, language.Chinese, language.English)
+	if err != nil {
+		ctx.json {
+			"code": 500,
+			"err": err.Error(),
+		}
+	}
 	ctx.json {
+		"code": 200,
 		"id": id,  //article id
 		"data": transData,  // translation markdown content
 	}

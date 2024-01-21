@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"database/sql"
+	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 	"strconv"
 	"time"
 )
@@ -19,7 +20,7 @@ type User struct {
 // GetUser return author
 func (p *Community) GetUser(ctx context.Context, id string) (user *User, err error) {
 	user = &User{}
-	sqlStr := "select id,name,avatar from users where id=?"
+	sqlStr := "select id,name,avatar from user where id=?"
 	err = p.db.QueryRow(sqlStr, id).Scan(&user.ID, &user.Name, &user.Avatar)
 	if err == sql.ErrNoRows {
 		p.zlog.Error("not found the author")
@@ -34,7 +35,7 @@ func (p *Community) GetUser(ctx context.Context, id string) (user *User, err err
 func (p *Community) PutUser(ctx context.Context, user *User) (id string, err error) {
 	// new user
 	if user.ID == "" {
-		sqlStr := "insert into users (name, password, avatar, ctime, mtime) values (?, ?, ?, ?, ?)"
+		sqlStr := "insert into user (name, password, avatar, ctime, mtime) values (?, ?, ?, ?, ?)"
 		res, err := p.db.Exec(sqlStr, &user.Name, &user.Password, &user.Avatar, time.Now(), time.Now())
 		if err != nil {
 			return "", err
@@ -43,7 +44,7 @@ func (p *Community) PutUser(ctx context.Context, user *User) (id string, err err
 		return strconv.FormatInt(idInt, 10), nil
 	}
 	// edit user
-	sqlStr := "update users set name=?, avatar=?, mtime=? where id=?"
+	sqlStr := "update user set name=?, avatar=?, mtime=? where id=?"
 	_, err = p.db.Exec(sqlStr, &user.Name, &user.Avatar, time.Now(), &user.ID)
 	return user.ID, err
 }
@@ -57,7 +58,7 @@ func (p *Community) DeleteUser(ctx context.Context, id string) (err error) {
 	}
 
 	// delete user
-	sqlStr := "delete from users where id=?"
+	sqlStr := "delete from user where id=?"
 	_, err = p.db.Exec(sqlStr, id)
 	if err != nil {
 		tx.Rollback()
@@ -71,4 +72,18 @@ func (p *Community) DeleteUser(ctx context.Context, id string) (err error) {
 
 	err = tx.Commit()
 	return
+}
+
+func (p *Community) GetUserId(code, state string) (userId string, err error) {
+	token, err := casdoorsdk.GetOAuthToken(code, state)
+	if err != nil {
+		p.zlog.Error(err)
+		return "", ErrNotExist
+	}
+	claim, err := casdoorsdk.ParseJwtToken(token.AccessToken)
+	if err != nil {
+		p.zlog.Error(err)
+		return "", ErrNotExist
+	}
+	return claim.Id, nil
 }
