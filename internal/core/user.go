@@ -3,7 +3,7 @@ package core
 import (
 	"context"
 	"database/sql"
-	"log"
+	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 	"strconv"
 	"time"
 )
@@ -23,7 +23,7 @@ func (p *Community) GetUser(ctx context.Context, id string) (user *User, err err
 	sqlStr := "select id,name,avatar from user where id=?"
 	err = p.db.QueryRow(sqlStr, id).Scan(&user.ID, &user.Name, &user.Avatar)
 	if err == sql.ErrNoRows {
-		log.Println("not found the author")
+		p.zlog.Error("not found the author")
 		return user, ErrNotExist
 	} else if err != nil {
 		return user, err
@@ -72,4 +72,18 @@ func (p *Community) DeleteUser(ctx context.Context, id string) (err error) {
 
 	err = tx.Commit()
 	return
+}
+
+func (p *Community) GetUserId(code, state string) (userId string, err error) {
+	token, err := casdoorsdk.GetOAuthToken(code, state)
+	if err != nil {
+		p.zlog.Error(err)
+		return "", ErrNotExist
+	}
+	claim, err := casdoorsdk.ParseJwtToken(token.AccessToken)
+	if err != nil {
+		p.zlog.Error(err)
+		return "", ErrNotExist
+	}
+	return claim.Id, nil
 }

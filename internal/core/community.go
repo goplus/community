@@ -21,12 +21,12 @@ import (
 	"database/sql"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"strconv"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"go.uber.org/zap"
 	"gocloud.dev/blob"
 )
 
@@ -64,9 +64,15 @@ type Community struct {
 	bucket *blob.Bucket
 	db     *sql.DB
 	domain string
+
+	zlog *zap.SugaredLogger
 }
 
 func New(ctx context.Context, conf *Config) (ret *Community, err error) {
+	// Init log
+	logger, _ := zap.NewProduction()
+	zlog := logger.Sugar()
+
 	if conf == nil {
 		conf = new(Config)
 	}
@@ -86,15 +92,15 @@ func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 
 	bucket, err := blob.OpenBucket(ctx, bus)
 	if err != nil {
-		log.Println(err)
+		zlog.Error(err)
 		return
 	}
 	db, err := sql.Open(driver, dsn)
 	if err != nil {
-		log.Println(err)
+		zlog.Error(err)
 		return
 	}
-	return &Community{bucket, db, domain}, nil
+	return &Community{bucket, db, domain, zlog}, nil
 }
 
 // Article returns an article.
@@ -104,7 +110,7 @@ func (p *Community) Article(ctx context.Context, id string) (article *Article, e
 	sqlStr := "select id,title,user_id,cover,tags,content,html_id,ctime,mtime from article where id=?"
 	err = p.db.QueryRow(sqlStr, id).Scan(&article.ID, &article.Title, &article.UId, &article.Cover, &article.Tags, &article.Content, &htmlId, &article.Ctime, &article.Mtime)
 	if err == sql.ErrNoRows {
-		log.Println("not found the article")
+		p.zlog.Warn("not found the article")
 		return article, ErrNotExist
 	} else if err != nil {
 		return article, err
@@ -120,7 +126,7 @@ func (p *Community) Article(ctx context.Context, id string) (article *Article, e
 	fileKey, err := p.GetMediaUrl(ctx, htmlId)
 	article.HtmlUrl = fmt.Sprintf("%s%s", p.domain, fileKey)
 	if err != nil {
-		log.Println("have no html media")
+		p.zlog.Warn("have no html media")
 		article.HtmlUrl = ""
 	}
 	return
@@ -132,7 +138,7 @@ func (p *Community) TransHtmlUrl(ctx context.Context, id string) (htmlUrl string
 	sqlStr := "select trans_html_id from article where id=?"
 	err = p.db.QueryRow(sqlStr, id).Scan(&htmlId)
 	if err == sql.ErrNoRows {
-		log.Println("not found the translation html")
+		p.zlog.Warn("not found the translation html")
 		return "", ErrNotExist
 	}
 
@@ -140,7 +146,7 @@ func (p *Community) TransHtmlUrl(ctx context.Context, id string) (htmlUrl string
 	fileKey, err := p.GetMediaUrl(ctx, htmlId)
 	htmlUrl = fmt.Sprintf("%s%s", p.domain, fileKey)
 	if err != nil {
-		log.Println("have no html media")
+		p.zlog.Warn("have no html media")
 		htmlUrl = ""
 	}
 	return
