@@ -11,5 +11,5 @@ RUN cd .. && git clone https://github.com/goplus/gop.git && cd gop && ./all.bash
 COPY . .
 
 # download account repository
-RUN cd .. && git clone https://github.com/IRONICBo/account.git
+RUN cd .. && git clone https://github.com/IRONICBo/account.git && git checkout feat/init-account
 CMD bash scripts/start.sh
