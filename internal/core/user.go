@@ -2,7 +2,6 @@ package core
 
 import (
 	"os"
-
 	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 )
 

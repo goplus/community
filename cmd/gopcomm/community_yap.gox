@@ -156,25 +156,12 @@ get "/edit/:id", ctx => {
 	}
 	// uid := "70f6a615-c0d5-4315-a5ac-34ca845450ed"
 	id := ctx.param("id")
-	//doc := {
-	//	"ID": id,
-	//}
 	if id != "" {
 		if editable, _ := community.canEditable(todo, uid, id); !editable {
-			// TODO: can't edit this article
 			zlog.Error("no permissions")
-			ctx.json {
-				"code": 403,
-				"err": "no permissions",
-			}
+			http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
 		}
 		article, _ := community.article(todo, id)
-		// doc["Title"] = article.Title
-		// doc["Content"] = article.Content
-		// doc["Tags"] = article.Tags
-		// doc["Cover"] = article.Cover
-		// doc["Ctime"] = article.Ctime
-		// doc["User"] = article.User
 		ctx.yap "edit", article
 	}
 }
@@ -247,7 +234,6 @@ post "/translate", ctx => {
 			"err": "no token",
 		}
 	}
-
 	uid, err := community.GetUserId(token.Value)
 	if err != nil {
 		ctx.json {
