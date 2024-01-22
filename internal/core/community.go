@@ -38,6 +38,7 @@ var (
 type Config struct {
 	Driver string // database driver. default is `mysql`.
 	DSN    string // database data source name
+	CAS    string // casdoor database data source name
 	BlobUS string // blob URL scheme
 }
 
@@ -116,12 +117,11 @@ func (p *Community) Article(ctx context.Context, id string) (article *Article, e
 		return article, err
 	}
 	// add author info
-	user, err := p.GetUser(ctx, article.UId)
+	user, err := p.GetUser(article.UId)
 	if err != nil {
 		return
 	}
 	article.User = *user
-
 	// get html url
 	fileKey, err := p.GetMediaUrl(ctx, htmlId)
 	article.HtmlUrl = fmt.Sprintf("%s%s", p.domain, fileKey)
@@ -163,16 +163,24 @@ func (p *Community) CanEditable(ctx context.Context, uid, id string) (editable b
 }
 
 // SaveHtml upload origin html(string) to media for html id and save id to database
-func (p *Community) SaveHtml(ctx context.Context, uid, htmlStr, mdData string) (articleId int64, err error) {
+func (p *Community) SaveHtml(ctx context.Context, uid, htmlStr, mdData, id string) (articleId string, err error) {
 	htmlId, err := p.SaveMedia(ctx, uid, []byte(htmlStr))
-	// save to database
-	sqlStr := "insert into article (user_id, html_id, content) values (?, ?, ?)"
-	res, err := p.db.Exec(sqlStr, uid, htmlId, mdData)
-	if err != nil {
-		return 0, err
+	if id == "" {
+		// save to database
+		sqlStr := "insert into article (user_id, html_id, ctime, mtime, content) values (?, ?, ?)"
+		res, err := p.db.Exec(sqlStr, uid, htmlId, time.Now(), time.Now(), mdData)
+		if err != nil {
+			return "", err
+		}
+		articleId, err := res.LastInsertId()
+		return strconv.FormatInt(articleId, 10), nil
 	}
-	articleId, err = res.LastInsertId()
-	return
+	sqlStr := "update article set content=?, html_id=?, mtime=? where id=?"
+	_, err = p.db.Exec(sqlStr, mdData, htmlId, time.Now(), id)
+	if err != nil {
+		return "", err
+	}
+	return id, err
 }
 
 // uploadHtml upload html(string) to media for html id
@@ -258,6 +266,7 @@ const (
 
 // ListArticle lists articles from a position.
 func (p *Community) ListArticle(ctx context.Context, from string, limit int) (items []*ArticleEntry, next string, err error) {
+	p.zlog.Info("sss")
 	if from == MarkBegin {
 		from = "0"
 	} else if from == MarkEnd {
@@ -267,6 +276,7 @@ func (p *Community) ListArticle(ctx context.Context, from string, limit int) (it
 	if err != nil {
 		return []*ArticleEntry{}, from, err
 	}
+
 	sqlStr := "select id, title, ctime, user_id, tags, cover from article limit ? offset ?"
 	rows, err := p.db.Query(sqlStr, limit, fromInt)
 	if err != nil {
@@ -279,10 +289,11 @@ func (p *Community) ListArticle(ctx context.Context, from string, limit int) (it
 		article := &ArticleEntry{}
 		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Cover)
 		if err != nil {
+			p.zlog.Info("ArticleEntryArticleEntryArticleEntry", err)
 			return []*ArticleEntry{}, from, err
 		}
 		// add author info
-		user, err := p.GetUser(ctx, article.UId)
+		user, err := p.GetUser(article.UId)
 		if err != nil {
 			return []*ArticleEntry{}, from, err
 		}
@@ -315,7 +326,7 @@ func (p *Community) SearchArticle(ctx context.Context, searchValue string) (item
 			return []*ArticleEntry{}, err
 		}
 		// add author info
-		user, err := p.GetUser(ctx, article.UId)
+		user, err := p.GetUser(article.UId)
 		if err != nil {
 			return []*ArticleEntry{}, err
 		}

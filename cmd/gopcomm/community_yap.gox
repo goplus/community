@@ -4,6 +4,7 @@ import (
 	"os"
 	"io"
 	"net/http"
+	"fmt"
 
 	"github.com/goplus/community/internal/core"
 	"github.com/goplus/community/markdown"
@@ -40,8 +41,18 @@ get "/p/:id", ctx => {
 		"User": article.User,
 	}
 }
+
+get "/getArticle/:id", ctx => {
+	id := ctx.param("id")
+	article, _ := community.article(todo, id)
+	ctx.json {
+		"code": 200,
+		"data": article,
+	}
+}
+
 get "/add", ctx => {
-	ctx.yap "markdown", {}
+	ctx.yap "edit", {}
 }
 
 get "/", ctx => {
@@ -65,7 +76,7 @@ post "/search", ctx => {
 	}
 }
 
-get "/edit", ctx => {
+get "/edit/:id", ctx => {
 	token, err := ctx.Request.Cookie("token")
 	if err != nil {
 		ctx.json {
@@ -80,6 +91,7 @@ get "/edit", ctx => {
 			"err": err.Error(),
 		}
 	}
+	// uid := "70f6a615-c0d5-4315-a5ac-34ca845450ed"
 	id := ctx.param("id")
 	//doc := {
 	//	"ID": id,
@@ -90,7 +102,7 @@ get "/edit", ctx => {
 			zlog.Error("no permissions")
 			ctx.json {
 				"code": 403,
-				"err": err.Error(),
+				"err": "no permissions",
 			}
 		}
 		article, _ := community.article(todo, id)
@@ -101,10 +113,6 @@ get "/edit", ctx => {
 		// doc["Ctime"] = article.Ctime
 		// doc["User"] = article.User
 		ctx.yap "edit", article
-	}
-	ctx.json {
-	    "code": 400,
-	    "err": "id is must.",
 	}
 }
 
@@ -145,6 +153,7 @@ post "/commit", ctx => {
 			"err": err.Error(),
 		}
 	}
+	// uid := "70f6a615-c0d5-4315-a5ac-34ca845450ed"
 	// add article 
 	article := &core.Article{
 		ArticleEntry: core.ArticleEntry{
@@ -158,8 +167,11 @@ post "/commit", ctx => {
 		HtmlData:htmlData,
 	}
 	id, _ = community.putArticle(todo, uid, trans, article)
-	article.ID = id
-	ctx.yap "edit", *article
+	ctx.json {
+		"code": 200,
+		"data": id,
+	}
+	// ctx.yap "edit", *article
 }
 
 //  click "translate button"
@@ -179,9 +191,11 @@ post "/translate", ctx => {
 			"err": err.Error(),
 		}
 	}
+	// uid := "70f6a615-c0d5-4315-a5ac-34ca845450ed"
     mdData := ctx.param("content")
 	htmlData := ctx.param("html")
-	id, _ := community.saveHtml(todo, uid, htmlData, mdData)
+	id := ctx.param("id")
+	zlog.Info(mdData)
 	// get translation markdown
     transData, err := trans.translateMarkdownText(mdData, language.Chinese, language.English)
 	if err != nil {
@@ -190,6 +204,7 @@ post "/translate", ctx => {
 			"err": err.Error(),
 		}
 	}
+	id, _ = community.saveHtml(todo, uid, htmlData, mdData, id)
 	ctx.json {
 		"code": 200,
 		"id": id,  //article id
@@ -204,6 +219,23 @@ get "/getMedia/:id", ctx => {
 
 	http.Redirect(ctx.ResponseWriter, ctx.Request, domain+fileKey, http.StatusTemporaryRedirect)
 }
+
+get "/getMediaUrl/:id",ctx => {
+	id := ctx.param("id")
+	fileKey, err := community.GetMediaUrl(todo, id)
+	htmlUrl := fmt.Sprintf("%s%s", domain, fileKey)
+	if err != nil {
+		ctx.json {
+			"code": 500,
+			"err": "have no html media",
+		}
+	}
+	ctx.json {
+		"code": 200,
+		"url": htmlUrl,
+	}
+}
+
 post "/upload", ctx => {
 	file, header, err := ctx.FormFile("file")
 	filename := header.Filename
@@ -260,6 +292,7 @@ post "/upload", ctx => {
 			"err": err.Error(),
 		}
 	}
+	// uid := "70f6a615-c0d5-4315-a5ac-34ca845450ed"
 
 	id,err:=community.SaveMedia(context.Background(), uid, bytes)
 	if err!=nil {
