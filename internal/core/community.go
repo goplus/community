@@ -277,7 +277,7 @@ func (p *Community) ListArticle(ctx context.Context, from string, limit int) (it
 		return []*ArticleEntry{}, from, err
 	}
 
-	sqlStr := "select id, title, ctime, user_id, tags, cover from article limit ? offset ?"
+	sqlStr := "select id, title, ctime, user_id, tags, cover from article order by ctime desc limit ? offset ?"
 	rows, err := p.db.Query(sqlStr, limit, fromInt)
 	if err != nil {
 		return []*ArticleEntry{}, from, err
