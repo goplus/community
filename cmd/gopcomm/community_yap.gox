@@ -21,6 +21,7 @@ var (
 
 todo := context.TODO()
 endpoint := os.Getenv("GOP_COMMUNITY_ENDPOINT")
+domain := os.Getenv("GOP_COMMUNITY_DOMAIN")
 logger, _ := zap.NewProduction()
 defer logger.Sync()
 zlog := logger.Sugar()
@@ -34,6 +35,10 @@ get "/p/:id", ctx => {
 		"ID":      id,
 		"Title":   article.Title,
 		"Content": article.Content,
+		"Tags": article.Tags,
+		"Cover": article.Cover,
+		"Ctime": article.Ctime,
+		"User": article.User,
 	}
 }
 
@@ -47,7 +52,7 @@ get "/user/:id", ctx => {
 }
 
 get "/add", ctx => {
-	ctx.yap "add", {}
+	ctx.yap "markdown", {}
 }
 
 get "/", ctx => {
@@ -66,30 +71,62 @@ get "/", ctx => {
 		"Items": articles,
 	}
 }
+
+post "/search", ctx => {
+	searchValue := ctx.param("search")
+	if searchValue == "" {
+		ctx.json {
+			"code": 400,
+			"err": "value can not be ''.",
+		}
+	}
+	articles, _ := community.searchArticle(todo, searchValue)
+	ctx.yap "home", {
+		"Items": articles,
+	}
+}
+
 get "/edit", ctx => {
-	cookie, err := ctx.Request.Cookie("token")
+	token, err := ctx.Request.Cookie("token")
+	if err != nil {
+		ctx.json {
+			"code": 500,
+			"err": "no token",
+		}
+	}
+	uid, err := community.GetUserId(token.Value)
 	if err != nil {
 		ctx.json {
 			"code": 500,
 			"err": err.Error(),
 		}
 	}
-	uid := cookie.Value
 	id := ctx.param("id")
-	doc := {
-		"ID": id,
-	}
+	//doc := {
+	//	"ID": id,
+	//}
 	if id != "" {
 		if editable, _ := community.canEditable(todo, uid, id); !editable {
 			// TODO: can't edit this article
 			zlog.Error("no permissions")
-			return
+			ctx.json {
+				"code": 403,
+				"err": err.Error(),
+			}
 		}
 		article, _ := community.article(todo, id)
-		doc["Title"] = article.Title
-		doc["Content"] = article.Content
+		// doc["Title"] = article.Title
+		// doc["Content"] = article.Content
+		// doc["Tags"] = article.Tags
+		// doc["Cover"] = article.Cover
+		// doc["Ctime"] = article.Ctime
+		// doc["User"] = article.User
+		ctx.yap "edit", article
 	}
-	ctx.yap "edit", doc
+	ctx.json {
+	    "code": 400,
+	    "err": "id is must.",
+	}
 }
 
 get "/getTrans", ctx => {
@@ -115,14 +152,20 @@ post "/commit", ctx => {
 	mdData := ctx.param("content")
 	htmlData := ctx.param("html")
 	// get user id
-	cookie, err := ctx.Request.Cookie("user_id")
+	token, err := ctx.Request.Cookie("token")
+	if err != nil {
+		ctx.json {
+			"code": 500,
+			"err": "no token",
+		}
+	}
+	uid, err := community.GetUserId(token.Value)
 	if err != nil {
 		ctx.json {
 			"code": 500,
 			"err": err.Error(),
 		}
 	}
-	uid := cookie.Value
 	// add article 
 	article := &core.Article{
 		ArticleEntry: core.ArticleEntry{
@@ -143,14 +186,20 @@ post "/commit", ctx => {
 //  click "translate button"
 post "/translate", ctx => {
 	// get user id
-	cookie, err := ctx.Request.Cookie("user_id")
+	token, err := ctx.Request.Cookie("token")
+	if err != nil {
+		ctx.json {
+			"code": 500,
+			"err": "no token",
+		}
+	}
+	uid, err := community.GetUserId(token.Value)
 	if err != nil {
 		ctx.json {
 			"code": 500,
 			"err": err.Error(),
 		}
 	}
-	uid := cookie.Value
     mdData := ctx.param("content")
 	htmlData := ctx.param("html")
 	id, _ := community.saveHtml(todo, uid, htmlData, mdData)
@@ -174,7 +223,7 @@ get "/getMedia/:id", ctx => {
 	// todo the err not empty return 404 for image
 	fileKey, _ := community.GetMediaUrl(context.Background(),mediaId)
 
-	http.Redirect(ctx.ResponseWriter, ctx.Request, "qiniu demain"+fileKey, http.StatusTemporaryRedirect)
+	http.Redirect(ctx.ResponseWriter, ctx.Request, domain+fileKey, http.StatusTemporaryRedirect)
 }
 post "/upload", ctx => {
 	file, header, err := ctx.FormFile("file")
@@ -218,22 +267,30 @@ post "/upload", ctx => {
 		ctx.JSON(500, err.Error())
 		return
 	}
-	cookie, err := ctx.Request.Cookie("user_id")
+	token, err := ctx.Request.Cookie("token")
 	if err != nil {
-		zlog.Error("token不存在")
+		ctx.json {
+			"code": 500,
+			"err": "no token",
+		}
+	}
+	uid, err := community.GetUserId(token.Value)
+	if err != nil {
+		ctx.json {
+			"code": 500,
+			"err": err.Error(),
+		}
+	}
+
+	id,err:=community.SaveMedia(context.Background(), uid, bytes)
+	if err!=nil {
+		zlog.Error("save file",err.Error())
 		ctx.JSON(500, err.Error())
 		return
 	}
-
-  id,err:=community.SaveMedia(context.Background(),cookie.Value,bytes)
-  if err!=nil {
-    zlog.Error("save file",err.Error())
-    ctx.JSON(500, err.Error())
-    return
-  }
-  // todo append current project ip and getMedia
-  // sample: 127.0.0.1:8080/getMedia/ + id
-  ctx.JSON(200,id)
+	// todo append current project ip and getMedia
+	// sample: 127.0.0.1:8080/getMedia/ + id
+	ctx.JSON(200,id)
 }
 
 conf := &core.Config{}
