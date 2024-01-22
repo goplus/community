@@ -1,12 +1,6 @@
 package core
 
 import (
-	"context"
-	"database/sql"
-	"os"
-	"strconv"
-	"time"
-
 	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 )
 
@@ -16,8 +10,6 @@ type User struct {
 	Name     string
 	Password string
 	Avatar   string
-	Ctime    time.Time
-	Mtime    time.Time
 }
 
 type UserClaim casdoorsdk.Claims
@@ -37,63 +29,20 @@ func CasdoorConfigInit() {
 
 // Deprecated: use casdoorsdk instead
 // GetUser return author
-func (p *Community) GetUser(ctx context.Context, id string) (user *User, err error) {
-	user = &User{}
-	sqlStr := "select id,name,avatar from user where id=?"
-	err = p.db.QueryRow(sqlStr, id).Scan(&user.ID, &user.Name, &user.Avatar)
-	if err == sql.ErrNoRows {
-		p.zlog.Error("not found the author")
-		return user, ErrNotExist
-	} else if err != nil {
-		return user, err
+func (p *Community) GetUser(token string) (user *User, err error) {
+	claim, err := casdoorsdk.ParseJwtToken(token)
+	if err != nil {
+		p.zlog.Error(err)
+		return  &User{}, ErrNotExist
+	}
+	user = &User{
+		Name:claim.Name,
+		Avatar:claim.Avatar,
+		ID:claim.Id,
 	}
 	return
 }
 
-// Deprecated: use casdoorsdk instead
-// PutUser adds new user (ID == "") or edits an existing user (ID != "").
-func (p *Community) PutUser(ctx context.Context, user *User) (id string, err error) {
-	// new user
-	if user.ID == "" {
-		sqlStr := "insert into user (name, password, avatar, ctime, mtime) values (?, ?, ?, ?, ?)"
-		res, err := p.db.Exec(sqlStr, &user.Name, &user.Password, &user.Avatar, time.Now(), time.Now())
-		if err != nil {
-			return "", err
-		}
-		idInt, err := res.LastInsertId()
-		return strconv.FormatInt(idInt, 10), nil
-	}
-	// edit user
-	sqlStr := "update user set name=?, avatar=?, mtime=? where id=?"
-	_, err = p.db.Exec(sqlStr, &user.Name, &user.Avatar, time.Now(), &user.ID)
-	return user.ID, err
-}
-
-// Deprecated: use casdoorsdk instead
-// DeleteUser delete the user.
-func (p *Community) DeleteUser(ctx context.Context, id string) (err error) {
-	// begin Transaction
-	tx, err := p.db.Begin()
-	if err != nil {
-		return
-	}
-
-	// delete user
-	sqlStr := "delete from user where id=?"
-	_, err = p.db.Exec(sqlStr, id)
-	if err != nil {
-		tx.Rollback()
-	}
-
-	// delete articles
-	err = p.DeleteArticles(ctx, id)
-	if err != nil {
-		tx.Rollback()
-	}
-
-	err = tx.Commit()
-	return
-}
 
 // GetUserId return user id by token
 func (p *Community) GetUserId(token string) (userId string, err error) {

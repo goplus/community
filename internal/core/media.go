@@ -93,16 +93,12 @@ func (c *Community) SaveMedia(ctx context.Context, userId string, data []byte) (
 	if err != nil {
 		return 0, err
 	}
-	uId, err := strconv.Atoi(userId)
-	if err != nil {
-		return 0, err
-	}
 	// save
 	stem, err := c.db.Prepare(`insert into file (file_key,format,size,user_id,create_at,update_at) VALUES (?,?,?,?,?,?)`)
 	if err != nil {
 		return 0, err
 	}
-	res, err := stem.Exec(fileKey, fileInfo.Format, fileInfo.Size, uId, time.Now(), time.Now())
+	res, err := stem.Exec(fileKey, fileInfo.Format, fileInfo.Size, userId, time.Now(), time.Now())
 
 	if err != nil {
 		return 0, err
