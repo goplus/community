@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"github.com/goplus/community/internal/core"
 	"github.com/goplus/community/translation"
+	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 	"go.uber.org/zap"
 	"golang.org/x/text/language"
 	_ "github.com/joho/godotenv/autoload"
@@ -18,14 +19,13 @@ type community struct {
 	community *core.Community
 	trans     *translation.Engine
 }
-//line cmd/gopcomm/community_yap.gox:21
+//line cmd/gopcomm/community_yap.gox:22
 func (this *community) MainEntry() {
-//line cmd/gopcomm/community_yap.gox:21:1
-	todo := context.TODO()
 //line cmd/gopcomm/community_yap.gox:22:1
-	endpoint := os.Getenv("GOP_COMMUNITY_ENDPOINT")
+	todo := context.TODO()
 //line cmd/gopcomm/community_yap.gox:23:1
 	domain := os.Getenv("GOP_COMMUNITY_DOMAIN")
+	endpoint := os.Getenv("GOP_COMMUNITY_ENDPOINT")
 //line cmd/gopcomm/community_yap.gox:24:1
 	logger, _ := zap.NewProduction()
 //line cmd/gopcomm/community_yap.gox:25:1
