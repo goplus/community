@@ -117,11 +117,11 @@ func (p *Community) Article(ctx context.Context, id string) (article *Article, e
 		return article, err
 	}
 	// add author info
-	user, err := p.GetUser(article.UId)
-	if err != nil {
-		return
-	}
-	article.User = *user
+	// user, err := p.GetUser(article.UId)
+	// if err != nil {
+	// 	return
+	// }
+	// article.User = *user
 	// get html url
 	fileKey, err := p.GetMediaUrl(ctx, htmlId)
 	article.HtmlUrl = fmt.Sprintf("%s%s", p.domain, fileKey)
@@ -293,11 +293,11 @@ func (p *Community) ListArticle(ctx context.Context, from string, limit int) (it
 			return []*ArticleEntry{}, from, err
 		}
 		// add author info
-		user, err := p.GetUser(article.UId)
-		if err != nil {
-			return []*ArticleEntry{}, from, err
-		}
-		article.User = *user
+		// user, err := p.GetUser(article.UId)
+		// if err != nil {
+		// 	return []*ArticleEntry{}, from, err
+		// }
+		// article.User = *user
 
 		items = append(items, article)
 		rowLen++
@@ -326,11 +326,11 @@ func (p *Community) SearchArticle(ctx context.Context, searchValue string) (item
 			return []*ArticleEntry{}, err
 		}
 		// add author info
-		user, err := p.GetUser(article.UId)
-		if err != nil {
-			return []*ArticleEntry{}, err
-		}
-		article.User = *user
+		// user, err := p.GetUser(article.UId)
+		// if err != nil {
+		// 	return []*ArticleEntry{}, err
+		// }
+		// article.User = *user
 
 		items = append(items, article)
 	}
