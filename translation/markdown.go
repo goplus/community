@@ -186,10 +186,10 @@ func (e *Engine) TranslatePlainText(src string, from, to language.Tag) (ret stri
 	// Get translate result from api server
 	// Request form data
 	formData := url.Values{
-		"from":              {from.String()},
-		"to":                {to.String()},
-		"translationAPIKey": {e.translationAPIKey},
-		"src_text":          {src},
+		"from":     {from.String()},
+		"to":       {to.String()},
+		"apikey":   {e.translationAPIKey},
+		"src_text": {src},
 	}
 
 	var req *http.Request
