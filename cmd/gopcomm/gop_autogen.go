@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"github.com/goplus/community/internal/core"
 	"github.com/goplus/community/translation"
+	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 	"go.uber.org/zap"
 	"golang.org/x/text/language"
 	_ "github.com/joho/godotenv/autoload"
@@ -45,6 +46,28 @@ func (this *community) MainEntry() {
 		ctx.Yap__1("article", map[string]interface {
 		}{"ID": id, "Title": article.Title, "Content": article.Content, "Tags": article.Tags, "Cover": article.Cover, "Ctime": article.Ctime, "User": article.User})
 	})
+	this.Get("/user/:id", func(ctx *yap.Context) {
+		//line cmd/gopcomm/community_yap.gox:46:1
+				id := ctx.Param("id")
+		//line cmd/gopcomm/community_yap.gox:50:1
+				// Get User Info
+				var userClaim *casdoorsdk.Claims
+		//line cmd/gopcomm/community_yap.gox:51:1
+				token, err := ctx.Request.Cookie("token")
+		//line cmd/gopcomm/community_yap.gox:52:1
+				if err == nil {
+		//line cmd/gopcomm/community_yap.gox:53:1
+					userClaim, err = this.community.GetUserClaim(token.Value)
+		//line cmd/gopcomm/community_yap.gox:54:1
+					if err != nil {
+		//line cmd/gopcomm/community_yap.gox:55:1
+						zlog.Error("get user claim error:", err)
+					}
+				}
+		//line cmd/gopcomm/community_yap.gox:60:1
+				ctx.Yap__1("user", map[string]interface {
+				}{"Id": id, "CurrentUser": userClaim, "User": userClaim})
+			})
 //line cmd/gopcomm/community_yap.gox:45:1
 	this.Get("/getArticle/:id", func(ctx *yap.Context) {
 //line cmd/gopcomm/community_yap.gox:46:1

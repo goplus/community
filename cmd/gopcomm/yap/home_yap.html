@@ -10,10 +10,11 @@
 </head>
 
 <body style="background-color: #f7fafc;">
+    <input style="display:none" id="usertoken" value="{{.usertoken}}"/>
     <!-- Header -->
     <header class="bg-cover bg-center" style="
         height: 30vh;
-        background-image: url('https://github.com/goplus/community/assets/47499836/46d97d22-a97b-4580-b2c8-abb9db98563a');
+        background-image: url('/img/home-background.png');
       ">
         <nav class="border-gray-200 px-4 lg:px-6 py-2.5 dark:bg-gray-800">
             <div class="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl">
@@ -21,12 +22,33 @@
                     <img src="https://github.com/goplus/community/assets/47499836/19900f7d-ddbb-495b-b45b-8fd2397394be"
                         class="mb-2 mr-3 h-6 sm:h-9" alt="Go+ Community Logo" />
                 </a>
-                <div class="flex items-center lg:order-2">
-                    <button type="button"
-                        class="text-white hover:text-white border border-white-700 hover:bg-white-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-500 dark:focus:ring-blue-800">
-                        Sign in
-                    </button>
-                </div>
+                {{if .User}}
+                    <div class="flex items-center lg:order-2">
+                        <button href="/user/{{ .User.Id }}" type="button" style="margin-right: 1rem;" class="relative flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
+                            <span class="absolute -inset-1.5"></span>
+                            <!-- TODO: Add UserAvatar -->
+                            <a href="/user/{{ .User.Id }}">
+                                <img class="h-8 w-8 rounded-full" src="{{ .User.Avatar }}" alt="">
+                            </a>
+                        </button>
+                        <button type="button"
+                            class="text-white hover:text-white border border-white-700 hover:bg-white-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-500 dark:focus:ring-blue-800">
+                            <a href="/edit">
+                                Write
+                            </a>
+                        </button>
+                    </div>
+                {{else}}
+                    <div class="flex items-center lg:order-2">
+                        <button type="button"
+                            class="text-white hover:text-white border border-white-700 hover:bg-white-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-500 dark:focus:ring-blue-800">
+                            
+                            <a href="http://localhost:8081/login?redirect_url=http://localhost:8081/callback">
+                                Sign in
+                            </a>
+                        </button>
+                    </div>
+                {{end}}
                 <div class="hidden justify-between items-center w-1/2 lg:flex lg:w-auto lg:order-1" id="mobile-menu-2">
                     <form style="width: 500px" action="/search" method="post">
                         <label for="default-search"
@@ -230,15 +252,38 @@
                     </div>
                 </div>
                 {{end}}
+
+                <!-- TODO: Fake pagination -->
+                <nav aria-label="Pagination" class="flex items-center text-gray-600">
+                    <a href="#" class="p-2 mr-4 rounded hover:bg-gray-100">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </a>
+                    <a href="#" class="px-4 py-2 rounded hover:bg-gray-100"> 1 </a>
+                    <a href="#" class="px-4 py-2 rounded bg-gray-200 text-gray-900 font-medium hover:bg-gray-100"> 2 </a>
+                    <a href="#" class="px-4 py-2 rounded hover:bg-gray-100"> 3 </a>
+                    <a href="#" class="px-4 py-2 rounded hover:bg-gray-100"> ... </a>
+                    <a href="#" class="px-4 py-2 rounded hover:bg-gray-100"> 9 </a>
+                    <a href="#" class="p-2 ml-4 rounded hover:bg-gray-100">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </a>
+                </nav>
             </div>
         </div>
+
     </section>
 
     <!-- Footer -->
-    <p class="text-center" style="font-size: xx-small;">
-        ©2024, provided by
+    <p class="text-center m-4" style="font-size: xx-small;">
+        Copyright © 2011-2024 Qiniu Cloud. Powered by Yap framework
         <a href="https://www.qiniu.com/" target="_blank" style="color: #3182ce;">Qiniu Tech</a>
     </p>
 </body>
 
+<script>
+
+</script>
 </html>
