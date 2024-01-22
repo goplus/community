@@ -42,16 +42,28 @@ get "/failed", ctx => {
 }
 
 get "/p/:id", ctx => {
+	// Get User Info
+	var userClaim *casdoorsdk.Claims
+	token, err := ctx.Request.Cookie("token")
+	if err == nil {
+		userClaim, err = community.GetUserClaim(token.Value)
+		if err != nil {
+			zlog.Error("get user claim error:", err)
+		}
+	}
+
 	id := ctx.param("id")
 	article, _ := community.article(todo, id)
 	ctx.yap "article", {
+		"User": userClaim,
+
 		"ID":      id,
 		"Title":   article.Title,
-		"Content": article.Content,
+		"Content": article.HtmlUrl,
 		"Tags": article.Tags,
 		"Cover": article.Cover,
 		"Ctime": article.Ctime,
-		"User": article.User,
+		// "User": article.User,
 	}
 }
 
