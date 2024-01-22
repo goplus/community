@@ -4,16 +4,15 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+    <title>Go+ Community</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
 </head>
 
 <body style="background-color: #f7fafc;">
-    <input style="display:none" id="usertoken" value="{{.usertoken}}"/>
     <!-- Header -->
     <header class="bg-cover bg-center" style="
-        height: 30vh;
+        height: 10vh;
         background-image: url('/img/home-background.png');
       ">
         <nav class="border-gray-200 px-4 lg:px-6 py-2.5 dark:bg-gray-800">
@@ -22,16 +21,17 @@
                     <img src="https://github.com/goplus/community/assets/47499836/19900f7d-ddbb-495b-b45b-8fd2397394be"
                         class="mb-2 mr-3 h-6 sm:h-9" alt="Go+ Community Logo" />
                 </a>
-                {{if .userToken}}
+                {{if .User}}
                     <div class="flex items-center lg:order-2">
-                        <button href="/user/{{ .userId }}" type="button" style="margin-right: 1rem;" class="relative flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
+                        <button href="/user/{{ .User.Id }}" type="button" style="margin-right: 1rem;" class="relative flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
                             <span class="absolute -inset-1.5"></span>
                             <!-- TODO: Add UserAvatar -->
-                            <img class="h-8 w-8 rounded-full" src="{{ .UserAvatar }}" alt="">
+                            <a href="/user/{{ .User.Id }}">
+                                <img class="h-8 w-8 rounded-full" src="{{ .User.Avatar }}" alt="">
+                            </a>
                         </button>
                         <button type="button"
                             class="text-white hover:text-white border border-white-700 hover:bg-white-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-500 dark:focus:ring-blue-800">
-                            
                             <a href="/edit">
                                 Write
                             </a>
@@ -74,128 +74,133 @@
         </nav>
     </header>
 
-    <!-- NavBar -->
-    <section class="text-gray-600 body-font overflow-hidden" style="margin-top:-150px">
-        <div class="container px-5 py-6 mx-auto w-1/2">
-            <ul class="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400 bg-white"
-                style="padding: auto !important;">
-                <li class="m-1 px-6">
-                    <a href="#"
-                        class="inline-flex items-center justify-center p-4 text-blue-600 border-b-2 border-blue-600 rounded-t-lg dark:text-blue-500 dark:border-blue-500 group">
-                        <svg class="w-4 h-4 me-2 text-blue-600 dark:text-blue-500" aria-hidden="true"
-                            xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 18">
-                            <path
-                                d="M6.143 0H1.857A1.857 1.857 0 0 0 0 1.857v4.286C0 7.169.831 8 1.857 8h4.286A1.857 1.857 0 0 0 8 6.143V1.857A1.857 1.857 0 0 0 6.143 0Zm10 0h-4.286A1.857 1.857 0 0 0 10 1.857v4.286C10 7.169 10.831 8 11.857 8h4.286A1.857 1.857 0 0 0 18 6.143V1.857A1.857 1.857 0 0 0 16.143 0Zm-10 10H1.857A1.857 1.857 0 0 0 0 11.857v4.286C0 17.169.831 18 1.857 18h4.286A1.857 1.857 0 0 0 8 16.143v-4.286A1.857 1.857 0 0 0 6.143 10Zm10 0h-4.286A1.857 1.857 0 0 0 10 11.857v4.286c0 1.026.831 1.857 1.857 1.857h4.286A1.857 1.857 0 0 0 18 16.143v-4.286A1.857 1.857 0 0 0 16.143 10Z" />
-                        </svg>BLOG
-                    </a>
-                </li>
-                <li class="m-1 px-6">
-                    <a href="#"
-                        class="inline-flex items-center justify-center p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group active"
-                        aria-current="page">
-                        <svg class="w-4 h-4 me-2 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300"
-                            aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
-                            viewBox="0 0 20 20">
-                            <path
-                                d="M10 0a10 10 0 1 0 10 10A10.011 10.011 0 0 0 10 0Zm0 5a3 3 0 1 1 0 6 3 3 0 0 1 0-6Zm0 13a8.949 8.949 0 0 1-4.951-1.488A3.987 3.987 0 0 1 9 13h2a3.987 3.987 0 0 1 3.951 3.512A8.949 8.949 0 0 1 10 18Z" />
-                        </svg>VIDEO
-                    </a>
-                </li>
-                <li class="m-1 px-6">
-                    <a href="#"
-                        class="inline-flex items-center justify-center p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group">
-                        <svg class="w-4 h-4 me-2 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300"
-                            aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
-                            viewBox="0 0 20 20">
-                            <path
-                                d="M5 11.424V1a1 1 0 1 0-2 0v10.424a3.228 3.228 0 0 0 0 6.152V19a1 1 0 1 0 2 0v-1.424a3.228 3.228 0 0 0 0-6.152ZM19.25 14.5A3.243 3.243 0 0 0 17 11.424V1a1 1 0 0 0-2 0v10.424a3.227 3.227 0 0 0 0 6.152V19a1 1 0 1 0 2 0v-1.424a3.243 3.243 0 0 0 2.25-3.076Zm-6-9A3.243 3.243 0 0 0 11 2.424V1a1 1 0 0 0-2 0v1.424a3.228 3.228 0 0 0 0 6.152V19a1 1 0 1 0 2 0V8.576A3.243 3.243 0 0 0 13.25 5.5Z" />
-                        </svg>STEM
-                    </a>
-                </li>
-                <li class="m-1 px-6">
+    <!-- TODO 左侧导航栏及管理页面 -->
+    <div class="px-4 py-1 flex">
+        <!-- User Profile -->
+        <div class="profile-container">
+            <div class="profile-header">
+                <!-- Avatar -->
+                <div class="profile-image">
+                    <img class="h-8 w-8 rounded-full" src="{{ .User.Avatar }}" alt="">
+                </div>
 
-                    <a href="#"
-                        class="inline-flex items-center justify-center p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group">
-                        <svg class="w-4 h-4 me-2 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300"
-                            aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
-                            viewBox="0 0 18 20">
-                            <path
-                                d="M16 1h-3.278A1.992 1.992 0 0 0 11 0H7a1.993 1.993 0 0 0-1.722 1H2a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2Zm-3 14H5a1 1 0 0 1 0-2h8a1 1 0 0 1 0 2Zm0-4H5a1 1 0 0 1 0-2h8a1 1 0 1 1 0 2Zm0-5H5a1 1 0 0 1 0-2h2V2h4v2h2a1 1 0 1 1 0 2Z" />
-                        </svg>COMMUNITY
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </section>
+                <!-- First Name & Last Name & Gender & Birthday  -->
+                <div class="profile-info">
+                    <h1 class="inline-block">Name: @{{ .CurrentUser.Name }}</h1>
+                    <p>UID: {{ .CurrentUser.Id }}</p>
+                    <p>Gender: {{ .CurrentUser.Gender }}</p>
+                    <p>Birth: {{ .CurrentUser.Birthday }}</p>
+                </div>
+            </div>
+            <div class="info-container">
+                <!-- Email & Phone -->
+                <div class="info-box contact">
+                    <h2 style="color: #9ca3af;">Contact Information</h2>
+                    <p><span class="icon email">📧 Mail:</span> {{ .CurrentUser.Email}} </p>
+                    <p><span class="icon phone">📞 Tel:</span> {{ .CurrentUser.Phone }}</p>
+                </div>
 
-    <!-- User Info -->
-    <div class="p-16">
-      <div class="p-8 bg-white shadow mt-24">
-        <div class="grid grid-cols-1 md:grid-cols-3">
-          <div class="grid grid-cols-3 text-center order-last md:order-first mt-20 md:mt-0">
-            <div>
-              <p class="font-bold text-gray-700 text-xl">22</p>
-              <p class="text-gray-400">Friends</p>
+                <!-- Country Code & Region & Address -->
+                <div class="info-box location">
+                    <h2 style="color: #9ca3af;">Social</h2>
+                    <p><span class="icon country">📍Github:</span> {{ .CurrentUser.GitHub }} </p>
+                    <p><span class="icon region">🏠Twitter:</span> {{ .CurrentUser.Twitter }}</p>
+                    <p><span class="icon address">📬Facebook:</span> {{ .CurrentUser.Facebook }} </p>
+                </div>
+
+                <!-- Education -->
+                <div class="info-box education">
+                    <h2 style="color: #9ca3af;">Join</h2>
+                    <p><span class="icon edu">🎓Join Time:</span> {{ .CurrentUser.CreatedTime }} </p>
+                </div>
             </div>
-            <div>
-                 <p class="font-bold text-gray-700 text-xl">10</p>
-              <p class="text-gray-400">Photos</p>
-            </div>
-                <div>
-                 <p class="font-bold text-gray-700 text-xl">89</p>
-              <p class="text-gray-400">Comments</p>
-            </div>
-          </div>
-          <div class="relative">
-            <div class="w-48 h-48 bg-indigo-100 mx-auto rounded-full shadow-2xl absolute inset-x-0 top-0 -mt-24 flex items-center justify-center text-indigo-500">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24" viewBox="0 0 20 20" fill="currentColor">
-        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-      </svg>
-            </div>
-          </div>
-      
-          <div class="space-x-8 flex justify-between mt-32 md:mt-0 md:justify-center">
-      <button
-        class="text-white py-2 px-4 uppercase rounded bg-blue-400 hover:bg-blue-500 shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5"
-      >
-        Connect
-      </button>
-          <button
-        class="text-white py-2 px-4 uppercase rounded bg-gray-700 hover:bg-gray-800 shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5"
-      >
-        Message
-      </button>
-          </div>
         </div>
-      
-        <div class="mt-20 text-center border-b pb-12">
-          <h1 class="text-4xl font-medium text-gray-700">Jessica Jones, <span class="font-light text-gray-500">27</span></h1>
-          <p class="font-light text-gray-600 mt-3">Bucharesxt, Romania</p>
-      
-          <p class="mt-8 text-gray-500">Solution Manager - Creative Tim Officer</p>
-          <p class="mt-2 text-gray-500">University of Computer Science</p>
-        </div>
-      
-        <div class="mt-12 flex flex-col justify-center">
-          <p class="text-gray-600 text-center font-light lg:px-16">An artist of considerable range, Ryan — the name taken by Melbourne-raised, Brooklyn-based Nick Murphy — writes, performs and records all of his own music, giving it a warm, intimate feel with a solid groove structure. An artist of considerable range.</p>
-          <button
-        class="text-indigo-500 py-2 px-4  font-medium mt-4"
-      >
-        Show more
-      </button>
-        </div>
-      
-      </div>
-      </div>
+    </div>
 
     <!-- Footer -->
-    <p class="text-center m-4" style="font-size: xx-small;">
-        Copyright © 2011-2024 Qiniu Cloud. Powered by Yap framework
+    <p class="fixed bottom-0 left-1/2 transform -translate-x-1/2" style="font-size: xx-small;">
+        ©2024, provided by
         <a href="https://www.qiniu.com/" target="_blank" style="color: #3182ce;">Qiniu Tech</a>
     </p>
 </body>
 
-<script>
-
-</script>
 </html>
+
+<style>
+    .profile-container {
+        width: 70%;
+        height: 70vh;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+        /* TODO 以下会改 */
+        margin-left: 20%;
+        margin-top: 5%;
+    }
+
+    .profile-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .profile-image {
+        width: 150px;
+        height: 150px;
+        background: #eee;
+        border-radius: 50%;
+        margin-right: 20px;
+        overflow: hidden;
+    }
+
+    .profile-image img {
+        width: 100%;
+        height: auto;
+    }
+
+    .profile-info h1 {
+        font-size: 24px;
+        color: #333;
+    }
+
+    .profile-info p {
+        font-size: 14px;
+        color: #666;
+    }
+
+    .info-container {
+        display: flex;
+    }
+
+    .info-box {
+        font-size: 14px;
+        width: calc(33.333% - 20px);
+        background-color: #e3fcef;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        margin-left: 20px;
+    }
+
+    .contact {
+        background-color: #fdf4fc;
+        padding: 10px 20px;
+    }
+
+    .location {
+        background-color: #eef6fa;
+        padding: 10px 20px;
+    }
+
+    .education {
+        background-color: #fdfbf1;
+        padding: 10px 20px;
+    }
+
+    .icon {
+        display: inline-block;
+        margin-right: 10px;
+    }
+</style>

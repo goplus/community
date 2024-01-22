@@ -3,11 +3,14 @@ package core
 import (
 	"context"
 	"database/sql"
-	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
+	"os"
 	"strconv"
 	"time"
+
+	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 )
 
+// Deprecated: use casdoorsdk instead
 type User struct {
 	ID       string
 	Name     string
@@ -17,6 +20,22 @@ type User struct {
 	Mtime    time.Time
 }
 
+type UserClaim casdoorsdk.Claims
+type UserInfo casdoorsdk.User
+
+// Init casdoor parser
+func CasdoorConfigInit() {
+	endPoint := os.Getenv("GOP_CASDOOR_ENDPOINT")
+	clientID := os.Getenv("GOP_CASDOOR_CLIENTID")
+	clientSecret := os.Getenv("GOP_CASDOOR_CLIENTSECRET")
+	certificate := os.Getenv("GOP_CASDOOR_CERTIFICATE")
+	organizationName := os.Getenv("GOP_CASDOOR_ORGANIZATIONNAME")
+	applicationName := os.Getenv("GOP_CASDOOR_APPLICATONNAME")
+
+	casdoorsdk.InitConfig(endPoint, clientID, clientSecret, certificate, organizationName, applicationName)
+}
+
+// Deprecated: use casdoorsdk instead
 // GetUser return author
 func (p *Community) GetUser(ctx context.Context, id string) (user *User, err error) {
 	user = &User{}
@@ -31,6 +50,7 @@ func (p *Community) GetUser(ctx context.Context, id string) (user *User, err err
 	return
 }
 
+// Deprecated: use casdoorsdk instead
 // PutUser adds new user (ID == "") or edits an existing user (ID != "").
 func (p *Community) PutUser(ctx context.Context, user *User) (id string, err error) {
 	// new user
@@ -49,6 +69,7 @@ func (p *Community) PutUser(ctx context.Context, user *User) (id string, err err
 	return user.ID, err
 }
 
+// Deprecated: use casdoorsdk instead
 // DeleteUser delete the user.
 func (p *Community) DeleteUser(ctx context.Context, id string) (err error) {
 	// begin Transaction
@@ -74,6 +95,7 @@ func (p *Community) DeleteUser(ctx context.Context, id string) (err error) {
 	return
 }
 
+// GetUserId return user id by token
 func (p *Community) GetUserId(token string) (userId string, err error) {
 	claim, err := casdoorsdk.ParseJwtToken(token)
 	if err != nil {
@@ -81,4 +103,14 @@ func (p *Community) GetUserId(token string) (userId string, err error) {
 		return "", ErrNotExist
 	}
 	return claim.Id, nil
+}
+
+func (p *Community) GetUserClaim(token string) (claim *casdoorsdk.Claims, err error) {
+	claim, err = casdoorsdk.ParseJwtToken(token)
+	if err != nil {
+		p.zlog.Error(err)
+		return nil, ErrNotExist
+	}
+
+	return claim, nil
 }

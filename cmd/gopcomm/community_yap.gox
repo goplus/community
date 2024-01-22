@@ -44,30 +44,47 @@ get "/p/:id", ctx => {
 
 get "/user/:id", ctx => {
 	id := ctx.param("id")
-	// TODO: Get User Info
+	// Default is the current user info
 
+	// Get User Info
+	var userClaim *casdoorsdk.Claims
+	token, err := ctx.Request.Cookie("token")
+	if err == nil {
+		userClaim, err = community.GetUserClaim(token.Value)
+		if err != nil {
+			zlog.Error("get user claim error:", err)
+		}
+	}
+
+	// TODO: Get User Info
 	ctx.yap "user", {
-		"ID": id,
+		"Id": id,
+		"CurrentUser": userClaim,
+		"User": userClaim,
 	}
 }
 
 get "/add", ctx => {
-	ctx.yap "markdown", {}
+	ctx.yap "edit", {}
 }
 
 get "/", ctx => {
-	var userClaims interface{}
+	// TODO: Add page list
+
+	// Get User Info
+	var userClaim *casdoorsdk.Claims
 	token, err := ctx.Request.Cookie("token")
 	if err == nil {
-		zlog.Info("token", token)
-		userClaims, _ := casdoorsdk.ParseJwtToken(token.Value[6:])
-		zlog.Info("userClaims", userClaims)
+		userClaim, err = community.GetUserClaim(token.Value)
+		if err != nil {
+			zlog.Error("get user claim error:", err)
+		}
 	}
 
+	// Get Article Info
 	articles, _, _ := community.listArticle(todo, core.MarkBegin, 20)
 	ctx.yap "home", {
-		"userToken": token,
-		"User":  userClaims,
+		"User":  userClaim,
 		"Items": articles,
 	}
 }
@@ -87,20 +104,21 @@ post "/search", ctx => {
 }
 
 get "/edit", ctx => {
-	token, err := ctx.Request.Cookie("token")
+	_, err := ctx.Request.Cookie("token")
 	if err != nil {
 		ctx.json {
 			"code": 500,
 			"err": "no token",
 		}
 	}
-	uid, err := community.GetUserId(token.Value)
-	if err != nil {
-		ctx.json {
-			"code": 500,
-			"err": err.Error(),
-		}
-	}
+	uid := "66de7a90-74c8-4641-a4dd-2c63f62350d0"	
+	// uid, err := community.GetUserId(token.Value)
+	// if err != nil {
+	// 	ctx.json {
+	// 		"code": 500,
+	// 		"err": err.Error(),
+	// 	}
+	// }
 	id := ctx.param("id")
 	//doc := {
 	//	"ID": id,
@@ -186,23 +204,25 @@ post "/commit", ctx => {
 //  click "translate button"
 post "/translate", ctx => {
 	// get user id
-	token, err := ctx.Request.Cookie("token")
+	_, err := ctx.Request.Cookie("token")
 	if err != nil {
 		ctx.json {
 			"code": 500,
 			"err": "no token",
 		}
 	}
-	uid, err := community.GetUserId(token.Value)
-	if err != nil {
-		ctx.json {
-			"code": 500,
-			"err": err.Error(),
-		}
-	}
+	uid := "66de7a90-74c8-4641-a4dd-2c63f62350d0"	
+	// uid, err := community.GetUserId(token.Value)
+	// if err != nil {
+	// 	ctx.json {
+	// 		"code": 500,
+	// 		"err": err.Error(),
+	// 	}
+	// }
     mdData := ctx.param("content")
 	htmlData := ctx.param("html")
 	id, _ := community.saveHtml(todo, uid, htmlData, mdData)
+	zlog.Info("mdData", mdData)
 	// get translation markdown
     transData, err := trans.translateMarkdownText(mdData, language.Chinese, language.English)
 	if err != nil {
@@ -296,6 +316,7 @@ post "/upload", ctx => {
 conf := &core.Config{}
 community, _ = core.New(todo, conf)
 trans = translation.New(os.Getenv("NIUTRANS_API_KEY"), "", "")
+core.CasdoorConfigInit()
 
 zlog.Info "Started in endpoint: ", endpoint
 run endpoint
