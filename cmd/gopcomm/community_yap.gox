@@ -28,6 +28,18 @@ zlog := logger.Sugar()
 
 static "/"
 
+get "/success", ctx => {
+	ctx.yap "2xx", {}
+}
+
+get "/error", ctx => {
+	ctx.yap "4xx", {}
+}
+
+get "/failed", ctx => {
+	ctx.yap "5xx", {}
+}
+
 get "/p/:id", ctx => {
 	id := ctx.param("id")
 	article, _ := community.article(todo, id)
@@ -91,6 +103,7 @@ get "/", ctx => {
 
 post "/search", ctx => {
 	searchValue := ctx.param("search")
+	zlog.Infof("SearchValue: %+v", searchValue)
 	if searchValue == "" {
 		ctx.json {
 			"code": 400,
