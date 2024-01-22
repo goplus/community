@@ -228,7 +228,7 @@ post "/commit", ctx => {
 //  click "translate button"
 post "/translate", ctx => {
 	// get user id
-	_, err := ctx.Request.Cookie("token")
+	token, err := ctx.Request.Cookie("token")
 	if err != nil {
 		ctx.json {
 			"code": 500,

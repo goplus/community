@@ -1,6 +1,8 @@
 package core
 
 import (
+	"os"
+
 	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 )
 
@@ -33,16 +35,15 @@ func (p *Community) GetUser(token string) (user *User, err error) {
 	claim, err := casdoorsdk.ParseJwtToken(token)
 	if err != nil {
 		p.zlog.Error(err)
-		return  &User{}, ErrNotExist
+		return &User{}, ErrNotExist
 	}
 	user = &User{
-		Name:claim.Name,
-		Avatar:claim.Avatar,
-		ID:claim.Id,
+		Name:   claim.Name,
+		Avatar: claim.Avatar,
+		ID:     claim.Id,
 	}
 	return
 }
-
 
 // GetUserId return user id by token
 func (p *Community) GetUserId(token string) (userId string, err error) {
