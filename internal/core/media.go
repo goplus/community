@@ -112,6 +112,7 @@ func (c *Community) getMediaInfo(fileKey string) (*File, error) {
 
 	bucket := c.bucket
 	r, err := bucket.NewReader(context.Background(), fileKey, nil)
+	defer r.Close()
 
 	if err != nil {
 		return nil, err
