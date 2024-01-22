@@ -355,6 +355,36 @@ post "/upload", ctx => {
 	ctx.JSON(200,id)
 }
 
+get "/login", ctx => {
+	// Get URL from query string
+	redirectURL := ctx.URL.Query().Get("redirect_url")
+	loginURL := community.RedirectToCasdoor(redirectURL)
+	ctx.Redirect loginURL, http.StatusFound
+}
+
+
+get "/callback", ctx => {
+	code :=ctx.URL.Query().Get("code")
+	state :=ctx.URL.Query().Get("state")
+
+	token, error := community.GetAccessToken(code, state)
+	if error != nil {
+		zlog.Error("err",error) // Redirect to login
+	}
+
+	cookie := http.Cookie{
+		Name: "token",
+		Value: token.AccessToken,
+		Path: "/",
+		MaxAge: 3600,
+	}
+	http.SetCookie(ctx.ResponseWriter, &cookie)
+
+	// Redirect to home page
+	// TODO: Get redirect URL from state
+	http.Redirect(ctx.ResponseWriter, ctx.Request, fmt.Sprintf("http://localhost:8080?token=%s", token.AccessToken), http.StatusFound)
+}
+
 conf := &core.Config{}
 community, _ = core.New(todo, conf)
 trans = translation.New(os.Getenv("NIUTRANS_API_KEY"), "", "")
