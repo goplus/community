@@ -20,7 +20,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 	"io"
+	"log"
 	"os"
 	"strconv"
 	"time"
@@ -49,6 +51,7 @@ type ArticleEntry struct {
 	Cover string
 	Tags  string
 	User  User
+	Users *casdoorsdk.User
 	Ctime time.Time
 	Mtime time.Time
 }
@@ -117,11 +120,11 @@ func (p *Community) Article(ctx context.Context, id string) (article *Article, e
 		return article, err
 	}
 	// add author info
-	// user, err := p.GetUser(article.UId)
-	// if err != nil {
-	// 	return
-	// }
-	// article.User = *user
+	users, err := casdoorsdk.GetUserByUserId(article.UId)
+	if err != nil {
+		log.Fatalf("get user info failed", err.Error())
+	}
+	article.Users = users
 	// get html url
 	fileKey, err := p.GetMediaUrl(ctx, htmlId)
 	article.HtmlUrl = fmt.Sprintf("%s%s", p.domain, fileKey)
@@ -293,11 +296,11 @@ func (p *Community) ListArticle(ctx context.Context, from string, limit int) (it
 			return []*ArticleEntry{}, from, err
 		}
 		// add author info
-		// user, err := p.GetUser(article.UId)
-		// if err != nil {
-		// 	return []*ArticleEntry{}, from, err
-		// }
-		// article.User = *user
+		users, err := casdoorsdk.GetUserByUserId(article.UId)
+		if err != nil {
+			log.Fatalf("get user info failed", err.Error())
+		}
+		article.Users = users
 
 		items = append(items, article)
 		rowLen++
@@ -326,11 +329,11 @@ func (p *Community) SearchArticle(ctx context.Context, searchValue string) (item
 			return []*ArticleEntry{}, err
 		}
 		// add author info
-		// user, err := p.GetUser(article.UId)
-		// if err != nil {
-		// 	return []*ArticleEntry{}, err
-		// }
-		// article.User = *user
+		users, err := casdoorsdk.GetUserByUserId(article.UId)
+		if err != nil {
+			log.Fatalf("get user info failed", err.Error())
+		}
+		article.Users = users
 
 		items = append(items, article)
 	}
