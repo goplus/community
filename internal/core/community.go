@@ -266,7 +266,6 @@ const (
 
 // ListArticle lists articles from a position.
 func (p *Community) ListArticle(ctx context.Context, from string, limit int) (items []*ArticleEntry, next string, err error) {
-	p.zlog.Info("sss")
 	if from == MarkBegin {
 		from = "0"
 	} else if from == MarkEnd {

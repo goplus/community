@@ -20,6 +20,10 @@ var (
 	trans *translation.Engine
 )
 
+const (
+    layoutUS  = "January 2, 2006"
+)
+
 todo := context.TODO()
 endpoint := os.Getenv("GOP_COMMUNITY_ENDPOINT")
 domain := os.Getenv("GOP_COMMUNITY_DOMAIN")
@@ -56,13 +60,12 @@ get "/p/:id", ctx => {
 	article, _ := community.article(todo, id)
 	ctx.yap "article", {
 		"User": userClaim,
-
 		"ID":      id,
 		"Title":   article.Title,
 		"Content": article.HtmlUrl,
 		"Tags": article.Tags,
 		"Cover": article.Cover,
-		"Ctime": article.Ctime,
+		"Mtime": article.Mtime.Format(layoutUS),
 		// "User": article.User,
 	}
 }
@@ -123,18 +126,27 @@ get "/", ctx => {
 	}
 }
 
-post "/search", ctx => {
-	searchValue := ctx.param("search")
-	zlog.Infof("SearchValue: %+v", searchValue)
+get "/search", ctx => {
+	searchValue := ctx.param("value")
 	if searchValue == "" {
 		ctx.json {
 			"code": 400,
 			"err": "value can not be ''.",
 		}
 	}
+	var userClaim *casdoorsdk.Claims
+	token, err := ctx.Request.Cookie("token")
+	if err == nil {
+		userClaim, err = community.GetUserClaim(token.Value)
+		if err != nil {
+			zlog.Error("get user claim error:", err)
+		}
+	}
 	articles, _ := community.searchArticle(todo, searchValue)
 	ctx.yap "home", {
+		"User":  userClaim,
 		"Items": articles,
+		"Value": searchValue,
 	}
 }
 

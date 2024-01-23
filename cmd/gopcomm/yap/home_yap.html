@@ -22,35 +22,40 @@
                     <img src="https://github.com/goplus/community/assets/47499836/19900f7d-ddbb-495b-b45b-8fd2397394be"
                         class="mb-2 mr-3 h-6 sm:h-9" alt="Go+ Community Logo" />
                 </a>
-                {{if .User}}
-                    <div class="flex items-center lg:order-2">
-                        <button href="/user/{{ .User.Id }}" type="button" style="margin-right: 1rem;" class="relative flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
-                            <span class="absolute -inset-1.5"></span>
-                            <!-- TODO: Add UserAvatar -->
-                            <a href="/user/{{ .User.Id }}">
-                                <img class="h-8 w-8 rounded-full" src="{{ .User.Avatar }}" alt="">
-                            </a>
-                        </button>
-                        <button type="button"
-                            class="text-white hover:text-white border border-white-700 hover:bg-white-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-500 dark:focus:ring-blue-800">
-                            <a href="/add">
-                                Write
-                            </a>
-                        </button>
-                    </div>
-                {{else}}
-                    <div class="flex items-center lg:order-2">
-                        <button type="button"
-                            class="text-white hover:text-white border border-white-700 hover:bg-white-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-500 dark:focus:ring-blue-800">
-                            
-                            <a href="http://localhost:8081/login?redirect_url=http://localhost:8081/callback">
-                                Sign in
-                            </a>
-                        </button>
-                    </div>
-                {{end}}
+                <div class="flex items-center lg:order-2">
+                    {{if .User}}
+                    <button href="/user/{{ .User.Id }}" type="button" style="margin-right: 1rem;" class="relative flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
+                        <span class="absolute -inset-1.5"></span>
+                        <!-- TODO: Add UserAvatar -->
+                        <a href="/user/{{ .User.Id }}">
+                            <img class="h-8 w-8 rounded-full" src="{{ .User.Avatar }}" alt="">
+                        </a>
+                    </button>
+                    <button type="button"
+                        class="text-white hover:text-white border border-white-700 hover:bg-white-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-500 dark:focus:ring-blue-800">
+                        <a href="/add">
+                            Write
+                        </a>
+                    </button>
+                    {{else}}
+                    <button type="button"
+                        class="text-white hover:text-white border border-white-700 hover:bg-white-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-500 dark:focus:ring-blue-800">
+                        <a href="http://localhost:8081/login?redirect_url=http://localhost:8081/callback">
+                            Sign in
+                        </a>
+                    </button>
+                    {{end}}
+                    {{if .Value}}
+                    <button type="button"
+                        class="text-white hover:text-white border border-white-700 hover:bg-white-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-500 dark:focus:ring-blue-800">
+                        <a href="/">
+                            Back
+                        </a>
+                    </button>
+                    {{end}}
+                </div>
                 <div class="hidden justify-between items-center w-1/2 lg:flex lg:w-auto lg:order-1" id="mobile-menu-2">
-                    <form style="width: 500px" action="/" method="post">
+                    <form style="width: 500px" action="/search" method="get">
                         <label for="default-search"
                             class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">Search</label>
                         <div class="relative">
@@ -61,9 +66,15 @@
                                         stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
                                 </svg>
                             </div>
-                            <input type="search" id="default-search" name="search"
+                            {{if .Value}}
+                            <input type="search" id="default-search" name="value"
+                                class="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                required placeholder={{.Value}}></input>
+                            {{else}}
+                            <input type="search" id="default-search" name="value"
                                 class="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                 placeholder="Search..." required />
+                            {{end}}
                             <button type="submit"
                                 class="text-white absolute end-2.5 bottom-2.5 bg-blue-500 hover:bg-blue-600 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                                 Search
