@@ -24,6 +24,7 @@
 </head>
 
 <body style="background-color: #f7fafc;">
+    <input style="display:none" id="usertoken" value="{{.usertoken}}"/>
     <!-- Header -->
     <header class="bg-cover bg-center" style="
         height: 11vh;
@@ -558,11 +559,11 @@
                 <div class="flex flex-row items-center">
                     <!-- Avatar -->
                     <img class="w-12 h-12 rounded-full ml-3 mr-2"
-                        src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image-11.jpg" alt="Rounded avatar">
+                        src="{{.Author.Avatar}}" alt="Rounded avatar">
 
                     <!-- Nick Name -->
                     <div>
-                        <span class="creator-name">Nick_1977<br></span>
+                        <span class="creator-name">{{.Author.Name}}<br></span>
                         <span class="creator-desc">GoPlus Developer</span>
                     </div>
                 </div>

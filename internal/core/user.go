@@ -2,12 +2,13 @@ package core
 
 import (
 	"os"
+
 	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 )
 
 // Deprecated: use casdoorsdk instead
 type User struct {
-	ID       string
+	Id       string
 	Name     string
 	Password string
 	Avatar   string
@@ -28,8 +29,7 @@ func CasdoorConfigInit() {
 	casdoorsdk.InitConfig(endPoint, clientID, clientSecret, certificate, organizationName, applicationName)
 }
 
-// Deprecated: use casdoorsdk instead
-// GetUser return author
+// GetUser return author by token
 func (p *Community) GetUser(token string) (user *User, err error) {
 	claim, err := casdoorsdk.ParseJwtToken(token)
 	if err != nil {
@@ -39,13 +39,13 @@ func (p *Community) GetUser(token string) (user *User, err error) {
 	user = &User{
 		Name:   claim.Name,
 		Avatar: claim.Avatar,
-		ID:     claim.Id,
+		Id:     claim.Id,
 	}
 	return
 }
 
-// GetUserId return user id by token
-func (p *Community) GetUserId(token string) (userId string, err error) {
+// ParseJwtToken return user id by token
+func (p *Community) ParseJwtToken(token string) (userId string, err error) {
 	claim, err := casdoorsdk.ParseJwtToken(token)
 	if err != nil {
 		p.zlog.Error(err)
@@ -54,12 +54,33 @@ func (p *Community) GetUserId(token string) (userId string, err error) {
 	return claim.Id, nil
 }
 
-func (p *Community) GetUserClaim(token string) (claim *casdoorsdk.Claims, err error) {
-	claim, err = casdoorsdk.ParseJwtToken(token)
+// GetUserClaim get user（full） by token
+func (p *Community) GetUserClaim(uid string) (claim *casdoorsdk.User, err error) {
+	claim, err = casdoorsdk.GetUserByUserId(uid)
 	if err != nil {
 		p.zlog.Error(err)
-		return nil, ErrNotExist
+		return &casdoorsdk.User{}, ErrNotExist
 	}
+	return
+}
 
-	return claim, nil
+// GetUserById get user by uid
+func (p *Community) GetUserById(uid string) (user *User, err error) {
+	claim, err := casdoorsdk.GetUserByUserId(uid)
+	if err != nil {
+		p.zlog.Error(err)
+		return &User{}, ErrNotExist
+	}
+	user = &User{
+		Name:   claim.Name,
+		Avatar: claim.Avatar,
+		Id:     claim.Id,
+	}
+	return
+}
+
+// UpdateUserById update user by uid
+func (p *Community) UpdateUserById(uid string, user *casdoorsdk.User) (res bool, err error) {
+	res, err = casdoorsdk.UpdateUserById(uid, user)
+	return
 }

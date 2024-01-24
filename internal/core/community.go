@@ -43,14 +43,15 @@ type Config struct {
 }
 
 type ArticleEntry struct {
-	ID    string
-	Title string
-	UId   string
-	Cover string
-	Tags  string
-	User  User
-	Ctime time.Time
-	Mtime time.Time
+	ID       string
+	Title    string
+	UId      string
+	Cover    string
+	Tags     string
+	User     User
+	Abstract string
+	Ctime    time.Time
+	Mtime    time.Time
 }
 
 type Article struct {
@@ -108,8 +109,8 @@ func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 func (p *Community) Article(ctx context.Context, id string) (article *Article, err error) {
 	article = &Article{}
 	var htmlId string
-	sqlStr := "select id,title,user_id,cover,tags,content,html_id,ctime,mtime from article where id=?"
-	err = p.db.QueryRow(sqlStr, id).Scan(&article.ID, &article.Title, &article.UId, &article.Cover, &article.Tags, &article.Content, &htmlId, &article.Ctime, &article.Mtime)
+	sqlStr := "select id,title,user_id,cover,tags,abstract,content,html_id,ctime,mtime from article where id=?"
+	err = p.db.QueryRow(sqlStr, id).Scan(&article.ID, &article.Title, &article.UId, &article.Cover, &article.Tags, &article.Abstract, &article.Content, &htmlId, &article.Ctime, &article.Mtime)
 	if err == sql.ErrNoRows {
 		p.zlog.Warn("not found the article")
 		return article, ErrNotExist
@@ -117,11 +118,11 @@ func (p *Community) Article(ctx context.Context, id string) (article *Article, e
 		return article, err
 	}
 	// add author info
-	// user, err := p.GetUser(article.UId)
-	// if err != nil {
-	// 	return
-	// }
-	// article.User = *user
+	user, err := p.GetUserById(article.UId)
+	if err != nil {
+		return
+	}
+	article.User = *user
 	// get html url
 	fileKey, err := p.GetMediaUrl(ctx, htmlId)
 	article.HtmlUrl = fmt.Sprintf("%s%s", p.domain, fileKey)
@@ -197,8 +198,8 @@ func (p *Community) PutArticle(ctx context.Context, uid string, trans string, ar
 	}
 	// new article
 	if article.ID == "" {
-		sqlStr := "insert into article (title, ctime, mtime, user_id, tags, cover, content, html_id) values (?, ?, ?, ?, ?, ?, ?, ?)"
-		res, err := p.db.Exec(sqlStr, &article.Title, time.Now(), time.Now(), uid, &article.Tags, &article.Cover, &article.Content, htmlId)
+		sqlStr := "insert into article (title, ctime, mtime, user_id, tags, abstract, cover, content, html_id) values (?, ?, ?, ?, ?, ?, ?, ?,?)"
+		res, err := p.db.Exec(sqlStr, &article.Title, time.Now(), time.Now(), uid, &article.Tags, &article.Abstract, &article.Cover, &article.Content, htmlId)
 		if err != nil {
 			return "", err
 		}
@@ -207,14 +208,14 @@ func (p *Community) PutArticle(ctx context.Context, uid string, trans string, ar
 	}
 	if trans != "" {
 		// add article except html_id, content (trans)
-		sqlStr := "update article set title=?, mtime=?, ctime=?, tags=?, cover=?, trans_content=?, trans_html_id=? where id=?"
-		_, err = p.db.Exec(sqlStr, &article.Title, time.Now(), time.Now(), &article.Tags, &article.Cover, &article.Content, htmlId, &article.ID)
+		sqlStr := "update article set title=?, mtime=?, ctime=?, tags=?, abstract=?, cover=?, trans_content=?, trans_html_id=? where id=?"
+		_, err = p.db.Exec(sqlStr, &article.Title, time.Now(), time.Now(), &article.Tags, &article.Abstract, &article.Cover, &article.Content, htmlId, &article.ID)
 		return article.ID, err
 	}
 
 	// edit article
-	sqlStr := "update article set title=?, mtime=?, tags=?, cover=?, content=?, html_id=? where id=?"
-	_, err = p.db.Exec(sqlStr, &article.Title, time.Now(), &article.Tags, &article.Cover, &article.Content, htmlId, &article.ID)
+	sqlStr := "update article set title=?, mtime=?, tags=?, abstract=?, cover=?, content=?, html_id=? where id=?"
+	_, err = p.db.Exec(sqlStr, &article.Title, time.Now(), &article.Tags, &article.Abstract, &article.Cover, &article.Content, htmlId, &article.ID)
 	return article.ID, err
 }
 
@@ -276,7 +277,7 @@ func (p *Community) ListArticle(ctx context.Context, from string, limit int) (it
 		return []*ArticleEntry{}, from, err
 	}
 
-	sqlStr := "select id, title, ctime, user_id, tags, cover from article order by ctime desc limit ? offset ?"
+	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover from article order by ctime desc limit ? offset ?"
 	rows, err := p.db.Query(sqlStr, limit, fromInt)
 	if err != nil {
 		return []*ArticleEntry{}, from, err
@@ -286,17 +287,16 @@ func (p *Community) ListArticle(ctx context.Context, from string, limit int) (it
 	var rowLen int
 	for rows.Next() {
 		article := &ArticleEntry{}
-		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Cover)
+		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Abstract, &article.Cover)
 		if err != nil {
-			p.zlog.Info("ArticleEntryArticleEntryArticleEntry", err)
 			return []*ArticleEntry{}, from, err
 		}
 		// add author info
-		// user, err := p.GetUser(article.UId)
-		// if err != nil {
-		// 	return []*ArticleEntry{}, from, err
-		// }
-		// article.User = *user
+		user, err := p.GetUserById(article.UId)
+		if err != nil {
+			return []*ArticleEntry{}, from, err
+		}
+		article.User = *user
 
 		items = append(items, article)
 		rowLen++
@@ -311,7 +311,7 @@ func (p *Community) ListArticle(ctx context.Context, from string, limit int) (it
 
 // SearchArticle search articles by title.
 func (p *Community) SearchArticle(ctx context.Context, searchValue string) (items []*ArticleEntry, err error) {
-	sqlStr := "select id, title, ctime, user_id, tags, cover from article where title like ?"
+	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover from article where title like ?"
 	rows, err := p.db.Query(sqlStr, "%"+searchValue+"%")
 	if err != nil {
 		return []*ArticleEntry{}, err
@@ -320,16 +320,43 @@ func (p *Community) SearchArticle(ctx context.Context, searchValue string) (item
 
 	for rows.Next() {
 		article := &ArticleEntry{}
-		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Cover)
+		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Abstract, &article.Cover)
 		if err != nil {
 			return []*ArticleEntry{}, err
 		}
 		// add author info
-		// user, err := p.GetUser(article.UId)
-		// if err != nil {
-		// 	return []*ArticleEntry{}, err
-		// }
-		// article.User = *user
+		user, err := p.GetUserById(article.UId)
+		if err != nil {
+			return []*ArticleEntry{}, err
+		}
+		article.User = *user
+
+		items = append(items, article)
+	}
+	return items, nil
+}
+
+// GetArticlesByUid get articles by user id.
+func (p *Community) GetArticlesByUid(ctx context.Context, uid string) (items []*ArticleEntry, err error) {
+	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover from article where user_id = ?"
+	rows, err := p.db.Query(sqlStr, uid)
+	if err != nil {
+		return []*ArticleEntry{}, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		article := &ArticleEntry{}
+		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Abstract, &article.Cover)
+		if err != nil {
+			return []*ArticleEntry{}, err
+		}
+		// add author info
+		user, err := p.GetUserById(article.UId)
+		if err != nil {
+			return []*ArticleEntry{}, err
+		}
+		article.User = *user
 
 		items = append(items, article)
 	}

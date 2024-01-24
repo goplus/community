@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"fmt"
+	"strconv"
 
 	"github.com/goplus/community/internal/core"
 	"github.com/goplus/community/markdown"
@@ -46,26 +47,28 @@ get "/failed", ctx => {
 }
 
 get "/p/:id", ctx => {
+	// todo middleware
 	// Get User Info
-	var userClaim *casdoorsdk.Claims
+	var user *core.User
 	token, err := ctx.Request.Cookie("token")
 	if err == nil {
-		userClaim, err = community.GetUserClaim(token.Value)
+		user, err = community.getUser(token.Value)
 		if err != nil {
-			zlog.Error("get user claim error:", err)
+			zlog.Error("get user error:", err)
 		}
 	}
 
 	id := ctx.param("id")
 	article, _ := community.article(todo, id)
 	ctx.yap "article", {
-		"User": userClaim,
+		"User": user,
 		"ID":      id,
 		"Title":   article.Title,
 		"Content": article.HtmlUrl,
 		"Tags": article.Tags,
 		"Cover": article.Cover,
 		"Mtime": article.Mtime.Format(layoutUS),
+		"Author": article.User,
 		// "User": article.User,
 	}
 }
@@ -81,23 +84,28 @@ get "/getArticle/:id", ctx => {
 
 get "/user/:id", ctx => {
 	id := ctx.param("id")
-	// Default is the current user info
-
-	// Get User Info
-	var userClaim *casdoorsdk.Claims
+	// Get current User Info by id
+	userClaim, err := community.getUserClaim(id)
+	if err != nil {
+		zlog.Error("get current user error:", err)
+	}
+	// todo middleware
+	// get user by token
+	var user *core.User
 	token, err := ctx.Request.Cookie("token")
 	if err == nil {
-		userClaim, err = community.GetUserClaim(token.Value)
+		user, err = community.getUser(token.Value)
 		if err != nil {
-			zlog.Error("get user claim error:", err)
+			zlog.Error("get user error:", err)
 		}
 	}
-
-	// TODO: Get User Info
+	// get article list published by uid
+	items, _ :=community.GetArticlesByUid(todo, id)
 	ctx.yap "user", {
 		"Id": id,
 		"CurrentUser": userClaim,
-		"User": userClaim,
+		"User": user,
+		"Items": items,
 	}
 }
 
@@ -106,23 +114,29 @@ get "/add", ctx => {
 }
 
 get "/", ctx => {
-	// TODO: Add page list
-
+	from := ctx.param("from")
+	limit := ctx.param("limit")
+	// todo middleware
 	// Get User Info
-	var userClaim *casdoorsdk.Claims
+	var user *core.User
 	token, err := ctx.Request.Cookie("token")
 	if err == nil {
-		userClaim, err = community.GetUserClaim(token.Value)
+		user, err = community.getUser(token.Value)
 		if err != nil {
-			zlog.Error("get user claim error:", err)
+			zlog.Error("get user error:", err)
 		}
 	}
 
+	limitInt, err := strconv.Atoi(limit)
+	if err != nil {
+		limitInt = 20
+	}
 	// Get Article Info
-	articles, _, _ := community.listArticle(todo, core.MarkBegin, 20)
+	articles, next, _ := community.listArticle(todo, from, limitInt)
 	ctx.yap "home", {
-		"User":  userClaim,
+		"User":  user,
 		"Items": articles,
+		"Next": next,
 	}
 }
 
@@ -134,17 +148,18 @@ get "/search", ctx => {
 			"err": "value can not be ''.",
 		}
 	}
-	var userClaim *casdoorsdk.Claims
+	// todo middleware
+	var user *core.User
 	token, err := ctx.Request.Cookie("token")
 	if err == nil {
-		userClaim, err = community.GetUserClaim(token.Value)
+		user, err = community.getUser(token.Value)
 		if err != nil {
-			zlog.Error("get user claim error:", err)
+			zlog.Error("get user error:", err)
 		}
 	}
 	articles, _ := community.searchArticle(todo, searchValue)
 	ctx.yap "home", {
-		"User":  userClaim,
+		"User":  user,
 		"Items": articles,
 		"Value": searchValue,
 	}
@@ -159,7 +174,7 @@ get "/edit/:id", ctx => {
 		}
 	}
 
-	uid, err := community.GetUserId(token.Value)
+	uid, err := community.ParseJwtToken(token.Value)
 	if err != nil {
 		ctx.json {
 			"code": 500,
@@ -208,7 +223,7 @@ post "/commit", ctx => {
 			"err": "no token",
 		}
 	}
-	uid, err := community.GetUserId(token.Value)
+	uid, err := community.ParseJwtToken(token.Value)
 	if err != nil {
 		ctx.json {
 			"code": 500,
@@ -246,7 +261,7 @@ post "/translate", ctx => {
 			"err": "no token",
 		}
 	}
-	uid, err := community.GetUserId(token.Value)
+	uid, err := community.ParseJwtToken(token.Value)
 	if err != nil {
 		ctx.json {
 			"code": 500,
@@ -257,7 +272,6 @@ post "/translate", ctx => {
     mdData := ctx.param("content")
 	htmlData := ctx.param("html")
 	id := ctx.param("id")
-	zlog.Info(mdData)
 	// get translation markdown
     transData, err := trans.translateMarkdownText(mdData, language.Chinese, language.English)
 	if err != nil {
@@ -347,15 +361,13 @@ post "/upload", ctx => {
 			"err": "no token",
 		}
 	}
-	uid, err := community.GetUserId(token.Value)
+	uid, err := community.ParseJwtToken(token.Value)
 	if err != nil {
 		ctx.json {
 			"code": 500,
 			"err": err.Error(),
 		}
 	}
-	// uid := "70f6a615-c0d5-4315-a5ac-34ca845450ed"
-
 	id,err:=community.SaveMedia(context.Background(), uid, bytes)
 	if err!=nil {
 		zlog.Error("save file",err.Error())

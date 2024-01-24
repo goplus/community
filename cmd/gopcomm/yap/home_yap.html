@@ -184,18 +184,18 @@
 
                         <!-- Description -->
                         <p class="leading-7 mt-1 mb-1" style="color: #A0AEC0;">
-                            {{.Title}}
+                            {{.Abstract}}
                         </p>
 
                         <!-- Avatar & Nick Name & Update Time -->
                         <div class="flex flex-row items-center">
                             <!-- Avatar -->
                             <img class="w-7 h-7 rounded-full mr-3 ring-1"
-                                src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image-11.jpg"
+                                src="{{.User.Avatar}}"
                                 alt="Rounded avatar">
 
                             <!-- Nick Name -->
-                            <p class="text-sm font-medium mr-1 text-black">GoPlus Developer</p>
+                            <p class="text-sm font-medium mr-1 text-black">{{.User.Name}}</p>
 
                             <!-- Update Time -->
                             <span class="text-sm" style="color: #A0AEC0;">· {{.Ctime}}</span>
@@ -206,7 +206,7 @@
                     <div class="p-4" style="width: 25%;">
                         <!-- Image -->
                         <img class="w-full object-cover rounded-lg" style="height: 20vh;"
-                            src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image.jpg" alt="">
+                            src="{{.Cover}}" alt="">
 
                         <!-- Data -->
                         <div class="flex flex-row items-center justify-between mt-2" style="height: 2vh;">
@@ -251,7 +251,7 @@
                             </div>
 
                             <!-- Detail Button-->
-                            <a class="text-xs text-blue-500 inline-flex items-center">
+                            <a class="text-xs text-blue-500 inline-flex items-center" href="/p/{{ .ID }}">
                                 Learn More
                                 <svg class="w-4 h-4 ml-2" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                                     fill="none" stroke-linecap="round" stroke-linejoin="round">
