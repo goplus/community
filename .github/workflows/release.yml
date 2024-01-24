@@ -38,7 +38,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: "1.21"
+        go-version: "1.19"
 
     - name: Release with goreleaser
       uses: goreleaser/goreleaser-action@v5
@@ -49,7 +49,6 @@ jobs:
         args: release --clean -p 4
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        WINGET_PKGS_PRIVATE_KEY: ${{ secrets.WINGET_PKGS_PRIVATE_KEY }}
 
     # - name: Upload deb/rpm to Fury.io
     #   run: |
