@@ -1,18 +1,19 @@
 package main
 
 import (
-	"fmt"
-	"os"
-	"github.com/goplus/yap"
 	"context"
+	"fmt"
 	"io"
 	"net/http"
+	"os"
+
+	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 	"github.com/goplus/community/internal/core"
 	"github.com/goplus/community/translation"
-	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
+	"github.com/goplus/yap"
+	_ "github.com/joho/godotenv/autoload"
 	"go.uber.org/zap"
 	"golang.org/x/text/language"
-	_ "github.com/joho/godotenv/autoload"
 )
 
 type community struct {
@@ -20,6 +21,7 @@ type community struct {
 	community *core.Community
 	trans     *translation.Engine
 }
+
 //line cmd/gopcomm/community_yap.gox:23
 func (this *community) MainEntry() {
 //line cmd/gopcomm/community_yap.gox:23:1
