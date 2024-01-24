@@ -74,7 +74,7 @@ get "/getArticle/:id", ctx => {
 		"code": 200,
 		"data": article,
    }
-}
+   }
 
 get "/user/:id", ctx => {
 	id := ctx.param("id")
@@ -390,5 +390,23 @@ community, _ = core.New(todo, conf)
 trans = translation.New(os.Getenv("NIUTRANS_API_KEY"), "", "")
 core.CasdoorConfigInit()
 
+// 404
+handle "/",ctx => {
+	ctx.yap "4xx", {}
+}
+
 zlog.Info "Started in endpoint: ", endpoint
-run endpoint
+
+// 500
+run(endpoint, func(h http.Handler) http.Handler {
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if err := recover(); err != nil {
+				http.Redirect(w, r, "/failed", http.StatusFound)
+			}
+		}()
+
+		h.ServeHTTP(w, r)
+	})
+})
