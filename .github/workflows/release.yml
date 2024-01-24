@@ -1,0 +1,62 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Install Snapcraft
+      uses: samuelmeuli/action-snapcraft@v2
+
+    - name: Checkout tag
+      run: |
+        git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+        tag_name="${GITHUB_REF##*/}"
+        echo Current tag: $tag_name
+        git checkout $tag_name
+        echo "TAG_NAME=${tag_name}" >> $GITHUB_ENV
+    
+    - name: Check VERSION consistency
+      run: |
+        tag=$(git describe --tags --dirty)
+        version=$(cat VERSION)
+        if [ "$tag" != "$version" ]; then
+          echo "VERSION file is not consistent with tag name"
+          echo "VERSION: $version"
+          echo "TAG: $tag"
+          exit 1
+        fi
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: "1.21"
+
+    - name: Release with goreleaser
+      uses: goreleaser/goreleaser-action@v5
+      with:
+        # either 'goreleaser' (default) or 'goreleaser-pro'
+        distribution: goreleaser
+        version: latest
+        args: release --clean -p 4
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        WINGET_PKGS_PRIVATE_KEY: ${{ secrets.WINGET_PKGS_PRIVATE_KEY }}
+
+    # - name: Upload deb/rpm to Fury.io
+    #   run: |
+    #     for file in dist/*.{deb,rpm}
+    #     do
+    #       echo "Uploading $file to Fury.io"
+    #       curl -sS -F package=@$file https://$FURY_TOKEN@push.fury.io/goplus/
+    #     done
+    #   env:
+    #     FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
