@@ -20,7 +20,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"io"
 	"os"
 	"strconv"
 	"time"
@@ -103,6 +102,17 @@ func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 		return
 	}
 	return &Community{bucket, db, domain, zlog}, nil
+}
+
+func (p *Community) getTotal(ctx context.Context, searchValue string) (total int, err error) {
+	if searchValue != "" {
+		sqlStr := "select count(*) from article where title like ?"
+		err = p.db.QueryRow(sqlStr, "%"+searchValue+"%").Scan(&total)
+	} else {
+		sqlStr := "select count(*) from article"
+		err = p.db.QueryRow(sqlStr).Scan(&total)
+	}
+	return
 }
 
 // Article returns an article.
@@ -260,61 +270,26 @@ func (p *Community) DeleteArticles(ctx context.Context, uid string) (err error) 
 	return
 }
 
-const (
-	MarkBegin = ""
-	MarkEnd   = "eof"
-)
+// const (
+// 	MarkBegin = ""
+// 	MarkEnd   = "eof"
+// )
 
 // ListArticle lists articles from a position.
-func (p *Community) ListArticle(ctx context.Context, from string, limit int) (items []*ArticleEntry, next string, err error) {
-	if from == MarkBegin {
-		from = "0"
-	} else if from == MarkEnd {
-		return []*ArticleEntry{}, from, nil
-	}
-	fromInt, err := strconv.Atoi(from)
-	if err != nil {
-		return []*ArticleEntry{}, from, err
+func (p *Community) Articles(ctx context.Context, page int, limit int, searchValue string) (items []*ArticleEntry, total int, err error) {
+	total, err = p.getTotal(ctx, searchValue)
+	if err != nil || total == 0 {
+		return []*ArticleEntry{}, 0, err
 	}
 
 	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover from article order by ctime desc limit ? offset ?"
-	rows, err := p.db.Query(sqlStr, limit, fromInt)
+	rows, err := p.db.Query(sqlStr, limit, (page-1)*limit)
+	if searchValue != "" {
+		sqlStr := "select id, title, ctime, user_id, tags, abstract, cover from article where title like ? order by ctime desc limit ? offset ?"
+		rows, err = p.db.Query(sqlStr, "%"+searchValue+"%", limit, (page-1)*limit)
+	}
 	if err != nil {
-		return []*ArticleEntry{}, from, err
-	}
-	defer rows.Close()
-
-	var rowLen int
-	for rows.Next() {
-		article := &ArticleEntry{}
-		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Abstract, &article.Cover)
-		if err != nil {
-			return []*ArticleEntry{}, from, err
-		}
-		// add author info
-		user, err := p.GetUserById(article.UId)
-		if err != nil {
-			return []*ArticleEntry{}, from, err
-		}
-		article.User = *user
-
-		items = append(items, article)
-		rowLen++
-	}
-	// have no article
-	if rowLen == 0 {
-		return []*ArticleEntry{}, MarkEnd, io.EOF
-	}
-	next = strconv.Itoa(fromInt + rowLen)
-	return items, next, nil
-}
-
-// SearchArticle search articles by title.
-func (p *Community) SearchArticle(ctx context.Context, searchValue string) (items []*ArticleEntry, err error) {
-	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover from article where title like ?"
-	rows, err := p.db.Query(sqlStr, "%"+searchValue+"%")
-	if err != nil {
-		return []*ArticleEntry{}, err
+		return []*ArticleEntry{}, 0, err
 	}
 	defer rows.Close()
 
@@ -322,18 +297,18 @@ func (p *Community) SearchArticle(ctx context.Context, searchValue string) (item
 		article := &ArticleEntry{}
 		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Abstract, &article.Cover)
 		if err != nil {
-			return []*ArticleEntry{}, err
+			return []*ArticleEntry{}, 0, err
 		}
 		// add author info
 		user, err := p.GetUserById(article.UId)
 		if err != nil {
-			return []*ArticleEntry{}, err
+			return []*ArticleEntry{}, 0, err
 		}
 		article.User = *user
 
 		items = append(items, article)
 	}
-	return items, nil
+	return items, total, nil
 }
 
 // GetArticlesByUid get articles by user id.

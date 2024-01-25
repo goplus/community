@@ -114,7 +114,8 @@ get "/add", ctx => {
 }
 
 get "/", ctx => {
-	from := ctx.param("from")
+	// from := ctx.param("from")
+	from := ctx.param("page")
 	limit := ctx.param("limit")
 	// todo middleware
 	// Get User Info
@@ -129,14 +130,22 @@ get "/", ctx => {
 
 	limitInt, err := strconv.Atoi(limit)
 	if err != nil {
-		limitInt = 20
+		limitInt = 10
+	}
+	page, err := strconv.Atoi(from)
+	if err != nil {
+		page = 1
 	}
 	// Get Article Info
-	articles, next, _ := community.listArticle(todo, from, limitInt)
+	// articles, next, _ := community.listArticle(todo, from, limitInt)
+	articles, total, _ := community.articles(todo, page, limitInt, "")
 	ctx.yap "home", {
 		"User":  user,
 		"Items": articles,
-		"Next": next,
+		// "Next": next,
+		"Page": page,
+		"TotalPage": (total + limitInt -1)/limitInt,
+		"Total": total,
 	}
 }
 
@@ -148,6 +157,17 @@ get "/search", ctx => {
 			"err": "value can not be ''.",
 		}
 	}
+	from := ctx.param("page")
+	limit := ctx.param("limit")
+	limitInt, err := strconv.Atoi(limit)
+	if err != nil {
+		limitInt = 10
+	}
+	page, err := strconv.Atoi(from)
+	if err != nil {
+		page = 1
+	}
+	
 	// todo middleware
 	var user *core.User
 	token, err := ctx.Request.Cookie("token")
@@ -157,11 +177,14 @@ get "/search", ctx => {
 			zlog.Error("get user error:", err)
 		}
 	}
-	articles, _ := community.searchArticle(todo, searchValue)
+	articles, total, _ := community.articles(todo, page, limitInt, searchValue)
 	ctx.yap "home", {
 		"User":  user,
 		"Items": articles,
 		"Value": searchValue,
+		"Page": page,
+		"TotalPage": (total + limitInt -1)/limitInt,
+		"Total": total,
 	}
 }
 
