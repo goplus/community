@@ -1,52 +1,388 @@
 import (
 	"context"
+	"time"
+	"os"
+	"io"
+	"net/http"
+	"fmt"
+	"strconv"
 
 	"github.com/goplus/community/internal/core"
+	"github.com/goplus/community/markdown"
+	"github.com/goplus/community/translation"
+	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
+	"go.uber.org/zap"
+	language "golang.org/x/text/language"
+	_ "github.com/joho/godotenv/autoload"
 )
 
 var (
 	community *core.Community
+	trans *translation.Engine
+)
+
+const (
+    layoutUS  = "January 2, 2006"
 )
 
 todo := context.TODO()
+endpoint := os.Getenv("GOP_COMMUNITY_ENDPOINT")
+domain := os.Getenv("GOP_COMMUNITY_DOMAIN")
+logger, _ := zap.NewProduction()
+defer logger.Sync()
+zlog := logger.Sugar()
+
+static "/"
+
+get "/success", ctx => {
+	ctx.yap "2xx", {}
+}
+
+get "/error", ctx => {
+	ctx.yap "4xx", {}
+}
+
+get "/failed", ctx => {
+	ctx.yap "5xx", {}
+}
 
 get "/p/:id", ctx => {
+	// todo middleware
+	// Get User Info
+	var user *core.User
+	token, err := ctx.Request.Cookie("token")
+	if err == nil {
+		user, err = community.getUser(token.Value)
+		if err != nil {
+			zlog.Error("get user error:", err)
+		}
+	}
+
 	id := ctx.param("id")
 	article, _ := community.article(todo, id)
 	ctx.yap "article", {
+		"User": user,
 		"ID":      id,
 		"Title":   article.Title,
-		"Content": article.Content,
+		"Content": article.HtmlUrl,
+		"Tags": article.Tags,
+		"Cover": article.Cover,
+		"Mtime": article.Mtime.Format(layoutUS),
+		"Author": article.User,
+		// "User": article.User,
 	}
 }
-get "/", ctx => {
-	articles, _, _ := community.listArticle(todo, core.MarkBegin, 20)
-	ctx.yap "home", {
-		"Items": articles,
-	}
-}
-get "/edit", ctx => {
-	uid := ""
+
+get "/getArticle/:id", ctx => {
 	id := ctx.param("id")
-	doc := {
-		"ID": id,
+	article, _ := community.article(todo, id)
+	ctx.json {
+		"code": 200,
+		"data": article,
+   }
+}
+
+get "/user/:id", ctx => {
+	id := ctx.param("id")
+	// Get current User Info by id
+	userClaim, err := community.getUserClaim(id)
+	if err != nil {
+		zlog.Error("get current user error:", err)
 	}
+	// todo middleware
+	// get user by token
+	var user *core.User
+	token, err := ctx.Request.Cookie("token")
+	if err == nil {
+		user, err = community.getUser(token.Value)
+		if err != nil {
+			zlog.Error("get user error:", err)
+		}
+	}
+	// get article list published by uid
+	items, _ :=community.GetArticlesByUid(todo, id)
+	ctx.yap "user", {
+		"Id": id,
+		"CurrentUser": userClaim,
+		"User": user,
+		"Items": items,
+	}
+}
+
+get "/add", ctx => {
+	ctx.yap "edit", {}
+}
+
+get "/", ctx => {
+	from := ctx.param("from")
+	limit := ctx.param("limit")
+	// todo middleware
+	// Get User Info
+	var user *core.User
+	token, err := ctx.Request.Cookie("token")
+	if err == nil {
+		user, err = community.getUser(token.Value)
+		if err != nil {
+			zlog.Error("get user error:", err)
+		}
+	}
+
+	limitInt, err := strconv.Atoi(limit)
+	if err != nil {
+		limitInt = 20
+	}
+	// Get Article Info
+	articles, next, _ := community.listArticle(todo, from, limitInt)
+	ctx.yap "home", {
+		"User":  user,
+		"Items": articles,
+		"Next": next,
+	}
+}
+
+get "/search", ctx => {
+	searchValue := ctx.param("value")
+	if searchValue == "" {
+		ctx.json {
+			"code": 400,
+			"err": "value can not be ''.",
+		}
+	}
+	// todo middleware
+	var user *core.User
+	token, err := ctx.Request.Cookie("token")
+	if err == nil {
+		user, err = community.getUser(token.Value)
+		if err != nil {
+			zlog.Error("get user error:", err)
+		}
+	}
+	articles, _ := community.searchArticle(todo, searchValue)
+	ctx.yap "home", {
+		"User":  user,
+		"Items": articles,
+		"Value": searchValue,
+	}
+}
+
+get "/edit/:id", ctx => {
+	token, err := ctx.Request.Cookie("token")
+	if err != nil {
+		ctx.json {
+			"code": 500,
+			"err": "no token",
+		}
+	}
+
+	uid, err := community.ParseJwtToken(token.Value)
+	if err != nil {
+		ctx.json {
+			"code": 500,
+			"err": err.Error(),
+		}
+	}
+	// uid := "70f6a615-c0d5-4315-a5ac-34ca845450ed"
+	id := ctx.param("id")
 	if id != "" {
 		if editable, _ := community.canEditable(todo, uid, id); !editable {
-			// TODO: can't edit this article
-			return
+			zlog.Error("no permissions")
+			http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
 		}
 		article, _ := community.article(todo, id)
-		doc["Title"] = article.Title
-		doc["Content"] = article.Content
+		ctx.yap "edit", article
 	}
-	ctx.yap "edit", doc
 }
+
+get "/getTrans", ctx => {
+	id := ctx.param("id")
+	htmlUrl, err := community.transHtmlUrl(todo, id)
+	if err != nil {
+		ctx.json {
+			"code": 500,
+			"err": err.Error(), 
+		}
+	}
+	ctx.json {
+		"code": 200,
+		"data": htmlUrl,
+	}
+}
+
+// click "submit" button
 post "/commit", ctx => {
-	// ...
+	// Whether article has been translated or not
+	trans := ctx.param("trans")   // if trans != ""， add article 
+	id := ctx.param("id")
+	mdData := ctx.param("content")
+	htmlData := ctx.param("html")
+	// get user id
+	token, err := ctx.Request.Cookie("token")
+	if err != nil {
+		ctx.json {
+			"code": 500,
+			"err": "no token",
+		}
+	}
+	uid, err := community.ParseJwtToken(token.Value)
+	if err != nil {
+		ctx.json {
+			"code": 500,
+			"err": err.Error(),
+		}
+	}
+	// uid := "70f6a615-c0d5-4315-a5ac-34ca845450ed"
+	// add article 
+	article := &core.Article{
+		ArticleEntry: core.ArticleEntry{
+			ID: id,
+			Title: ctx.param("title"),
+			UId:   uid,   
+			Cover: ctx.param("cover"),
+			Tags:  ctx.param("tags"),
+		},
+		Content: mdData,
+		HtmlData:htmlData,
+	}
+	id, _ = community.putArticle(todo, uid, trans, article)
+	ctx.json {
+		"code": 200,
+		"data": id,
+	}
+	// ctx.yap "edit", *article
+}
+
+//  click "translate button"
+post "/translate", ctx => {
+	// get user id
+	token, err := ctx.Request.Cookie("token")
+	if err != nil {
+		ctx.json {
+			"code": 500,
+			"err": "no token",
+		}
+	}
+	uid, err := community.ParseJwtToken(token.Value)
+	if err != nil {
+		ctx.json {
+			"code": 500,
+			"err": err.Error(),
+		}
+	}
+	// uid := "70f6a615-c0d5-4315-a5ac-34ca845450ed"
+    mdData := ctx.param("content")
+	htmlData := ctx.param("html")
+	id := ctx.param("id")
+	// get translation markdown
+    transData, err := trans.translateMarkdownText(mdData, language.Chinese, language.English)
+	if err != nil {
+		ctx.json {
+			"code": 500,
+			"err": err.Error(),
+		}
+	}
+	id, _ = community.saveHtml(todo, uid, htmlData, mdData, id)
+	ctx.json {
+		"code": 200,
+		"id": id,  //article id
+		"data": transData,  // translation markdown content
+	}
+}
+
+get "/getMedia/:id", ctx => {
+	mediaId := ctx.param("id")
+	// todo the err not empty return 404 for image
+	fileKey, _ := community.GetMediaUrl(context.Background(),mediaId)
+
+	http.Redirect(ctx.ResponseWriter, ctx.Request, domain+fileKey, http.StatusTemporaryRedirect)
+}
+
+get "/getMediaUrl/:id",ctx => {
+	id := ctx.param("id")
+	fileKey, err := community.GetMediaUrl(todo, id)
+	htmlUrl := fmt.Sprintf("%s%s", domain, fileKey)
+	if err != nil {
+		ctx.json {
+			"code": 500,
+			"err": "have no html media",
+		}
+	}
+	ctx.json {
+		"code": 200,
+		"url": htmlUrl,
+	}
+}
+
+post "/upload", ctx => {
+	file, header, err := ctx.FormFile("file")
+	filename := header.Filename
+
+	ctx.ParseMultipartForm(10 << 20)
+
+	if err != nil {
+		zlog.Error("upload file error:", filename)
+		ctx.JSON(500, err.Error())
+		return
+	}
+
+
+	dst, err := os.Create(filename)
+	if err != nil {
+		zlog.Error("create file error:", file)
+		ctx.JSON(500, err.Error())
+		return
+	}
+	defer func() {
+		file.Close()
+		dst.Close()
+		err = os.Remove(filename)
+		if err != nil {
+		zlog.Error("delete file error:", filename)
+		return
+		}
+	}()
+
+
+	_, err = io.Copy(dst, file)
+	if err != nil {
+		zlog.Error("copy file errer:", filename)
+		ctx.JSON(500, err.Error())
+		return
+	}
+	bytes, err := os.ReadFile(filename)
+	if err != nil {
+		zlog.Error("read file errer:", filename)
+		ctx.JSON(500, err.Error())
+		return
+	}
+	token, err := ctx.Request.Cookie("token")
+	if err != nil {
+		ctx.json {
+			"code": 500,
+			"err": "no token",
+		}
+	}
+	uid, err := community.ParseJwtToken(token.Value)
+	if err != nil {
+		ctx.json {
+			"code": 500,
+			"err": err.Error(),
+		}
+	}
+	id,err:=community.SaveMedia(context.Background(), uid, bytes)
+	if err!=nil {
+		zlog.Error("save file",err.Error())
+		ctx.JSON(500, err.Error())
+		return
+	}
+	// todo append current project ip and getMedia
+	// sample: 127.0.0.1:8080/getMedia/ + id
+	ctx.JSON(200,id)
 }
 
 conf := &core.Config{}
 community, _ = core.New(todo, conf)
+trans = translation.New(os.Getenv("NIUTRANS_API_KEY"), "", "")
+core.CasdoorConfigInit()
 
-run ":8080"
+zlog.Info "Started in endpoint: ", endpoint
+run endpoint
