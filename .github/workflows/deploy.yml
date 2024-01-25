@@ -3,7 +3,7 @@ name: deploy
 on:
   push:
     branches:
-      - 'feat/mvp-20240119'
+      - 'dev'
 
 jobs:
   docker:
