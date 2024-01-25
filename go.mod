@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/go-sql-driver/mysql v1.7.1
-	github.com/google/uuid v1.5.0
+	github.com/google/uuid v1.6.0
 	github.com/goplus/yap v0.7.1 //gop:class
 	github.com/qiniu/go-sdk/v7 v7.19.0
 	github.com/yuin/goldmark v1.6.0
