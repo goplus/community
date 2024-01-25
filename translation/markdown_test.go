@@ -43,7 +43,7 @@ func TestTranslatePlainText(t *testing.T) {
 		{"hello", language.English, language.Chinese},
 	}
 
-	trans := New(mockKey)
+	trans := New(mockKey, "", "")
 	for _, test := range tests {
 		to, err := trans.TranslatePlainText(test.src, test.from, test.to)
 		fmt.Println(to, err)
@@ -373,7 +373,7 @@ cl 模块则需要测试是否正确将 Go+ 的代码转成期望的 Go 代码�
 `, language.Chinese, language.English},
 	}
 
-	trans := New(mockKey)
+	trans := New(mockKey, "", "")
 	for _, test := range tests {
 		translatedResult, err := trans.TranslateMarkdownText(test.src, test.from, test.to)
 		fmt.Println(translatedResult, err)
@@ -397,7 +397,7 @@ func TestTranslateBatch(t *testing.T) {
 		{[]string{"What 's your name", "nice job"}, language.English, language.Chinese},
 	}
 
-	trans := New(mockKey)
+	trans := New(mockKey, "", "")
 	for _, test := range tests {
 		translatedResult, err := trans.TranslateBatchPlain(test.src, test.from, test.to)
 		fmt.Println(translatedResult, err)
