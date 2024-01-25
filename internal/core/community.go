@@ -20,8 +20,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"io"
-	"log"
 	"os"
 	"strconv"
 	"time"
@@ -121,6 +119,17 @@ func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 		return
 	}
 	return &Community{bucket, db, domain, casdoorConf, zlog}, nil
+}
+
+func (p *Community) getTotal(ctx context.Context, searchValue string) (total int, err error) {
+	if searchValue != "" {
+		sqlStr := "select count(*) from article where title like ?"
+		err = p.db.QueryRow(sqlStr, "%"+searchValue+"%").Scan(&total)
+	} else {
+		sqlStr := "select count(*) from article"
+		err = p.db.QueryRow(sqlStr).Scan(&total)
+	}
+	return
 }
 
 // Article returns an article.
@@ -278,10 +287,10 @@ func (p *Community) DeleteArticles(ctx context.Context, uid string) (err error) 
 	return
 }
 
-const (
-	MarkBegin = ""
-	MarkEnd   = "eof"
-)
+// const (
+// 	MarkBegin = ""
+// 	MarkEnd   = "eof"
+// )
 
 // ListArticle lists articles from a position.
 func (p *Community) ListArticle(ctx context.Context, from string, limit int) (items []*ArticleEntry, next string, err error) {
@@ -298,11 +307,10 @@ func (p *Community) ListArticle(ctx context.Context, from string, limit int) (it
 	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover from article order by ctime desc limit ? offset ?"
 	rows, err := p.db.Query(sqlStr, limit, fromInt)
 	if err != nil {
-		return []*ArticleEntry{}, from, err
+		return []*ArticleEntry{}, 0, err
 	}
 	defer rows.Close()
 
-	var rowLen int
 	for rows.Next() {
 		article := &ArticleEntry{}
 		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Abstract, &article.Cover)
@@ -317,14 +325,8 @@ func (p *Community) ListArticle(ctx context.Context, from string, limit int) (it
 		article.User = *user
 
 		items = append(items, article)
-		rowLen++
 	}
-	// have no article
-	if rowLen == 0 {
-		return []*ArticleEntry{}, MarkEnd, io.EOF
-	}
-	next = strconv.Itoa(fromInt + rowLen)
-	return items, next, nil
+	return items, total, nil
 }
 
 // SearchArticle search articles by title.

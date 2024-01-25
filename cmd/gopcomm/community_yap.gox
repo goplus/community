@@ -114,7 +114,8 @@ get "/add", ctx => {
 }
 
 get "/", ctx => {
-	from := ctx.param("from")
+	// from := ctx.param("from")
+	from := ctx.param("page")
 	limit := ctx.param("limit")
 	// todo middleware
 	// Get User Info
@@ -148,16 +149,20 @@ get "/search", ctx => {
 			"err": "value can not be ''.",
 		}
 	}
-	// todo middleware
-	var user *core.User
-	token, err := ctx.Request.Cookie("token")
-	if err == nil {
-		user, err = community.getUser(token.Value)
-		if err != nil {
-			zlog.Error("get user error:", err)
-		}
+
+	from := ctx.param("page")
+	limit := ctx.param("limit")
+	limitInt, err := strconv.Atoi(limit)
+	if err != nil {
+		limitInt = 10
 	}
+	page, err := strconv.Atoi(from)
+	if err != nil {
+		page = 1
+	}
+	
 	articles, _ := community.searchArticle(todo, searchValue)
+	articles, total, _ := community.articles(todo, page, limitInt, searchValue)
 	ctx.yap "home", {
 		"User":  user,
 		"Items": articles,
