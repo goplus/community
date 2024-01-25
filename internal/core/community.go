@@ -24,9 +24,11 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 	_ "github.com/go-sql-driver/mysql"
 	"go.uber.org/zap"
 	"gocloud.dev/blob"
+	"golang.org/x/oauth2"
 )
 
 var (
@@ -62,9 +64,23 @@ type Article struct {
 }
 
 type Community struct {
-	bucket *blob.Bucket
-	db     *sql.DB
-	domain string
+	bucket        *blob.Bucket
+	db            *sql.DB
+	domain        string
+	casdoorConfig *CasdoorConfig
+	zlog          *zap.SugaredLogger
+}
+type CasdoorConfig struct {
+	endPoint         string
+	clientId         string
+	clientSecret     string
+	certificate      string
+	organizationName string
+	applicationName  string
+}
+
+type Account struct {
+	casdoorConfig *CasdoorConfig
 
 	zlog *zap.SugaredLogger
 }
@@ -77,6 +93,7 @@ func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 	if conf == nil {
 		conf = new(Config)
 	}
+	casdoorConf := casdoorConfigInit()
 	driver := conf.Driver
 	dsn := conf.DSN
 	bus := conf.BlobUS
@@ -101,7 +118,7 @@ func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 		zlog.Error(err)
 		return
 	}
-	return &Community{bucket, db, domain, zlog}, nil
+	return &Community{bucket, db, domain, casdoorConf, zlog}, nil
 }
 
 func (p *Community) getTotal(ctx context.Context, searchValue string) (total int, err error) {
@@ -336,4 +353,53 @@ func (p *Community) GetArticlesByUid(ctx context.Context, uid string) (items []*
 		items = append(items, article)
 	}
 	return items, nil
+}
+
+func casdoorConfigInit() *CasdoorConfig {
+	endPoint := os.Getenv("GOP_CASDOOR_ENDPOINT")
+	clientID := os.Getenv("GOP_CASDOOR_CLIENTID")
+	clientSecret := os.Getenv("GOP_CASDOOR_CLIENTSECRET")
+	certificate := os.Getenv("GOP_CASDOOR_CERTIFICATE")
+	organizationName := os.Getenv("GOP_CASDOOR_ORGANIZATIONNAME")
+	applicationName := os.Getenv("GOP_CASDOOR_APPLICATONNAME")
+
+	casdoorsdk.InitConfig(endPoint, clientID, clientSecret, certificate, organizationName, applicationName)
+
+	return &CasdoorConfig{
+		endPoint:         endPoint,
+		clientId:         clientID,
+		clientSecret:     clientSecret,
+		certificate:      certificate,
+		organizationName: organizationName,
+		applicationName:  applicationName,
+	}
+}
+
+func (a *Community) RedirectToCasdoor(redirect string) (loginURL string) {
+	// TODO: Check whitelist from referer
+	ResponseType := "code"
+	Scope := "read"
+	State := "casdoor"
+	loginURL = fmt.Sprintf(
+		"%s/login/oauth/authorize?client_id=%s&response_type=%s&redirect_uri=%s&scope=%s&state=%s",
+		a.casdoorConfig.endPoint,
+		a.casdoorConfig.clientId,
+		ResponseType,
+		redirect,
+		Scope,
+		State,
+	)
+
+	return loginURL
+}
+
+func (a *Community) GetAccessToken(code, state string) (token *oauth2.Token, err error) {
+	token, err = casdoorsdk.GetOAuthToken(code, state)
+	if err != nil {
+		a.zlog.Error(err)
+
+		return nil, ErrNotExist
+	}
+
+	return token, nil
 }
