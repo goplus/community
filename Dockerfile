@@ -23,6 +23,8 @@ RUN apk --no-cache add libc6-compat
 
 WORKDIR /community/cmd/gopcomm
 
+RUN ln -s /config/.env .env
+
 COPY --from=builder /community /community
 
 CMD ["./community"]
