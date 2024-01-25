@@ -24,10 +24,4 @@ jobs:
     - name: golangci-lint
       uses: golangci/golangci-lint-action@v3
       with:
-        version: v1.54
-
-    # - name: Install golangci-lint
-    #   run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.41.1
-
-    # - name: Run golangci-lint
-    #   run: golangci-lint run ./...
+        version: v1.41.1
