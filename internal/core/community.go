@@ -293,18 +293,19 @@ func (p *Community) DeleteArticles(ctx context.Context, uid string) (err error) 
 // )
 
 // ListArticle lists articles from a position.
-func (p *Community) Articles(ctx context.Context, page int, limit int, searchValue string) (items []*ArticleEntry, total int, err error) {
-	total, err = p.getTotal(ctx, searchValue)
-	if err != nil || total == 0 {
-		return []*ArticleEntry{}, 0, err
+func (p *Community) ListArticle(ctx context.Context, from string, limit int) (items []*ArticleEntry, next string, err error) {
+	if from == MarkBegin {
+		from = "0"
+	} else if from == MarkEnd {
+		return []*ArticleEntry{}, from, nil
+	}
+	fromInt, err := strconv.Atoi(from)
+	if err != nil {
+		return []*ArticleEntry{}, from, err
 	}
 
 	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover from article order by ctime desc limit ? offset ?"
-	rows, err := p.db.Query(sqlStr, limit, (page-1)*limit)
-	if searchValue != "" {
-		sqlStr := "select id, title, ctime, user_id, tags, abstract, cover from article where title like ? order by ctime desc limit ? offset ?"
-		rows, err = p.db.Query(sqlStr, "%"+searchValue+"%", limit, (page-1)*limit)
-	}
+	rows, err := p.db.Query(sqlStr, limit, fromInt)
 	if err != nil {
 		return []*ArticleEntry{}, 0, err
 	}
@@ -314,18 +315,45 @@ func (p *Community) Articles(ctx context.Context, page int, limit int, searchVal
 		article := &ArticleEntry{}
 		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Abstract, &article.Cover)
 		if err != nil {
-			return []*ArticleEntry{}, 0, err
+			return []*ArticleEntry{}, from, err
 		}
 		// add author info
 		user, err := p.GetUserById(article.UId)
 		if err != nil {
-			return []*ArticleEntry{}, 0, err
+			return []*ArticleEntry{}, from, err
 		}
 		article.User = *user
 
 		items = append(items, article)
 	}
 	return items, total, nil
+}
+
+// SearchArticle search articles by title.
+func (p *Community) SearchArticle(ctx context.Context, searchValue string) (items []*ArticleEntry, err error) {
+	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover from article where title like ?"
+	rows, err := p.db.Query(sqlStr, "%"+searchValue+"%")
+	if err != nil {
+		return []*ArticleEntry{}, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		article := &ArticleEntry{}
+		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Abstract, &article.Cover)
+		if err != nil {
+			return []*ArticleEntry{}, err
+		}
+		// add author info
+		user, err := p.GetUserById(article.UId)
+		if err != nil {
+			return []*ArticleEntry{}, err
+		}
+		article.User = *user
+
+		items = append(items, article)
+	}
+	return items, nil
 }
 
 // GetArticlesByUid get articles by user id.

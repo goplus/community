@@ -228,10 +228,12 @@
                         <a class="flex flex-row items-center" href="/user/{{.User.Id}}">
                             <!-- Avatar -->
                             <img class="w-7 h-7 rounded-full mr-3 ring-1"
-                            src="{{.User.Avatar}}"
-                            alt="Rounded avatar">
+                                src="{{.User.Avatar}}"
+                                alt="Rounded avatar">
+
                             <!-- Nick Name -->
                             <p class="text-sm font-medium mr-1 text-black">{{.User.Name}}</p>
+
                             <!-- Update Time -->
                             <span class="text-sm" style="color: #A0AEC0;">· {{.Ctime}}</span>
                         </a>

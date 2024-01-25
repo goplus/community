@@ -130,22 +130,14 @@ get "/", ctx => {
 
 	limitInt, err := strconv.Atoi(limit)
 	if err != nil {
-		limitInt = 10
-	}
-	page, err := strconv.Atoi(from)
-	if err != nil {
-		page = 1
+		limitInt = 20
 	}
 	// Get Article Info
-	// articles, next, _ := community.listArticle(todo, from, limitInt)
-	articles, total, _ := community.articles(todo, page, limitInt, "")
+	articles, next, _ := community.listArticle(todo, from, limitInt)
 	ctx.yap "home", {
 		"User":  user,
 		"Items": articles,
-		// "Next": next,
-		"Page": page,
-		"TotalPage": (total + limitInt -1)/limitInt,
-		"Total": total,
+		"Next": next,
 	}
 }
 
@@ -157,6 +149,7 @@ get "/search", ctx => {
 			"err": "value can not be ''.",
 		}
 	}
+
 	from := ctx.param("page")
 	limit := ctx.param("limit")
 	limitInt, err := strconv.Atoi(limit)
@@ -168,23 +161,12 @@ get "/search", ctx => {
 		page = 1
 	}
 	
-	// todo middleware
-	var user *core.User
-	token, err := ctx.Request.Cookie("token")
-	if err == nil {
-		user, err = community.getUser(token.Value)
-		if err != nil {
-			zlog.Error("get user error:", err)
-		}
-	}
+	articles, _ := community.searchArticle(todo, searchValue)
 	articles, total, _ := community.articles(todo, page, limitInt, searchValue)
 	ctx.yap "home", {
 		"User":  user,
 		"Items": articles,
 		"Value": searchValue,
-		"Page": page,
-		"TotalPage": (total + limitInt -1)/limitInt,
-		"Total": total,
 	}
 }
 
