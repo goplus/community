@@ -1,18 +1,19 @@
 package main
 
 import (
-	"fmt"
-	"os"
-	"strconv"
-	"github.com/goplus/yap"
 	"context"
+	"fmt"
 	"io"
 	"net/http"
+  "strconv"
+	"os"
+
+	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 	"github.com/goplus/community/internal/core"
 	"github.com/goplus/community/translation"
+	"github.com/goplus/yap"
 	"go.uber.org/zap"
 	"golang.org/x/text/language"
-	_ "github.com/joho/godotenv/autoload"
 )
 
 const layoutUS = "January 2, 2006"
@@ -22,7 +23,8 @@ type community struct {
 	community *core.Community
 	trans     *translation.Engine
 }
-//line cmd/gopcomm/community_yap.gox:28
+
+//line cmd/gopcomm/community_yap.gox:23
 func (this *community) MainEntry() {
 //line cmd/gopcomm/community_yap.gox:28:1
 	todo := context.TODO()
