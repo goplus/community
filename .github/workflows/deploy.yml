@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - 'dev'
+      - 'main'
+      - 'feat/mvp-20240119'
 
 jobs:
   docker:
@@ -26,4 +28,4 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/goplus-community:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/goplus-community-${{ github.ref_name }}:latest
