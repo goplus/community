@@ -28,4 +28,4 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/goplus-community-${{ github.ref }}:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/goplus-community-${{ github.ref_name }}:latest
