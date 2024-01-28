@@ -402,11 +402,28 @@ post "/upload", ctx => {
 
 get "/login", ctx => {
 	// Get URL from query string
-	redirectURL := ctx.URL.Query().Get("redirect_url")
+	// redirectURL := ctx.URL.Query().Get("redirect_url")
+	// Get current request page URL from 
+	// Concatenate the current request page URL from refer
+	redirectURL := fmt.Sprintf("%s/%s", ctx.Request.Referer() + "callback")
+
 	loginURL := community.RedirectToCasdoor(redirectURL)
 	ctx.Redirect loginURL, http.StatusFound
 }
 
+get "/logout", ctx => {
+	tokenCookie, err := ctx.Request.Cookie("token")
+	if err != nil {
+		zlog.Error("get token error:", err)
+	}
+
+	// Delete token
+	tokenCookie.MaxAge = -1
+	http.SetCookie(ctx.ResponseWriter, tokenCookie)
+
+	// Redirect to home page
+	http.Redirect(ctx.ResponseWriter, ctx.Request, fmt.Sprintf("http://localhost:8080"), http.StatusFound)
+}
 
 get "/callback", ctx => {
 	code :=ctx.URL.Query().Get("code")
@@ -427,7 +444,7 @@ get "/callback", ctx => {
 
 	// Redirect to home page
 	// TODO: Get redirect URL from state
-	http.Redirect(ctx.ResponseWriter, ctx.Request, fmt.Sprintf("http://localhost:8080?token=%s", token.AccessToken), http.StatusFound)
+	http.Redirect(ctx.ResponseWriter, ctx.Request, fmt.Sprintf("http://localhost:8080"), http.StatusFound)
 }
 
 conf := &core.Config{}
