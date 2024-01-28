@@ -80,7 +80,7 @@ get "/getArticle/:id", ctx => {
 		"code": 200,
 		"data": article,
    }
-}
+   }
 
 get "/user/:id", ctx => {
 	id := ctx.param("id")
@@ -114,7 +114,8 @@ get "/add", ctx => {
 }
 
 get "/", ctx => {
-	from := ctx.param("from")
+	// from := ctx.param("from")
+	from := ctx.param("page")
 	limit := ctx.param("limit")
 	// todo middleware
 	// Get User Info
@@ -148,16 +149,20 @@ get "/search", ctx => {
 			"err": "value can not be ''.",
 		}
 	}
-	// todo middleware
-	var user *core.User
-	token, err := ctx.Request.Cookie("token")
-	if err == nil {
-		user, err = community.getUser(token.Value)
-		if err != nil {
-			zlog.Error("get user error:", err)
-		}
+
+	from := ctx.param("page")
+	limit := ctx.param("limit")
+	limitInt, err := strconv.Atoi(limit)
+	if err != nil {
+		limitInt = 10
 	}
+	page, err := strconv.Atoi(from)
+	if err != nil {
+		page = 1
+	}
+	
 	articles, _ := community.searchArticle(todo, searchValue)
+	articles, total, _ := community.articles(todo, page, limitInt, searchValue)
 	ctx.yap "home", {
 		"User":  user,
 		"Items": articles,
@@ -379,10 +384,58 @@ post "/upload", ctx => {
 	ctx.JSON(200,id)
 }
 
+get "/login", ctx => {
+	// Get URL from query string
+	redirectURL := ctx.URL.Query().Get("redirect_url")
+	loginURL := community.RedirectToCasdoor(redirectURL)
+	ctx.Redirect loginURL, http.StatusFound
+}
+
+
+get "/callback", ctx => {
+	code :=ctx.URL.Query().Get("code")
+	state :=ctx.URL.Query().Get("state")
+
+	token, error := community.GetAccessToken(code, state)
+	if error != nil {
+		zlog.Error("err",error) // Redirect to login
+	}
+
+	cookie := http.Cookie{
+		Name: "token",
+		Value: token.AccessToken,
+		Path: "/",
+		MaxAge: 3600,
+	}
+	http.SetCookie(ctx.ResponseWriter, &cookie)
+
+	// Redirect to home page
+	// TODO: Get redirect URL from state
+	http.Redirect(ctx.ResponseWriter, ctx.Request, fmt.Sprintf("http://localhost:8080?token=%s", token.AccessToken), http.StatusFound)
+}
+
 conf := &core.Config{}
 community, _ = core.New(todo, conf)
 trans = translation.New(os.Getenv("NIUTRANS_API_KEY"), "", "")
 core.CasdoorConfigInit()
 
+// 404
+handle "/",ctx => {
+	ctx.yap "4xx", {}
+}
+
 zlog.Info "Started in endpoint: ", endpoint
-run endpoint
+
+// 500
+run(endpoint, func(h http.Handler) http.Handler {
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if err := recover(); err != nil {
+				http.Redirect(w, r, "/failed", http.StatusFound)
+			}
+		}()
+
+		h.ServeHTTP(w, r)
+	})
+})
