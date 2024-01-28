@@ -339,9 +339,9 @@
         const fileInput = document.getElementById("default-search");
         const placeholderValue = fileInput.placeholder
         if (placeholderValue !== "Search..."){
-            window.location.href="http://localhost:8080/search?value="+ placeholderValue + "&page=" + page; 
+            window.location.href="/search?value="+ placeholderValue + "&page=" + page; 
         }else{
-            window.location.href="http://localhost:8080/?page=" + page; 
+            window.location.href="/?page=" + page; 
         }
     }
 

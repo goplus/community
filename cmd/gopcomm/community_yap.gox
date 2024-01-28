@@ -80,7 +80,7 @@ get "/getArticle/:id", ctx => {
 		"code": 200,
 		"data": article,
    }
-   }
+}
 
 get "/user/:id", ctx => {
 	id := ctx.param("id")
@@ -106,6 +106,7 @@ get "/user/:id", ctx => {
 		"CurrentUser": userClaim,
 		"User": user,
 		"Items": items,
+		"Len": len(items),
 	}
 }
 
@@ -138,11 +139,14 @@ get "/", ctx => {
 		limitInt = 20
 	}
 	// Get Article Info
-	articles, next, _ := community.articles(todo, page, limitInt, "")
+	// articles, next, _ := community.listArticle(todo, from, limitInt)
+	articles, total, _ := community.articles(todo, page, limitInt, "")
 	ctx.yap "home", {
 		"User":  user,
 		"Items": articles,
-		"Next": next,
+		"Page": page,
+		"TotalPage": (total + limitInt -1)/limitInt,
+		"Total": total,
 	}
 }
 
@@ -176,13 +180,14 @@ get "/search", ctx => {
 		}
 	}
 
-	articles, _ := community.searchArticle(todo, searchValue)
 	articles, total, _ := community.articles(todo, page, limitInt, searchValue)
 	ctx.yap "home", {
 		"User":  user,
 		"Items": articles,
-		"Total": total,
 		"Value": searchValue,
+		"Page": page,
+		"TotalPage": (total + limitInt -1)/limitInt,
+		"Total": total,
 	}
 }
 
@@ -260,6 +265,7 @@ post "/commit", ctx => {
 			UId:   uid,   
 			Cover: ctx.param("cover"),
 			Tags:  ctx.param("tags"),
+			Abstract:  ctx.param("abstract"),
 		},
 		Content: mdData,
 		HtmlData:htmlData,
@@ -427,7 +433,7 @@ get "/callback", ctx => {
 
 	// Redirect to home page
 	// TODO: Get redirect URL from state
-	http.Redirect(ctx.ResponseWriter, ctx.Request, fmt.Sprintf("http://localhost:8080?token=%s", token.AccessToken), http.StatusFound)
+	http.Redirect(ctx.ResponseWriter, ctx.Request, fmt.Sprintf("%s?token=%s", endpoint, token.AccessToken), http.StatusFound)
 }
 
 conf := &core.Config{}
