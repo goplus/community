@@ -20,14 +20,15 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"io"
 	"os"
 	"strconv"
 	"time"
 
+	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 	_ "github.com/go-sql-driver/mysql"
 	"go.uber.org/zap"
 	"gocloud.dev/blob"
+	"golang.org/x/oauth2"
 )
 
 var (
@@ -63,9 +64,23 @@ type Article struct {
 }
 
 type Community struct {
-	bucket *blob.Bucket
-	db     *sql.DB
-	domain string
+	bucket        *blob.Bucket
+	db            *sql.DB
+	domain        string
+	casdoorConfig *CasdoorConfig
+	zlog          *zap.SugaredLogger
+}
+type CasdoorConfig struct {
+	endPoint         string
+	clientId         string
+	clientSecret     string
+	certificate      string
+	organizationName string
+	applicationName  string
+}
+
+type Account struct {
+	casdoorConfig *CasdoorConfig
 
 	zlog *zap.SugaredLogger
 }
@@ -78,6 +93,7 @@ func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 	if conf == nil {
 		conf = new(Config)
 	}
+	casdoorConf := casdoorConfigInit()
 	driver := conf.Driver
 	dsn := conf.DSN
 	bus := conf.BlobUS
@@ -102,7 +118,18 @@ func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 		zlog.Error(err)
 		return
 	}
-	return &Community{bucket, db, domain, zlog}, nil
+	return &Community{bucket, db, domain, casdoorConf, zlog}, nil
+}
+
+func (p *Community) getTotal(ctx context.Context, searchValue string) (total int, err error) {
+	if searchValue != "" {
+		sqlStr := "select count(*) from article where title like ?"
+		err = p.db.QueryRow(sqlStr, "%"+searchValue+"%").Scan(&total)
+	} else {
+		sqlStr := "select count(*) from article"
+		err = p.db.QueryRow(sqlStr).Scan(&total)
+	}
+	return
 }
 
 // Article returns an article.
@@ -260,10 +287,10 @@ func (p *Community) DeleteArticles(ctx context.Context, uid string) (err error) 
 	return
 }
 
-const (
-	MarkBegin = ""
-	MarkEnd   = "eof"
-)
+// const (
+// 	MarkBegin = ""
+// 	MarkEnd   = "eof"
+// )
 
 // ListArticle lists articles from a position.
 func (p *Community) ListArticle(ctx context.Context, from string, limit int) (items []*ArticleEntry, next string, err error) {
@@ -280,11 +307,10 @@ func (p *Community) ListArticle(ctx context.Context, from string, limit int) (it
 	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover from article order by ctime desc limit ? offset ?"
 	rows, err := p.db.Query(sqlStr, limit, fromInt)
 	if err != nil {
-		return []*ArticleEntry{}, from, err
+		return []*ArticleEntry{}, 0, err
 	}
 	defer rows.Close()
 
-	var rowLen int
 	for rows.Next() {
 		article := &ArticleEntry{}
 		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Abstract, &article.Cover)
@@ -299,14 +325,8 @@ func (p *Community) ListArticle(ctx context.Context, from string, limit int) (it
 		article.User = *user
 
 		items = append(items, article)
-		rowLen++
 	}
-	// have no article
-	if rowLen == 0 {
-		return []*ArticleEntry{}, MarkEnd, io.EOF
-	}
-	next = strconv.Itoa(fromInt + rowLen)
-	return items, next, nil
+	return items, total, nil
 }
 
 // SearchArticle search articles by title.
@@ -361,4 +381,53 @@ func (p *Community) GetArticlesByUid(ctx context.Context, uid string) (items []*
 		items = append(items, article)
 	}
 	return items, nil
+}
+
+func casdoorConfigInit() *CasdoorConfig {
+	endPoint := os.Getenv("GOP_CASDOOR_ENDPOINT")
+	clientID := os.Getenv("GOP_CASDOOR_CLIENTID")
+	clientSecret := os.Getenv("GOP_CASDOOR_CLIENTSECRET")
+	certificate := os.Getenv("GOP_CASDOOR_CERTIFICATE")
+	organizationName := os.Getenv("GOP_CASDOOR_ORGANIZATIONNAME")
+	applicationName := os.Getenv("GOP_CASDOOR_APPLICATONNAME")
+
+	casdoorsdk.InitConfig(endPoint, clientID, clientSecret, certificate, organizationName, applicationName)
+
+	return &CasdoorConfig{
+		endPoint:         endPoint,
+		clientId:         clientID,
+		clientSecret:     clientSecret,
+		certificate:      certificate,
+		organizationName: organizationName,
+		applicationName:  applicationName,
+	}
+}
+
+func (a *Community) RedirectToCasdoor(redirect string) (loginURL string) {
+	// TODO: Check whitelist from referer
+	ResponseType := "code"
+	Scope := "read"
+	State := "casdoor"
+	loginURL = fmt.Sprintf(
+		"%s/login/oauth/authorize?client_id=%s&response_type=%s&redirect_uri=%s&scope=%s&state=%s",
+		a.casdoorConfig.endPoint,
+		a.casdoorConfig.clientId,
+		ResponseType,
+		redirect,
+		Scope,
+		State,
+	)
+
+	return loginURL
+}
+
+func (a *Community) GetAccessToken(code, state string) (token *oauth2.Token, err error) {
+	token, err = casdoorsdk.GetOAuthToken(code, state)
+	if err != nil {
+		a.zlog.Error(err)
+
+		return nil, ErrNotExist
+	}
+
+	return token, nil
 }
