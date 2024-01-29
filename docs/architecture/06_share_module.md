@@ -6,38 +6,37 @@ This module mainly shares technical articles with Twitter and Facebook
 
 ## Module scope
 
-This module mainly shares technical articles with Twitter and Facebook 
+This module mainly shares technical articles with Twitter and Facebook which only need current page url and these third-party platforms will automatically parse the meta tags in the URL page
+
+If the Meta tags are parsed incorrectly or passed to the wrong parameter, the parsing will fail and only share url address without detail information. 
 
 ## Module structure
-
-Describe the internal structure and behavior of the module in detail here.
+None
 
 ## Module Interface
+None
 
-If the Meta tags are parsed incorrectly or passed to the wrong parameter, the parsing will fail.
+
 ## Functions
 
-### Login
-
-- Functions: description of the function
-- Input: type and description of the parameters
-- Return: type and description of the return value
-- Errors: possible errors and exceptions
+### share
 
 Example:
 
 ```js
 function shareOnTwitter() {
-// var url = encodeURIComponent('http://8.130.26.238/animation/fb.html'); // var text = encodeURIComponent('Linz'); }
-// var text = encodeURIComponent('Linz');
-var url = 'http://8.130.26.238/animation/fb.html'; // var text = "Test
-var text = "Test"
-var via = "Test"; var hashtags = "Test"; var hashtags = "Test
-var hashtags = "Test"; var hashtags = "Test"; var hashtags = "Test
-var intentUrl = "https://twitter.com/intent/tweet?text="
-        + encodeURIComponent(text) + "&url=" + encodeURIComponent(url)
-        + "&via=" + encodeURIComponent(via) + "&hashtags=" + encodeURIComponent(hashtags);
-// var shareUrl = 'https://twitter.com/intent/tweet?text=' + text + '&url=' + url; window.open(intentUrl)
-window.open(intentUrl, "_blank", "width=550,height=420"); }
+var url 
+var intentUrl = "https://twitter.com/intent/tweet?"
+        + "&url="      + encodeURIComponent(url);
+window.open(intentUrl, "_blank", "width=550,height=420"); 
 }
-``
+
+
+function shareOnFaceBook() {
+var url 
+var intentUrl = "http://www.facebook.com/sharer/sharer.php?"
+        + "&u=" + encodeURIComponent(url) ;
+window.open(intentUrl, "_blank", "width=550,height=420"); 
+}
+
+```
