@@ -14,7 +14,25 @@ This module get user information from the database, and return the information t
 
 ## Module structure
 
-None.
+```go
+    type User struct {
+        Id                string   `xorm:"varchar(100) index" json:"id"`
+        Type              string   `xorm:"varchar(100)" json:"type"`
+        Name              string `xorm:"varchar(100) notnull pk" json:"name"`
+        Password          string   `xorm:"varchar(100)" json:"password"`
+        FirstName         string   `xorm:"varchar(100)" json:"firstName"`
+        LastName          string   `xorm:"varchar(100)" json:"lastName"`
+        Avatar            string   `xorm:"varchar(500)" json:"avatar"`
+        Email             string   `xorm:"varchar(100) index" json:"email"`
+        Phone             string   `xorm:"varchar(20) index" json:"phone"`
+        GitHub            string `xorm:"github varchar(100)" json:"github"`
+        WeChat            string `xorm:"wechat varchar(100)" json:"wechat"`
+        Facebook          string `xorm:"facebook varchar(100)" json:"facebook"`
+        Twitter           string `xorm:"twitter varchar(100)" json:"twitter"`
+        CreatedTime       string `xorm:"varchar(100) index" json:"createdTime"`
+        UpdatedTime       string `xorm:"varchar(100)" json:"updatedTime"`
+    }
+```
 
 ## Module Interface
 
@@ -23,62 +41,38 @@ None.
 ## Functions
 
 ### Login
-
-- Function: Login with OAuth
-- Input: OAuth provider
-- Return: User Token
-- Error: None
-
-Example:
-
 ```go
-// Login
-redirectURL := fmt.Sprintf("%s/%s", ctx.Request.Referer() + "callback")
-loginURL := community.RedirectToCasdoor(redirectURL)
-ctx.Redirect loginURL, http.StatusFound
+// Get login url and user login 
+...
+// Get token and save token
+...
+// Redirect to home page
+...
 ```
 
 ### Logout
-
-- Function: Logout
-- Input: None
-- Return: None
-- Error: None
-
-Example:
-
 ```go
-tokenCookie, err := ctx.Request.Cookie("token")
-if err != nil {
-    zlog.Error("get token error:", err)
-}
-
-// Delete token
-tokenCookie.MaxAge = -1
-http.SetCookie(ctx.ResponseWriter, tokenCookie)
-
+//Get token
+...
+func DeleteToken(token *Token) (bool, error)
 // Redirect to home page
-http.Redirect(ctx.ResponseWriter, ctx.Request, fmt.Sprintf("http://localhost:8080"), http.StatusFound)
+...
 ```
 
 ### GetUserInfo
 
-- Function: Get user information
-- Input: User Id
-- Return: User information
-- Error: None
-
-Example:
-
 ```go
-claim, err := casdoorsdk.GetUserByUserId(uid)
-if err != nil {
-    p.zlog.Error(err)
-    return &User{}, ErrNotExist
-}
-user = &User{
-    Name:   claim.Name,
-    Avatar: claim.Avatar,
-    Id:     claim.Id,
-}
+//Get token 
+...
+//Parse token
+func ParseJwtToken(token string) (*Claims, error)
+//Get UserId or ...
+...
+
+func (c *Client) GetUserByUserId(userId string) (*User, error)
+
+func (c *Client) GetUserByPhone(phone string) (*User, error)
+
+func (c *Client) GetUserByEmail(email string) (*User, error)
+
 ```

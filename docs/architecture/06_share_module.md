@@ -2,57 +2,41 @@
 
 ## Module purpose
 
-在这里简短地介绍模块的目的和主要功能。
+This module mainly shares technical articles with Twitter and Facebook
 
 ## Module scope
 
-在这里详细描述模块的边界，包括模块的输入、输出和依赖关系。
+This module mainly shares technical articles with Twitter and Facebook which only need current page url and these third-party platforms will automatically parse the meta tags in the URL page
+
+If the Meta tags are parsed incorrectly or passed to the wrong parameter, the parsing will fail and only share url address without detail information. 
 
 ## Module structure
-
-在这里详细描述模块的内部结构和行为。
+None
 
 ## Module Interface
+None
 
-在这里提供模块的公开接口的详细信息，包括函数名称、参数、返回值和可能的错误。
 
 ## Functions
 
-### Login
+### share
 
-- 功能：函数的功能描述
-- 入参：参数的类型和说明
-- 返回：返回值的类型和说明
-- 错误：可能的错误和异常
+Example:
 
-示例：
+```js
+function shareOnTwitter() {
+var url 
+var intentUrl = "https://twitter.com/intent/tweet?"
+        + "&url="      + encodeURIComponent(url);
+window.open(intentUrl, "_blank", "width=550,height=420"); 
+}
 
-```go
-# 这是一个使用函数1的示例代码
-```
 
-### Logout
+function shareOnFaceBook() {
+var url 
+var intentUrl = "http://www.facebook.com/sharer/sharer.php?"
+        + "&u=" + encodeURIComponent(url) ;
+window.open(intentUrl, "_blank", "width=550,height=420"); 
+}
 
-- 功能：函数的功能描述
-- 入参：参数的类型和说明
-- 返回：返回值的类型和说明
-- 错误：可能的错误和异常
-
-示例：
-
-```go
-# 这是一个使用函数1的示例代码
-```
-
-### GetUserInfo
-
-- 功能：函数的功能描述
-- 入参：参数的类型和说明
-- 返回：返回值的类型和说明
-- 错误：可能的错误和异常
-
-示例：
-
-```go
-# 这是一个使用函数1的示例代码
 ```
