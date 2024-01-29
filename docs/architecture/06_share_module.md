@@ -2,57 +2,42 @@
 
 ## Module purpose
 
-在这里简短地介绍模块的目的和主要功能。
+This module mainly shares technical articles with Twitter and Facebook
 
 ## Module scope
 
-在这里详细描述模块的边界，包括模块的输入、输出和依赖关系。
+This module mainly shares technical articles with Twitter and Facebook 
 
 ## Module structure
 
-在这里详细描述模块的内部结构和行为。
+Describe the internal structure and behavior of the module in detail here.
 
 ## Module Interface
 
-在这里提供模块的公开接口的详细信息，包括函数名称、参数、返回值和可能的错误。
-
+If the Meta tags are parsed incorrectly or passed to the wrong parameter, the parsing will fail.
 ## Functions
 
 ### Login
 
-- 功能：函数的功能描述
-- 入参：参数的类型和说明
-- 返回：返回值的类型和说明
-- 错误：可能的错误和异常
+- Functions: description of the function
+- Input: type and description of the parameters
+- Return: type and description of the return value
+- Errors: possible errors and exceptions
 
-示例：
+Example:
 
-```go
-# 这是一个使用函数1的示例代码
-```
-
-### Logout
-
-- 功能：函数的功能描述
-- 入参：参数的类型和说明
-- 返回：返回值的类型和说明
-- 错误：可能的错误和异常
-
-示例：
-
-```go
-# 这是一个使用函数1的示例代码
-```
-
-### GetUserInfo
-
-- 功能：函数的功能描述
-- 入参：参数的类型和说明
-- 返回：返回值的类型和说明
-- 错误：可能的错误和异常
-
-示例：
-
-```go
-# 这是一个使用函数1的示例代码
-```
+```js
+function shareOnTwitter() {
+// var url = encodeURIComponent('http://8.130.26.238/animation/fb.html'); // var text = encodeURIComponent('Linz'); }
+// var text = encodeURIComponent('Linz');
+var url = 'http://8.130.26.238/animation/fb.html'; // var text = "Test
+var text = "Test"
+var via = "Test"; var hashtags = "Test"; var hashtags = "Test
+var hashtags = "Test"; var hashtags = "Test"; var hashtags = "Test
+var intentUrl = "https://twitter.com/intent/tweet?text="
+        + encodeURIComponent(text) + "&url=" + encodeURIComponent(url)
+        + "&via=" + encodeURIComponent(via) + "&hashtags=" + encodeURIComponent(hashtags);
+// var shareUrl = 'https://twitter.com/intent/tweet?text=' + text + '&url=' + url; window.open(intentUrl)
+window.open(intentUrl, "_blank", "width=550,height=420"); }
+}
+``
