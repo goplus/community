@@ -14,17 +14,10 @@ require (
 
 require (
 	github.com/casdoor/casdoor-go-sdk v0.35.0
-	github.com/go-sql-driver/mysql v1.7.1
-	github.com/google/uuid v1.4.0
-	github.com/goplus/yap v0.7.1
 	github.com/joho/godotenv v1.5.1
 	github.com/qiniu/go-cdk-driver v0.1.0
-	github.com/qiniu/go-sdk/v7 v7.18.0
-	github.com/yuin/goldmark v1.4.13
 	go.uber.org/zap v1.26.0
-	gocloud.dev v0.34.0
 	golang.org/x/oauth2 v0.14.0
-	golang.org/x/text v0.14.0
 )
 
 require go.uber.org/multierr v1.11.0 // indirect
