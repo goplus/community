@@ -6,17 +6,70 @@ This module is used to add、delete、query and update the article.
 
 ## Module scope
 
-This module get article information from the database, and return the information to the caller. In addition to this, the article can also be modified. This module is the core of the gop community, and it not only connects the user module, but also integrates the article translation and resource upload module.
+This module get article information from the database, and return the information to the caller. In addition to this, the article can also be modified. This module is the core of the goplus community, and it not only connects the user module, but also integrates the article translation and resource upload module.
 
 ## Module structure
 
-None.
-
+| Field         | Type         | Null | Key | Default | Extra                       |
+|----|----|----|----|----|----|
+| id            | int unsigned | NO   | PRI | NULL    | auto_increment              |
+| title         | varchar(255) | YES  |     |         |                             |
+| user_id       | varchar(255) | NO   |     |         |                             |
+| tags          | varchar(255) | YES  |     |         |                             |
+| cover         | varchar(255) | YES  |     |         |                             |
+| content       | longtext     | YES  |     | NULL    |                             |
+| trans_content | longtext     | YES  |     | NULL    |                             |
+| html_id       | int          | YES  |     | 0    |                             |
+| trans_html_id | int          | YES  |     | 0    |                             |
+| ctime         | datetime     | YES  |     | NULL    |                             |
+| mtime         | datetime     | YES  |     | NULL    | on update CURRENT_TIMESTAMP |
+| abstract      | varchar(255) | YES  |     |         |                             |
 ## Module Interface
 
 None.
 
-## Struct
+## Functions
+
+### Overview
+
+> Before invoke the article functions, we must connect mysql database to get article information. Since the article operation involves the storage of HTML files, it also needs to be connected to Qiniu cloud storage.
+
+Example:
+
+```go
+conf := &core.Config{}
+community, _ = core.New(todo, conf)  // Instantiate the community
+```
+
+**community-defined Types and Functions:**
+
+ [type ArticleEntry](#type-articleentry)
+
+[type Article](#type-article)
+
+[func Article(ctx context.Context, id string) (article *Article, err error)](#func-article)
+
+[func PutArticle(ctx context.Context, uid string, trans string, article *Article) (id string, err error)](#func-putarticle)
+
+[func TransHtmlUrl(ctx context.Context, id string) (htmlUrl string, err error)](https://github.com/goplus/community/blob/dev/internal/core/community.go#L164)
+
+[func SaveHtml(ctx context.Context, uid, htmlStr, mdData, id string) (articleId string, err error)](https://github.com/goplus/community/blob/dev/internal/core/community.go#L194)
+
+[func DeleteArticle(ctx context.Context, uid, id string) (err error)](https://github.com/goplus/community/blob/dev/internal/core/community.go#L250)
+
+[func DeleteArticles(ctx context.Context, uid string) (err error)](https://github.com/goplus/community/blob/dev/internal/core/community.go#L269)
+
+[func Articles(ctx context.Context, page int, limit int, searchValue string) (items []*ArticleEntry, total int, err error)](https://github.com/goplus/community/blob/dev/internal/core/community.go#L296)
+
+[func GetArticlesByUid(ctx context.Context, uid string) (items []*ArticleEntry, err error)](https://github.com/goplus/community/blob/dev/internal/core/community.go#L359)
+
+
+
+### Types
+
+#### type [ArticleEntry](https://github.com/goplus/community/blob/dev/internal/core/community.go#L46)
+
+> Article Brief information.
 
 ```go
 type ArticleEntry struct {
@@ -30,278 +83,90 @@ type ArticleEntry struct {
 	Ctime    time.Time
 	Mtime    time.Time
 }
+```
 
+#### type [Article](https://github.com/goplus/community/blob/dev/internal/core/community.go#L58)
+
+> All information of article.
+
+```go
 type Article struct {
 	ArticleEntry
 	Content string // in markdown
-	// Status  int    // published or draft
 	HtmlUrl  string // parsed html file url
 	HtmlData string
 }
 ```
 
-## Functions
+### Functions
 
-### Article
-
-> Query article information by the article ID
-
-- Function: Article
-- Input: id string
-- Return: article *Article
-- Error: None
-
-
-示例：
+#### func [Article](https://github.com/goplus/community/blob/dev/internal/core/community.go#L136)
 
 ```go
-// test data
-tests := []struct {
-    id            string
-    expectedID    string
-    expectedError error
-}{
-    {"1", "1", nil},
-    {"10", "", ErrNotExist},
-}
-
-for _, tt := range tests {
-    article, err := community.Article(todo, tt.id)
-
-    if article.ID != tt.expectedID {
-        t.Errorf("Article(%s) returned id is %s, expected: %s", tt.id, article.ID, tt.expectedID)
-    }
-    if err != tt.expectedError {
-        t.Errorf("Article(%s) returned err is %s, expected: %s", tt.id, err, tt.expectedError)
-    }
-}
+func Article(ctx context.Context, id string) (article *Article, err error)
 ```
 
-### CanEditable
+> All users can view articles in the community, so they don't need user-related permissions, and they can view the corresponding article information only by the article ID. 
+>
+> However, it also needs to support the modification of the article, and the user needs to have the operation permission to make the modification.
+>
+> We use Article() function to get article by article ID. However, for the above two scenarios, need to use the CanEditable() function to determine the permission before getting the article information.
 
-> Check whether the user has the operation permission
-
-- Function: CanEditable
-- Input: uid, id string
-- Return: editable bool
-- Error: None
-
-示例：
+**Example：**
 
 ```go
-// test data
-tests := []struct {
-    uid           string
-    articleID     string
-    expectedEdit  bool
-    expectedError error
-}{
-    {"1", "1", true, nil},
-    {"2", "1", false, ErrPermission},
+// if edit the article, we must check the permission
+if editable, _ := community.canEditable(todo, uid, id); !editable {
+    zlog.Error("no permissions")
+    http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
 }
-
-for _, tt := range tests {
-    canEdit, _ := community.CanEditable(todo, tt.uid, tt.articleID)
-
-    if canEdit != tt.expectedEdit {
-        t.Errorf("CanEditable(%s, %s) returned %t, expected: %t", tt.uid, tt.articleID, canEdit, tt.expectedEdit)
-    }
-}
+article, _ := community.article(todo, id)
 ```
 
-### SaveHtml
-
-> When you click the translation button on the front-end, you need to store the original MD and HTML files in the article table of the database, and return the ID of the article so that the translated article information can be inserted
-
-- Function: SaveHtml
-- Input: uid, htmlStr, mdData, id string (if id == "", add; else update)
-- Return: articleId string
-- Error: None
-
-示例：
+#### func [PutArticle](https://github.com/goplus/community/blob/dev/internal/core/community.go#L221)
 
 ```go
-tests := []struct {
-    uid            string
-    htmlStr        string
-    mdData         string
-    id            string
-    expectedArticleID    string
-    expectedError error
-}{
-    {"1", "<html><body><p>Hello, World!<p></body></html>","##Hello, World!", "", "15", nil},
-    {"1", "<html><body><p>Hello, World!<p></body></html>","##Hello, World!", "15", "15", nil},
-}
-
-for _, tt := range tests {
-    articleId, err := community.SaveHtml(todo, tt.uid, tt.htmlStr, tt.mdData, tt.id)
-
-    if articleId != tt.expectedArticleID {
-        t.Errorf("SaveHtml(%s,%s,%s,%s) returned id is %s, expected: %s", tt.uid, tt.htmlStr, tt.mdData, tt.id, articleId, tt.expectedArticleID)
-    }
-    if err != tt.expectedError {
-        t.Errorf("SaveHtml(%s,%s,%s,%s) returned err is %s, expected: %s", tt.uid, tt.htmlStr, tt.mdData, tt.id, err, tt.expectedError)
-    }
-}
+func PutArticle(ctx context.Context, uid string, trans string, article *Article) (id string, err error)
 ```
 
-###  PutArticle
+> Add or update article. When the ID in the article is not empty, it means the add operation, otherwise it is the update operation.
+>
+> Since both updates and additions operation require specific user actions, the user ID is required in the input parameters.
+>
+> When trans is empty, it means add or update origin article content, otherwise translate content.
 
-> add/update article
-
-- Function: PutArticle
-- Input: uid string, trans string, article *Article (if trans == "", origin md and html; else translate md and html)
-- Return: id string
-- Error: None
+**Example:**
 
 ```go
-// test data
+
 article := &Article{
     ArticleEntry: ArticleEntry{
+        ID:"",  // add
         Title: "Test Article",
         UId:   "1",
         Cover: "cover1",
         Tags:  "tag1",
-        Ctime: time.Now(),
-        Mtime: time.Now(),
-    },
-    Content: "This is a test article.",
-}
-articleUpdate := &Article{
-    ArticleEntry: ArticleEntry{
-        ID:    "1",
-        Title: "Test Article",
-        UId:   "1",
-        Cover: "cover1",
-        Tags:  "tag1",
+        Abstract: "abstract1"
         Ctime: time.Now(),
         Mtime: time.Now(),
     },
     Content: "This is a test article.",
 }
 
-tests := []struct {
-    uid        string
-    trans		string
-    article    *Article
-    expectedID string
-}{
-    {"1", "", article, "1"},       // insert
-    {"1", "trans", article, "1"},       // insert trans
-    {"1", "", articleUpdate, "1"}, // update
-}
+uid = "testuid"
 
-for _, tt := range tests {
-    id, _ := community.PutArticle(todo, tt.uid, tt.trans, tt.article)
-
-    if id != tt.expectedID {
-        t.Errorf("PutArticle(%s, %s, %+v) returned ID %s, expected: %s", tt.uid,tt.trans, tt.article, id, tt.expectedID)
-    }
-}
+id, _ := community.PutArticle(todo, uid, "", article)
 ```
 
-###  DeleteArticle
 
-> Delete article by user id and article id
-
-- Function: DeleteArticle
-- Input: uid, id string
-- Return: None
-- Error: error
-
-```go
-tests := []struct {
-    uid         string
-    articleID   string
-    expectedErr error
-}{
-    {"22", "2", ErrPermission}, // no permission
-    {"1", "1", nil},
-}
-
-for _, tt := range tests {
-    err := community.DeleteArticle(todo, tt.uid, tt.articleID)
-
-    if err != tt.expectedErr {
-        t.Errorf("DeleteArticle(%s, %s) returned error: %v, expected: %v", tt.uid, tt.articleID, err, tt.expectedErr)
-    }
-}
-```
-
-### DeleteArticles
-
-> It is necessary to delete user-written articles at the same time as deleting the user
-
-- Function: DeleteArticles
-- Input: uid string
-- Return: None
-- Error: error
-
-
-### Articles
-
-> Paginate the list of articles (the same interface is used for search)
-> To be modified (change to "Bottom-out loading")
-
-- Function: Articles
-- Input: page int, limit int, searchValue string (if searchValue == "", home article list; else search)
-- Return: items []*ArticleEntry, total int ("total" indicates the number of articles that meet the requirements)
-- Error: None
-
-```go
-tests := []struct {
-    page         int
-    limit   int
-    searchValue   string
-    expectedTotal int
-}{
-    {1, 10, "", 10}, // home
-    {1, 10, "test", 10},  // search
-}
-
-for _, tt := range tests {
-    _,total,_ := community.Articles(todo, tt.page, tt.limit, tt.searchValue)
-
-    if total != tt.expectedTotal {
-        t.Errorf("Articles(%d, %d, %s) returned total: %v, expected: %v", ttt.page, tt.limit, tt.searchValue, total, tt.expectedTotal)
-    }
-}
-```
-
-### GetArticlesByUid
-
-> Get user-written article list by user id
-> To be modified (change to "Bottom-out loading" or "Paginate")
-
-- Function: GetArticlesByUid
-- Input: uid string
-- Return: items []*ArticleEntry
-- Error: None
-
-```go
-// test data
-tests := []struct {
-    uid         string
-    expectedError error
-}{
-    {"1", nil},
-}
-
-for _, tt := range tests {
-    _, err := community.GetArticlesByUid(todo, tt.uid)
-
-    if err != tt.expectedError {
-        t.Errorf("GetArticlesByUid(%s) returned err: %v, expected: %v", ttt.uid, err, tt.expectedTotal)
-    }
-}
-```
 
 ## Collaboration
 
 ### Web
 
-At present, the collaboration with the front-end is mainly that the front-end sends me the written html file, and then I make adjustments and bug fixes. (In general, this method is slow)
+At present, the collaboration with the front-end is mainly that the front-end sends me the written html file, and then I make adjustments and bug fixes. 
 
 ### Markdown && Media
 
 Invoke functions
+
