@@ -2,57 +2,73 @@
 
 ## Module purpose
 
-在这里简短地介绍模块的目的和主要功能。
+The markdown module uses cherry-markdown to implement a markdown online editor, with an editing area on the left and a preview area on the right. Added highlighting for go+ languages.
 
 ## Module scope
 
-在这里详细描述模块的边界，包括模块的输入、输出和依赖关系。
+Module outputs user-edited markdown text, and inputs existing user markdown text.
 
 ## Module structure
 
-在这里详细描述模块的内部结构和行为。
+None.
 
 ## Module Interface
 
-在这里提供模块的公开接口的详细信息，包括函数名称、参数、返回值和可能的错误。
+Provides details of the module's public interface, including function names, parameters, return values and possible errors.
+```js
+submit_markdown () {
+    return {
+        FormData {
+            title : String,
+            content: String,
+            content: String, trans.
+        }
+    }
+}
+```
 
 ## Functions
 
-### Login
+### gop rendering
 
-- 功能：函数的功能描述
-- 入参：参数的类型和说明
-- 返回：返回值的类型和说明
-- 错误：可能的错误和异常
+Example:
 
-示例：
-
-```go
-# 这是一个使用函数1的示例代码
+```gop
+// go+ code
+println ""
 ```
 
-### Logout
+### submit_markdown
 
-- 功能：函数的功能描述
-- 入参：参数的类型和说明
-- 返回：返回值的类型和说明
-- 错误：可能的错误和异常
+- Function: Submits a user-edited markdown document.
+- input: none
+- Returns: None
+- Error: axios request exception
 
-示例：
+Example:
 
-```go
-# 这是一个使用函数1的示例代码
-```
-
-### GetUserInfo
-
-- 功能：函数的功能描述
-- 入参：参数的类型和说明
-- 返回：返回值的类型和说明
-- 错误：可能的错误和异常
-
-示例：
-
-```go
-# 这是一个使用函数1的示例代码
+```js
+async submit_markdown() {
+    let data = {
+        title: 'Default Title',
+        content: this.getCherryContent(),
+        html_content: this.getCherryHtml()
+    }
+    axios({
+        method: 'post',
+        url: '/commit',
+        data: data,
+        headers: {
+        }
+    })
+    .then(response => {
+        console.log('内容发送成功');
+        console.log(response.data);
+        
+    })
+    .catch(error => {
+        console.error('内容发送失败');
+        console.error(error);
+    });
+},
 ```
