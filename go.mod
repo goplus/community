@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/google/uuid v1.6.0
-	github.com/goplus/yap v0.7.1 //gop:class
+	github.com/goplus/yap v0.7.2 //gop:class
 	github.com/qiniu/go-sdk/v7 v7.19.0
 	github.com/yuin/goldmark v1.6.0
 	gocloud.dev v0.36.0
@@ -14,17 +14,10 @@ require (
 
 require (
 	github.com/casdoor/casdoor-go-sdk v0.35.0
-	github.com/go-sql-driver/mysql v1.7.1
-	github.com/google/uuid v1.4.0
-	github.com/goplus/yap v0.7.1
 	github.com/joho/godotenv v1.5.1
 	github.com/qiniu/go-cdk-driver v0.1.0
-	github.com/qiniu/go-sdk/v7 v7.18.0
-	github.com/yuin/goldmark v1.4.13
 	go.uber.org/zap v1.26.0
-	gocloud.dev v0.34.0
 	golang.org/x/oauth2 v0.14.0
-	golang.org/x/text v0.14.0
 )
 
 require go.uber.org/multierr v1.11.0 // indirect
@@ -34,6 +27,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
+	github.com/qiniu/x v1.13.2 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/net v0.18.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect
