@@ -2,57 +2,22 @@
 
 ## Module purpose
 
-在这里简短地介绍模块的目的和主要功能。
+This module is used to connect web front-end static pages to form an overall website.
 
 ## Module scope
 
-在这里详细描述模块的边界，包括模块的输入、输出和依赖关系。
+This module uses yap to parse HTML, and renders data on the website pages.
 
 ## Module structure
 
-在这里详细描述模块的内部结构和行为。
+![Web](../assets/08_web_module.png)
+
+The whole module can be divided into two kind of files - HTML file and public JS file, and public JS file can be introduced through the `src` attribute of the `<script>` tag into each HTML file, so that the latter can obtain the vue.runtime.js. What's more, each HTML file can be divided into three kinds of components - header, content and footer.
 
 ## Module Interface
 
-在这里提供模块的公开接口的详细信息，包括函数名称、参数、返回值和可能的错误。
+None.
 
 ## Functions
 
-### Login
-
-- 功能：函数的功能描述
-- 入参：参数的类型和说明
-- 返回：返回值的类型和说明
-- 错误：可能的错误和异常
-
-示例：
-
-```go
-# 这是一个使用函数1的示例代码
-```
-
-### Logout
-
-- 功能：函数的功能描述
-- 入参：参数的类型和说明
-- 返回：返回值的类型和说明
-- 错误：可能的错误和异常
-
-示例：
-
-```go
-# 这是一个使用函数1的示例代码
-```
-
-### GetUserInfo
-
-- 功能：函数的功能描述
-- 入参：参数的类型和说明
-- 返回：返回值的类型和说明
-- 错误：可能的错误和异常
-
-示例：
-
-```go
-# 这是一个使用函数1的示例代码
-```
+None.
