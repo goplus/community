@@ -40,4 +40,36 @@ var intentUrl = "https://twitter.com/intent/tweet?text="
 // var shareUrl = 'https://twitter.com/intent/tweet?text=' + text + '&url=' + url; window.open(intentUrl)
 window.open(intentUrl, "_blank", "width=550,height=420"); }
 }
-``
+```
+
+## Share: The Open Graph protocol
+
+protocol website: [ogp.me](https://ogp.me)
+
+support website: Twitter, Facebook, Linkedln
+
+[Example: github/goplus/gop](https://www.opengraph.xyz/url/https%3A%2F%2FGitHub.com%2Fgoplus%2Fgop) 
+
+
+```html
+<!-- HTML Meta Tags -->
+<title>GitHub - goplus/gop: The Go+ programming language is designed for engineering, STEM education, and data science</title>
+<meta name="description" content="The Go+ programming language is designed for engineering, STEM education, and data science - GitHub - goplus/gop: The Go+ programming language is designed for engineering, STEM education, and data ...">
+
+<!-- Facebook Meta Tags -->
+<meta property="og:url" content="https://GitHub.com/goplus/gop">
+<meta property="og:type" content="website">
+<meta property="og:title" content="GitHub - goplus/gop: The Go+ programming language is designed for engineering, STEM education, and data science">
+<meta property="og:description" content="The Go+ programming language is designed for engineering, STEM education, and data science - GitHub - goplus/gop: The Go+ programming language is designed for engineering, STEM education, and data ...">
+<meta property="og:image" content="https://opengraph.githubassets.com/5d2e2fa2e277ae0fecb85ce7104105635be67c2183c867b87092c92e687f0708/goplus/gop">
+
+<!-- Twitter Meta Tags -->
+<meta name="twitter:card" content="summary_large_image">
+<meta property="twitter:domain" content="GitHub.com">
+<meta property="twitter:url" content="https://GitHub.com/goplus/gop">
+<meta name="twitter:title" content="GitHub - goplus/gop: The Go+ programming language is designed for engineering, STEM education, and data science">
+<meta name="twitter:description" content="The Go+ programming language is designed for engineering, STEM education, and data science - GitHub - goplus/gop: The Go+ programming language is designed for engineering, STEM education, and data ...">
+<meta name="twitter:image" content="https://opengraph.githubassets.com/5d2e2fa2e277ae0fecb85ce7104105635be67c2183c867b87092c92e687f0708/goplus/gop">
+
+<!-- Meta Tags Generated via https://www.opengraph.xyz -->
+```
