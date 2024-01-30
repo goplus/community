@@ -30,7 +30,9 @@ endpoint := os.Getenv("GOP_COMMUNITY_ENDPOINT")
 domain := os.Getenv("GOP_COMMUNITY_DOMAIN")
 xLog := xlog.New("")
 
-static "/"
+// Modify / to /static
+// Support 404 handle
+static "/static"
 
 get "/success", ctx => {
 	ctx.yap "2xx", {}
@@ -451,9 +453,9 @@ trans = translation.New(os.Getenv("NIUTRANS_API_KEY"), "", "")
 core.CasdoorConfigInit()
 
 // 404
-// handle "/",ctx => {
-// 	ctx.yap "4xx", {}
-// }
+handle "/",ctx => {
+	ctx.yap "4xx", {}
+}
 
 xLog.Info "Started in endpoint: ", endpoint
 
