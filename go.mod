@@ -10,6 +10,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/qiniu/go-cdk-driver v0.1.0
 	github.com/qiniu/go-sdk/v7 v7.18.0
+	github.com/qiniu/x v1.13.2
 	github.com/yuin/goldmark v1.4.13
 	go.uber.org/zap v1.26.0
 	gocloud.dev v0.34.0
@@ -24,7 +25,6 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
-	github.com/qiniu/x v1.13.2 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/net v0.18.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect
