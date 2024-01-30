@@ -46,6 +46,10 @@ get "/failed", ctx => {
 	ctx.yap "5xx", {}
 }
 
+get "/demo", ctx => {
+	ctx.yap "demo", {}
+}
+
 get "/p/:id", ctx => {
 	// todo middleware
 	// Get User Info
