@@ -259,7 +259,7 @@ func TestArticles(t *testing.T) {
 		_, total, _ := community.Articles(todo, tt.page, tt.limit, tt.searchValue)
 
 		if total != tt.expectedTotal {
-			t.Errorf("Articles(%d, %d, %s) returned total: %v, expected: %v", ttt.page, tt.limit, tt.searchValue, total, tt.expectedTotal)
+			t.Errorf("Articles(%d, %d, %s) returned total: %d, expected: %d", tt.page, tt.limit, tt.searchValue, total, tt.expectedTotal)
 		}
 	}
 }
@@ -285,7 +285,7 @@ func TestGetArticlesByUid(t *testing.T) {
 		_, err := community.GetArticlesByUid(todo, tt.uid)
 
 		if err != tt.expectedError {
-			t.Errorf("GetArticlesByUid(%s) returned err: %v, expected: %v", ttt.uid, err, tt.expectedTotal)
+			t.Errorf("GetArticlesByUid(%s) returned err: %v, expected: %v", tt.uid, err, tt.expectedError)
 		}
 	}
 }
