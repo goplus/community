@@ -52,7 +52,7 @@ func (c *Community) DelMedia(ctx context.Context, userId, mediaId string) error 
 		return err
 	}
 	if aff == 0 {
-		c.zlog.Warn("no need del data")
+		c.xLog.Warn("no need del data")
 		return nil
 	}
 
