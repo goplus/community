@@ -5,11 +5,31 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Go+ Community</title>
+
+    <!-- UI -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://unpkg.com/naive-ui"></script>
+
+    <!-- Icon -->
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/bold/style.css" />
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Font -->
+    <link href="https://fonts.cdnfonts.com/css/inter" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.proxy.ustclug.org">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.proxy.ustclug.org/css2?family=Noto+Sans+SC&display=swap" rel="stylesheet">
+    <style type="text/css" media="screen, print">
+        body {
+            font-family: 'Inter', 'Noto Sans SC'
+        }
+    </style>
 </head>
 
 <body style="background-color: #f7fafc;">
+    <input style="display:none" id="usertoken" value="{{.usertoken}}"/>
     <!-- Header -->
     <header class="bg-cover bg-center" style="
         height: 10vh;
@@ -22,31 +42,32 @@
                         class="mb-2 mr-3 h-6 sm:h-9" alt="Go+ Community Logo" />
                 </a>
                 {{if .User}}
-                    <div class="flex items-center lg:order-2">
-                        <button href="/user/{{ .User.Id }}" type="button" style="margin-right: 1rem;" class="relative flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
-                            <span class="absolute -inset-1.5"></span>
-                            <!-- TODO: Add UserAvatar -->
-                            <a href="/user/{{ .User.Id }}">
-                                <img class="h-8 w-8 rounded-full" src="{{ .User.Avatar }}" alt="">
-                            </a>
-                        </button>
-                        <button type="button"
-                            class="text-white hover:text-white border border-white-700 hover:bg-white-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-500 dark:focus:ring-blue-800">
-                            <a href="/add">
-                                Write
-                            </a>
-                        </button>
-                    </div>
+                <div class="flex items-center lg:order-2">
+                    <button href="/user/{{ .User.Id }}" type="button" style="margin-right: 1rem;"
+                        class="relative flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
+                        id="user-menu-button" aria-expanded="false" aria-haspopup="true">
+                        <span class="absolute -inset-1.5"></span>
+                        <a href="/user/{{ .User.Id }}">
+                            <img class="h-8 w-8 rounded-full" src="{{ .User.Avatar }}" alt="">
+                        </a>
+                    </button>
+                    <button type="button"
+                        class="text-white hover:text-white border border-white-700 hover:bg-white-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-500 dark:focus:ring-blue-800">
+                        <a href="/add">
+                            Write
+                        </a>
+                    </button>
+                </div>
                 {{else}}
-                    <div class="flex items-center lg:order-2">
-                        <button type="button"
-                            class="text-white hover:text-white border border-white-700 hover:bg-white-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-500 dark:focus:ring-blue-800">
-                            
-                            <a href="http://localhost:8080/login?redirect_url=http://localhost:8080/callback">
-                                Sign in
-                            </a>
-                        </button>
-                    </div>
+                <div class="flex items-center lg:order-2">
+                    <button type="button"
+                        class="text-white hover:text-white border border-white-700 hover:bg-white-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-500 dark:focus:ring-blue-800">
+
+                        <a href="http://localhost:8081/login?redirect_url=http://localhost:8081/callback">
+                            Sign in
+                        </a>
+                    </button>
+                </div>
                 {{end}}
                 <div class="hidden justify-between items-center w-1/2 lg:flex lg:w-auto lg:order-1" id="mobile-menu-2">
                     <form style="width: 500px" action="/search" method="get">
@@ -74,133 +95,252 @@
         </nav>
     </header>
 
-    <!-- TODO 左侧导航栏及管理页面 -->
-    <div class="px-4 py-1 flex">
-        <!-- User Profile -->
-        <div class="profile-container">
-            <div class="profile-header">
-                <!-- Avatar -->
-                <div class="profile-image">
-                    <img class="h-8 w-8 rounded-full" src="{{ .CurrentUser.Avatar }}" alt="">
-                </div>
+    <n-config-provider :theme-overrides="themeOverrides">
+        <div id="app" class="h-full w-full">
+            <!-- Personal Profile -->
+            <n-grid :x-gap="12" :cols="7" style="height: 20vh; padding: 0 20px;">
+                <!-- TODO: bug  Avatar -->
+                <n-gi :span="1" class="flex justify-center items-center">
+                    <n-avatar round :size="100" :src="CurrentUser.avatar"></n-avatar>
+                </n-gi>
 
-                <!-- First Name & Last Name & Gender & Birthday  -->
-                <div class="profile-info">
-                    <h1 class="inline-block">Name: @{{ .CurrentUser.Name }}</h1>
-                    <p>UID: {{ .CurrentUser.Id }}</p>
-                    <p>Gender: {{ .CurrentUser.Gender }}</p>
-                    <p>Birth: {{ .CurrentUser.Birthday }}</p>
-                </div>
+                <!-- Name & Description & Contact Info -->
+                <n-gi :span="4" class="flex flex-col justify-center">
+                    <!-- Name & Description -->
+                    <span class="text-3xl font-semibold">
+                        ${ CurrentUser.name }
+                        <span class="text-xs text-neutral-700 font-normal ml-3">Description</span>
+                    </span>
+
+                    <!-- Contact Info  -->
+                    <n-grid :x-gap="1" :y-gap="3" :cols="2" class="mt-2">
+                        <!-- Gender & Birthday -->
+                        <n-gi class="flex items-center">
+                            <i class="ph-duotone ph-user-circle" style="color: #ef5028; font-size: 20px;"></i>
+                            <p class="ml-3 text-gray-400">
+                                ${ CurrentUser.gender }
+                            <p class="text-gray-400">, born on ${ CurrentUser.birthday }</p>
+                            </p>
+                        </n-gi>
+
+                        <!-- Created Time -->
+                        <n-gi class="flex items-center">
+                            <i class="ph-duotone ph-calendar-check" style="color: #3182ce; font-size: 20px;"></i>
+                            <p class="ml-3 text-gray-400">${ CurrentUser.createdTime } Joined GoPlus Community</p>
+                        </n-gi>
+
+                        <!-- Email -->
+                        <n-gi class="flex items-center">
+                            <i class="ph-duotone ph-envelope" style="color: #2191ad; font-size: 20px;"></i>
+                            <p class="ml-3 text-gray-400">${ CurrentUser.email }</p>
+                        </n-gi>
+
+                        <!-- Phone -->
+                        <n-gi class="flex items-center">
+                            <i class="ph-duotone ph-phone-call" style="color: #d88d01; font-size: 20px;"></i>
+                            <p class="ml-3 text-gray-400">${ CurrentUser.phone }</p>
+                        </n-gi>
+                    </n-grid>
+                </n-gi>
+
+                <!-- Edit Button & Followers -->
+                <n-gi :span="2" class="flex flex-col justify-center items-end">
+                    <!-- TOOD add href to Edit Button -->
+                    <n-button text color="#3182ce" href="">
+                        <template #icon>
+                            <i class="ph-duotone ph-pencil-line" style="color: #3182ce;"></i>
+                        </template>
+                        Edit Profile
+                    </n-button>
+
+                    <!-- Following & Followers -->
+                    <div class="flex items-center mt-3">
+                        <div class="flex flex-col items-center">
+                            <p class="text-gray-400">Following</p>
+                            <p class="text-xl font-medium">123</p>
+                        </div>
+                        <n-divider vertical style="--n-color: #9ca3af; margin: 0 20px;"></n-divider>
+                        <div class="flex flex-col items-center">
+                            <p class="text-gray-400">Followers</p>
+                            <p class="text-xl font-medium">123</p>
+                        </div>
+                    </div>
+                </n-gi>
+            </n-grid>
+
+            <!-- Article Management -->
+            <div class="container px-5 py-3 mx-auto bg-white rounded-lg"
+                style="box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05); height: 65vh; overflow: auto;">
+                <section v-if="articleList === null || articleList.length === 0">
+                    <div class="flex w-full flex-col items-center justify-center rounded-lg p-8">
+                        <div style="margin-top:200px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 fill-current text-gray-500" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M0 3.75A.75.75 0 01.75 3h7.497c1.566 0 2.945.8 3.751 2.014A4.496 4.496 0 0115.75 3h7.5a.75.75 0 01.75.75v15.063a.75.75 0 01-.755.75l-7.682-.052a3 3 0 00-2.142.878l-.89.891a.75.75 0 01-1.061 0l-.902-.901a3 3 0 00-2.121-.879H.75a.75.75 0 01-.75-.75v-15zm11.247 3.747a3 3 0 00-3-2.997H1.5V18h6.947a4.5 4.5 0 012.803.98l-.003-11.483zm1.503 11.485V7.5a3 3 0 013-3h6.75v13.558l-6.927-.047a4.5 4.5 0 00-2.823.971z"></path></svg>
+                        </div>
+                    
+                        <div class="mt-8 text-center">
+                        <h1 class="text-4xl"> Have no data!</h1>
+                        </div>
+                    
+                        <button class="mt-2 block rounded-lg bg-transparent py-1.5 px-4 font-medium text-blue-600 transition-colors hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50">
+                            <a href="/add">
+                                Return to add article!
+                            </a>
+                        </button>
+                    </div>
+                </section>
+                <n-list hoverable v-else>
+                    <!-- Article List Item -->
+                    <n-list-item v-for="(item,i) in articleList">
+                        <!-- left part -->
+                        <div style="width: 80%;">
+                            <!-- Title -->
+                            <div class="text-2xl font-semibold text-gray-900 title-font mb-2">
+                                <a :href="'/p/' + item.ID"><p>${ item.Title }</p></a>
+                            </div>
+
+                            <!-- Tags -->
+                            <div class="flex flex-row items-center">
+                                <i class="ph-duotone ph-hash" style="color: #3182ce; font-size: 17px;"></i>
+                                <p class="text-sm ml-1 hover:text-blue-600">
+                                    ${ item.Tags }
+                                </p>
+                            </div>
+
+                            <!-- Description -->
+                            <p class="leading-7 mt-1 text-neutral-700">
+                                ${ item.Abstract }
+                            </p>
+
+                            <!-- Update Time -->
+                            <span class="text-xs absolute bottom-4" style="color: #A0AEC0;">
+                                ${ item.Ctime }
+                            </span>
+                        </div>
+
+                        <!-- right part -->
+                        <div style="width: 20%;">
+                            <!-- Edit Button & Delete Button -->
+                            <div class="grid grid-flow-row-dense grid-cols-2 grid-rows-1 items-center mb-5"
+                                style="height: 2vh;">
+                                <n-button text class="col-span-1"
+                                    style="--n-text-color-hover: #3182ce; --n-text-color-focus: #3182ce;">
+                                    <template #icon>
+                                        <i class="ph-duotone ph-pencil-line" style="color: #3182ce;"></i>
+                                    </template>
+                                    <a :href="'/edit/' + item.ID">Edit</a>
+                                </n-button>
+
+                                <!-- Delete Button -->
+                                {{if .User}}
+                                <n-popconfirm :show="deleteId === item.ID">
+                                    <template #icon>
+                                        <i class="ph-fill ph-siren" style="color: #f25858;"></i>
+                                    </template>
+                                    <template #trigger>
+                                        <n-button @click="deleteId = item.ID" text class="col-span-1"
+                                            style="--n-text-color-hover: #f25858; --n-text-color-focus: #f25858;">
+                                            <template #icon>
+                                                <i class="ph-duotone ph-trash-simple" style="color: #f25858;"></i>
+                                            </template>
+                                            Delete
+                                        </n-button>
+                                    </template>
+                                    Are you sure to delete?
+                                    <template #action>
+                                        <n-button @click="deleteId = 0" size="tiny" strong
+                                            secondary>Cancel</n-button>
+                                        <n-button @click="deleteArticle(item.ID)" size="tiny" strong secondary
+                                            type="error">Delete</n-button>
+                                    </template>
+                                </n-popconfirm>
+                                {{end}}
+                            </div>
+
+                            <!-- Image -->
+                            <img class="w-full object-cover rounded-lg" style="height: 15vh;"
+                                src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image.jpg" alt="">
+
+                            <!-- Data -->
+                            <div class="flex justify-center items-center mt-2" style="height: 2vh;">
+                                <!-- Views -->
+                                <div class="flex justify-center items-center" style="width: 40%;">
+                                    <i class="ph-duotone ph-eye"></i>
+                                    <!-- TODO @Bai: 浏览量 -->
+                                    <span class="ml-1 text-sm">368</span>
+                                </div>
+
+                                <!-- Likes -->
+                                <div class="flex justify-center items-center" style="width: 40%;">
+                                    <i class="ph-duotone ph-thumbs-up"></i>
+                                    <!-- TODO @Bai: 点赞数 -->
+                                    <span class="ml-1 text-sm">12</span>
+                                </div>
+                            </div>
+                        </div>
+                    </n-list-item>
+                </n-list>
             </div>
-            <div class="info-container">
-                <!-- Email & Phone -->
-                <div class="info-box contact">
-                    <h2 style="color: #9ca3af;">Contact Information</h2>
-                    <p><span class="icon email">📧 Mail:</span> {{ .CurrentUser.Email}} </p>
-                    <p><span class="icon phone">📞 Tel:</span> {{ .CurrentUser.Phone }}</p>
-                </div>
+        </div>  
+        <script>
+            const { reactive, toRefs, ref, h } = Vue;
 
-                <!-- Country Code & Region & Address -->
-                <div class="info-box location">
-                    <h2 style="color: #9ca3af;">Social</h2>
-                    <p><span class="icon country">📍Github:</span> {{ .CurrentUser.GitHub }} </p>
-                    <p><span class="icon region">🏠Twitter:</span> {{ .CurrentUser.Twitter }}</p>
-                    <p><span class="icon address">📬Facebook:</span> {{ .CurrentUser.Facebook }} </p>
-                </div>
+            // User
+            let CurrentUser = JSON.parse("{{.CurrentUser}}")
 
-                <!-- Education -->
-                <div class="info-box education">
-                    <h2 style="color: #9ca3af;">Join</h2>
-                    <p><span class="icon edu">🎓Join Time:</span> {{ .CurrentUser.CreatedTime }} </p>
-                </div>
-            </div>
-        </div>
-    </div>
+            // Article List
+            let articleList = ref(JSON.parse("{{.Items}}"));
+
+            /*=======delete Article=======*/
+            // const showPopConfirm = ref(false);
+            let deleteId = 0;
+            function deleteArticle(id) {
+                if (id !== 0){
+                    fetch("/delete?id="+id)
+                    .then(res => {
+                        return res.json();
+                    })
+                    .then(todos => {
+                        if(todos.code === 200){
+                            // success delete  articleList or get articleList
+                            articleList.value = articleList.value.filter(item=>item.ID !== id )
+                        }
+                        deleteId = 0
+                    });
+                }
+            };
+
+            const app = Vue.createApp({
+                data() {
+                    return {
+                        CurrentUser,
+                        articleList,
+                        // showPopConfirm,
+                        deleteId,
+                    }
+                },
+                methods: {
+                    deleteArticle
+                }
+            })
+            app.use(naive)
+            app.config.compilerOptions.delimiters = ['${', '}']
+            app.mount('#app')
+        </script>       
+    </n-config-provider>
 
     <!-- Footer -->
     <p class="fixed bottom-0 left-1/2 transform -translate-x-1/2" style="font-size: xx-small;">
         ©2024, provided by
         <a href="https://www.qiniu.com/" target="_blank" style="color: #3182ce;">Qiniu Tech</a>
     </p>
+
 </body>
 
 </html>
 
 <style>
-    .profile-container {
-        width: 70%;
-        height: 70vh;
-        background: #fff;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        padding: 30px;
-        /* TODO 以下会改 */
-        margin-left: 20%;
-        margin-top: 5%;
-    }
-
-    .profile-header {
+    .n-list .n-list-item .n-list-item__main {
         display: flex;
-        align-items: center;
-        margin-bottom: 20px;
-    }
-
-    .profile-image {
-        width: 150px;
-        height: 150px;
-        background: #eee;
-        border-radius: 50%;
-        margin-right: 20px;
-        overflow: hidden;
-    }
-
-    .profile-image img {
-        width: 100%;
-        height: auto;
-    }
-
-    .profile-info h1 {
-        font-size: 24px;
-        color: #333;
-    }
-
-    .profile-info p {
-        font-size: 14px;
-        color: #666;
-    }
-
-    .info-container {
-        display: flex;
-    }
-
-    .info-box {
-        font-size: 14px;
-        width: calc(33.333% - 20px);
-        background-color: #e3fcef;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        display: flex;
-        flex-direction: column;
-        margin-left: 20px;
-    }
-
-    .contact {
-        background-color: #fdf4fc;
-        padding: 10px 20px;
-    }
-
-    .location {
-        background-color: #eef6fa;
-        padding: 10px 20px;
-    }
-
-    .education {
-        background-color: #fdfbf1;
-        padding: 10px 20px;
-    }
-
-    .icon {
-        display: inline-block;
-        margin-right: 10px;
+        flex-direction: row;
     }
 </style>

@@ -58,18 +58,20 @@ func TestPutArticle(t *testing.T) {
 
 	tests := []struct {
 		uid        string
+		trans      string
 		article    *Article
 		expectedID string
 	}{
-		{"1", article, "1"},       // insert
-		{"1", articleUpdate, "1"}, // update
+		{"1", "", article, "1"},       // insert
+		{"1", "trans", article, "1"},  // insert trans
+		{"1", "", articleUpdate, "1"}, // update
 	}
 
 	for _, tt := range tests {
-		id, _ := community.PutArticle(todo, tt.uid, "", tt.article)
+		id, _ := community.PutArticle(todo, tt.uid, tt.trans, tt.article)
 
 		if id != tt.expectedID {
-			t.Errorf("PutArticle(%s, %+v) returned ID %s, expected: %s", tt.uid, tt.article, id, tt.expectedID)
+			t.Errorf("PutArticle(%s, %s, %+v) returned ID %s, expected: %s", tt.uid, tt.trans, tt.article, id, tt.expectedID)
 		}
 	}
 }
@@ -130,6 +132,40 @@ func TestArticle(t *testing.T) {
 		}
 		if err != tt.expectedError {
 			t.Errorf("Article(%s) returned err is %s, expected: %s", tt.id, err, tt.expectedError)
+		}
+	}
+}
+
+func TestSaveHtml(t *testing.T) {
+	conf := &Config{}
+	todo := context.TODO()
+	community, err := New(todo, conf)
+
+	if err != nil {
+		t.Skip(err)
+	}
+
+	// test data
+	tests := []struct {
+		uid               string
+		htmlStr           string
+		mdData            string
+		id                string
+		expectedArticleID string
+		expectedError     error
+	}{
+		{"1", "<html><body><p>Hello, World!<p></body></html>", "##Hello, World!", "", "15", nil},
+		{"1", "<html><body><p>Hello, World!<p></body></html>", "##Hello, World!", "15", "15", nil},
+	}
+
+	for _, tt := range tests {
+		articleId, err := community.SaveHtml(todo, tt.uid, tt.htmlStr, tt.mdData, tt.id)
+
+		if articleId != tt.expectedArticleID {
+			t.Errorf("SaveHtml(%s,%s,%s,%s) returned id is %s, expected: %s", tt.uid, tt.htmlStr, tt.mdData, tt.id, articleId, tt.expectedArticleID)
+		}
+		if err != tt.expectedError {
+			t.Errorf("SaveHtml(%s,%s,%s,%s) returned err is %s, expected: %s", tt.uid, tt.htmlStr, tt.mdData, tt.id, err, tt.expectedError)
 		}
 	}
 }
@@ -195,6 +231,61 @@ func TestDeleteArticle(t *testing.T) {
 
 		if err != tt.expectedErr {
 			t.Errorf("DeleteArticle(%s, %s) returned error: %v, expected: %v", tt.uid, tt.articleID, err, tt.expectedErr)
+		}
+	}
+}
+
+func TestArticles(t *testing.T) {
+	conf := &Config{}
+	todo := context.TODO()
+	community, err := New(todo, conf)
+
+	if err != nil {
+		t.Skip(err)
+	}
+
+	// test data
+	tests := []struct {
+		page          int
+		limit         int
+		searchValue   string
+		expectedTotal int
+	}{
+		{1, 10, "", 10},     // home
+		{1, 10, "test", 10}, // search
+	}
+
+	for _, tt := range tests {
+		_, total, _ := community.Articles(todo, tt.page, tt.limit, tt.searchValue)
+
+		if total != tt.expectedTotal {
+			t.Errorf("Articles(%d, %d, %s) returned total: %v, expected: %v", ttt.page, tt.limit, tt.searchValue, total, tt.expectedTotal)
+		}
+	}
+}
+
+func TestGetArticlesByUid(t *testing.T) {
+	conf := &Config{}
+	todo := context.TODO()
+	community, err := New(todo, conf)
+
+	if err != nil {
+		t.Skip(err)
+	}
+
+	// test data
+	tests := []struct {
+		uid           string
+		expectedError error
+	}{
+		{"1", nil},
+	}
+
+	for _, tt := range tests {
+		_, err := community.GetArticlesByUid(todo, tt.uid)
+
+		if err != tt.expectedError {
+			t.Errorf("GetArticlesByUid(%s) returned err: %v, expected: %v", ttt.uid, err, tt.expectedTotal)
 		}
 	}
 }

@@ -20,6 +20,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"io"
 	"net/url"
 	"os"
 	"strconv"
@@ -247,53 +248,93 @@ func (p *Community) PutArticle(ctx context.Context, uid string, trans string, ar
 	return article.ID, err
 }
 
-// DeleteArticle delete the article.
-func (p *Community) DeleteArticle(ctx context.Context, uid, id string) (err error) {
-	// get htmlId
-	var htmlId string
-	sqlStr := "select html_id from article where id=? and user_id=?"
-	err = p.db.QueryRow(sqlStr, id, uid).Scan(&htmlId)
-	if err != nil {
-		return
-	}
-	sqlStr = "delete from article where id=? and user_id=?"
-	_, err = p.db.Exec(sqlStr, id, uid)
-	if err != nil {
-		return
-	}
-	// delete the media
-	err = p.DelMedia(ctx, uid, htmlId)
-	return
-}
-
-// DeleteArticles delete the articles by uid.
-func (p *Community) DeleteArticles(ctx context.Context, uid string) (err error) {
+func (p *Community) deleteMedias(ctx context.Context, uid, id string) (err error) {
 	// get htmlIds
 	var htmlIds []string
-	sqlStr := "select html_id from article where user_id=?"
-	rows, err := p.db.Query(sqlStr, uid)
+	sqlStr := "select html_id from article where id=? and user_id=?"
+	rows, err := p.db.Query(sqlStr, id, uid)
 	defer rows.Close()
 	for rows.Next() {
 		var htmlId string
-		err = rows.Scan(&htmlId)
-		if err != nil {
-			return
-		}
+		rows.Scan(&htmlId)
 		htmlIds = append(htmlIds, htmlId)
 	}
-	sqlStr = "delete from article where user_id=?"
-	_, err = p.db.Exec(sqlStr, uid)
-	// delete the media
 	err = p.DelMedias(ctx, uid, htmlIds)
 	return
 }
+
+// DeleteArticle delete the article.
+// func (p *Community) DeleteArticle(ctx context.Context, uid, id string) (err error) {
+// 	// get htmlId
+// 	err = p.deleteMedias(ctx, uid ,id)
+// 	if err != nil{
+// 		return
+// 	}
+// 	sqlStr := "delete from article where id=? and user_id=?"
+// 	_, err = p.db.Exec(sqlStr, id, uid)
+// 	return
+// }
+
+// DeleteArticle delete the article.
+func (p *Community) DeleteArticle(ctx context.Context, uid, id string) (err error) {
+	// Start a transaction
+	tx, err := p.db.BeginTx(ctx, nil)
+	if err != nil {
+		return
+	}
+	defer func() {
+		if err != nil {
+			// Rollback if there's an error
+			tx.Rollback()
+		}
+	}()
+
+	// Delete medias (calling deleteMedias within the transaction)
+	err = p.deleteMedias(ctx, uid, id)
+	if err != nil {
+		return err
+	}
+
+	// Delete article
+	sqlStr := "delete from article where id=? and user_id=?"
+	_, err = tx.ExecContext(ctx, sqlStr, id, uid)
+	if err != nil {
+		return err
+	}
+
+	// Commit the transaction
+	err = tx.Commit()
+	return
+}
+
+// // DeleteArticles delete the articles by uid.
+// func (p *Community) DeleteArticles(ctx context.Context, uid string) (err error) {
+// 	// get htmlIds
+// 	var htmlIds []string
+// 	sqlStr := "select html_id from article where user_id=?"
+// 	rows, err := p.db.Query(sqlStr, uid)
+// 	defer rows.Close()
+// 	for rows.Next() {
+// 		var htmlId string
+// 		err = rows.Scan(&htmlId)
+// 		if err != nil {
+// 			return
+// 		}
+// 		htmlIds = append(htmlIds, htmlId)
+// 	}
+// 	sqlStr = "delete from article where user_id=?"
+// 	_, err = p.db.Exec(sqlStr, uid)
+// 	// delete the media
+// 	err = p.DelMedias(ctx, uid, htmlIds)
+// 	return
+// }
 
 const (
 	MarkBegin = ""
 	MarkEnd   = "eof"
 )
 
-// ListArticle lists articles from a position.
+// Articles lists articles from a position.
 func (p *Community) Articles(ctx context.Context, page int, limit int, searchValue string) (items []*ArticleEntry, total int, err error) {
 	total, err = p.getTotal(ctx, searchValue)
 	if err != nil || total == 0 {
@@ -329,31 +370,48 @@ func (p *Community) Articles(ctx context.Context, page int, limit int, searchVal
 	return items, total, nil
 }
 
-// SearchArticle search articles by title.
-func (p *Community) SearchArticle(ctx context.Context, searchValue string) (items []*ArticleEntry, err error) {
-	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover from article where title like ?"
-	rows, err := p.db.Query(sqlStr, "%"+searchValue+"%")
+// ListArticle lists articles from a position.
+func (p *Community) ListArticle(ctx context.Context, from string, limit int) (items []*ArticleEntry, next string, err error) {
+	if from == MarkBegin {
+		from = "0"
+	} else if from == MarkEnd {
+		return []*ArticleEntry{}, from, nil
+	}
+	fromInt, err := strconv.Atoi(from)
 	if err != nil {
-		return []*ArticleEntry{}, err
+		return []*ArticleEntry{}, from, err
+	}
+
+	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover from article order by ctime desc limit ? offset ?"
+	rows, err := p.db.Query(sqlStr, limit, fromInt)
+	if err != nil {
+		return []*ArticleEntry{}, from, err
 	}
 	defer rows.Close()
 
+	var rowLen int
 	for rows.Next() {
 		article := &ArticleEntry{}
 		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Abstract, &article.Cover)
 		if err != nil {
-			return []*ArticleEntry{}, err
+			return []*ArticleEntry{}, from, err
 		}
 		// add author info
 		user, err := p.GetUserById(article.UId)
 		if err != nil {
-			return []*ArticleEntry{}, err
+			return []*ArticleEntry{}, from, err
 		}
 		article.User = *user
 
 		items = append(items, article)
+		rowLen++
 	}
-	return items, nil
+	// have no article
+	if rowLen == 0 {
+		return []*ArticleEntry{}, MarkEnd, io.EOF
+	}
+	next = strconv.Itoa(fromInt + rowLen)
+	return items, next, nil
 }
 
 // GetArticlesByUid get articles by user id.

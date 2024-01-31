@@ -558,8 +558,10 @@
                 <!-- Avatar & Nick Name -->
                 <div class="flex flex-row items-center">
                     <!-- Avatar -->
-                    <img class="w-12 h-12 rounded-full ml-3 mr-2"
+                    <a href="/user/{{ .Author.Id }}">
+                        <img class="w-12 h-12 rounded-full ml-3 mr-2"
                         src="{{.Author.Avatar}}" alt="Rounded avatar">
+                    </a>
 
                     <!-- Nick Name -->
                     <div>
