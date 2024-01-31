@@ -11,9 +11,9 @@ import (
 	"github.com/goplus/community/markdown"
 	"github.com/goplus/community/translation"
 	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
-	"go.uber.org/zap"
 	language "golang.org/x/text/language"
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/qiniu/x/xlog"
 )
 
 var (
@@ -28,11 +28,11 @@ const (
 todo := context.TODO()
 endpoint := os.Getenv("GOP_COMMUNITY_ENDPOINT")
 domain := os.Getenv("GOP_COMMUNITY_DOMAIN")
-logger, _ := zap.NewProduction()
-defer logger.Sync()
-zlog := logger.Sugar()
+xLog := xlog.New("")
 
-static "/"
+// Modify / to /static
+// Support 404 handle
+static "/static"
 
 get "/success", ctx => {
 	ctx.yap "2xx", {}
@@ -46,6 +46,10 @@ get "/failed", ctx => {
 	ctx.yap "5xx", {}
 }
 
+get "/demo", ctx => {
+	ctx.yap "demo", {}
+}
+
 get "/p/:id", ctx => {
 	// todo middleware
 	// Get User Info
@@ -54,7 +58,7 @@ get "/p/:id", ctx => {
 	if err == nil {
 		user, err = community.getUser(token.Value)
 		if err != nil {
-			zlog.Error("get user error:", err)
+			xLog.Error("get user error:", err)
 		}
 	}
 
@@ -87,7 +91,7 @@ get "/user/:id", ctx => {
 	// Get current User Info by id
 	userClaim, err := community.getUserClaim(id)
 	if err != nil {
-		zlog.Error("get current user error:", err)
+		xLog.Error("get current user error:", err)
 	}
 	// todo middleware
 	// get user by token
@@ -96,7 +100,7 @@ get "/user/:id", ctx => {
 	if err == nil {
 		user, err = community.getUser(token.Value)
 		if err != nil {
-			zlog.Error("get user error:", err)
+			xLog.Error("get user error:", err)
 		}
 	}
 	// get article list published by uid
@@ -124,7 +128,7 @@ get "/", ctx => {
 	if err == nil {
 		user, err = community.getUser(token.Value)
 		if err != nil {
-			zlog.Error("get user error:", err)
+			xLog.Error("get user error:", err)
 		}
 	}
 
@@ -172,7 +176,7 @@ get "/search", ctx => {
 	if err == nil {
 		user, err = community.getUser(token.Value)
 		if err != nil {
-			zlog.Error("get user error:", err)
+			xLog.Error("get user error:", err)
 		}
 	}
 
@@ -206,7 +210,7 @@ get "/edit/:id", ctx => {
 	id := ctx.param("id")
 	if id != "" {
 		if editable, _ := community.canEditable(todo, uid, id); !editable {
-			zlog.Error("no permissions")
+			xLog.Error("no permissions")
 			http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
 		}
 		article, _ := community.article(todo, id)
@@ -340,7 +344,7 @@ post "/upload", ctx => {
 	ctx.ParseMultipartForm(10 << 20)
 
 	if err != nil {
-		zlog.Error("upload file error:", filename)
+		xLog.Error("upload file error:", filename)
 		ctx.JSON(500, err.Error())
 		return
 	}
@@ -348,7 +352,7 @@ post "/upload", ctx => {
 
 	dst, err := os.Create(filename)
 	if err != nil {
-		zlog.Error("create file error:", file)
+		xLog.Error("create file error:", file)
 		ctx.JSON(500, err.Error())
 		return
 	}
@@ -357,7 +361,7 @@ post "/upload", ctx => {
 		dst.Close()
 		err = os.Remove(filename)
 		if err != nil {
-		zlog.Error("delete file error:", filename)
+		xLog.Error("delete file error:", filename)
 		return
 		}
 	}()
@@ -365,13 +369,13 @@ post "/upload", ctx => {
 
 	_, err = io.Copy(dst, file)
 	if err != nil {
-		zlog.Error("copy file errer:", filename)
+		xLog.Error("copy file errer:", filename)
 		ctx.JSON(500, err.Error())
 		return
 	}
 	bytes, err := os.ReadFile(filename)
 	if err != nil {
-		zlog.Error("read file errer:", filename)
+		xLog.Error("read file errer:", filename)
 		ctx.JSON(500, err.Error())
 		return
 	}
@@ -391,7 +395,7 @@ post "/upload", ctx => {
 	}
 	id,err:=community.SaveMedia(context.Background(), uid, bytes)
 	if err!=nil {
-		zlog.Error("save file",err.Error())
+		xLog.Error("save file",err.Error())
 		ctx.JSON(500, err.Error())
 		return
 	}
@@ -402,11 +406,28 @@ post "/upload", ctx => {
 
 get "/login", ctx => {
 	// Get URL from query string
-	redirectURL := ctx.URL.Query().Get("redirect_url")
+	// redirectURL := ctx.URL.Query().Get("redirect_url")
+	// Get current request page URL from 
+	// Concatenate the current request page URL from refer
+	redirectURL := fmt.Sprintf("%s/%s", ctx.Request.Referer(), "callback")
+
 	loginURL := community.RedirectToCasdoor(redirectURL)
 	ctx.Redirect loginURL, http.StatusFound
 }
 
+get "/logout", ctx => {
+	tokenCookie, err := ctx.Request.Cookie("token")
+	if err != nil {
+		xLog.Error("get token error:", err)
+	}
+
+	// Delete token
+	tokenCookie.MaxAge = -1
+	http.SetCookie(ctx.ResponseWriter, tokenCookie)
+
+	// Redirect to home page
+	http.Redirect(ctx.ResponseWriter, ctx.Request, fmt.Sprintf("http://localhost:8080"), http.StatusFound)
+}
 
 get "/callback", ctx => {
 	code :=ctx.URL.Query().Get("code")
@@ -414,7 +435,7 @@ get "/callback", ctx => {
 
 	token, error := community.GetAccessToken(code, state)
 	if error != nil {
-		zlog.Error("err",error) // Redirect to login
+		xLog.Error("err",error) // Redirect to login
 	}
 
 	cookie := http.Cookie{
@@ -427,7 +448,7 @@ get "/callback", ctx => {
 
 	// Redirect to home page
 	// TODO: Get redirect URL from state
-	http.Redirect(ctx.ResponseWriter, ctx.Request, fmt.Sprintf("http://localhost:8080?token=%s", token.AccessToken), http.StatusFound)
+	http.Redirect(ctx.ResponseWriter, ctx.Request, fmt.Sprintf("http://localhost:8080"), http.StatusFound)
 }
 
 conf := &core.Config{}
@@ -436,11 +457,11 @@ trans = translation.New(os.Getenv("NIUTRANS_API_KEY"), "", "")
 core.CasdoorConfigInit()
 
 // 404
-// handle "/",ctx => {
-// 	ctx.yap "4xx", {}
-// }
+handle "/",ctx => {
+	ctx.yap "4xx", {}
+}
 
-zlog.Info "Started in endpoint: ", endpoint
+xLog.Info "Started in endpoint: ", endpoint
 
 // 500
 run(endpoint, func(h http.Handler) http.Handler {
