@@ -20,6 +20,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/url"
 	"os"
 	"strconv"
 	"time"
@@ -404,18 +405,22 @@ func casdoorConfigInit() *CasdoorConfig {
 
 func (a *Community) RedirectToCasdoor(redirect string) (loginURL string) {
 	// TODO: Check whitelist from referer
-	ResponseType := "code"
-	Scope := "read"
-	State := "casdoor"
+	responseType := "code"
+	scope := "read"
+	state := "casdoor"
+	redirectEncodeURL := url.QueryEscape(redirect)
+
 	loginURL = fmt.Sprintf(
 		"%s/login/oauth/authorize?client_id=%s&response_type=%s&redirect_uri=%s&scope=%s&state=%s",
 		a.casdoorConfig.endPoint,
 		a.casdoorConfig.clientId,
-		ResponseType,
-		redirect,
-		Scope,
-		State,
+		responseType,
+		redirectEncodeURL,
+		scope,
+		state,
 	)
+
+	fmt.Println("loginURL", loginURL)
 
 	return loginURL
 }

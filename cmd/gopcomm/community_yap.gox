@@ -409,7 +409,7 @@ get "/login", ctx => {
 	// redirectURL := ctx.URL.Query().Get("redirect_url")
 	// Get current request page URL from 
 	// Concatenate the current request page URL from refer
-	redirectURL := fmt.Sprintf("%s/%s", ctx.Request.Referer() + "callback")
+	redirectURL := fmt.Sprintf("%s/%s", ctx.Request.Referer(), "callback")
 
 	loginURL := community.RedirectToCasdoor(redirectURL)
 	ctx.Redirect loginURL, http.StatusFound
