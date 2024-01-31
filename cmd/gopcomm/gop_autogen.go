@@ -477,7 +477,7 @@ func (this *community) MainEntry() {
 //line cmd/gopcomm/community_yap.gox:407:1
 	this.Get("/login", func(ctx *yap.Context) {
 //line cmd/gopcomm/community_yap.gox:412:1
-		redirectURL := fmt.Sprintf("%s/%s", ctx.Request.Referer()+"callback")
+		redirectURL := fmt.Sprintf("%s/%s", ctx.Request.Referer(), "callback")
 //line cmd/gopcomm/community_yap.gox:414:1
 		loginURL := this.community.RedirectToCasdoor(redirectURL)
 //line cmd/gopcomm/community_yap.gox:415:1
