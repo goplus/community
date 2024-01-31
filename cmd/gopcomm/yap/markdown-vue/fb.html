@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="test">
+  <meta name="twitter:description" content="test">
+  <meta name="twitter:image" content="https://public-cdn.mokahr.com/72f7c42e-b069-4e14-9c29-ee20229cc256.png">
+  <!--<meta name="twitter:card" content="summary" />
+  <meta name="twitter:site" content="@nytimesbits" />
+  <meta name="twitter:creator" content="@nickbilton" />
+  <meta property="og:url" content="http://bits.blogs.nytimes.com/2011/12/08/a-twitter-for-my-sister/" />
+  <meta property="og:title" content="A Twitter for My Sister" />
+  <meta property="og:description" content="In the early days, Twitter grew so quickly that it was almost impossible to add new features because engineers spent their time trying to keep the rocket ship from stalling." />
+  <meta property="og:image" content="http://graphics8.nytimes.com/images/2011/12/08/technology/bits-newtwitter/bits-newtwitter-tmagArticle.jpg" />-->
+<!--  <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+  <meta name="description" content="Linz">
+  <meta property="og:title" content="Linz">
+  <meta property="og:description" content="Linz">
+  <meta property="og:image" content="https://public-cdn.mokahr.com/72f7c42e-b069-4e14-9c29-ee20229cc256.png">
+  <meta property="og:url" content="http://8.130.26.238/animation/fb.html">
+  <meta property="og:type" content="website">
+
+
+  <title>Document</title>
+</head>
+<body>
+<input id="share_button" type="button" value="share to facebook"/>
+<input onclick="shareOnTwitter()" value="share to twitter" type="button"/>
+<!--<input onclick="shareOnDiscord()" value="share to discord" type="button"/>-->
+<!--<input onclick="shareOnWechat()" value="share to Wechat" type="button"/>-->
+<script src="http://res.wx.qq.com/open/js/jweixin-1.2.0.js"></script>
+
+
+<script type="text/JavaScript">
+
+  wx.config({
+    debug: true, // 开启调试模式
+    appId: 'your_app_id', // 必填，企业小程序的唯一标识
+    timestamp: 'your_timestamp', // 必填，生成签名的时间戳
+    nonceStr: 'your_nonce_str', // 必填，生成签名的随机串
+    signature: 'your_signature',// 必填，签名，见 附录-JS-SDK使用权限签名算法
+    jsApiList: ['onMenuShareTimeline', 'onMenuShareAppMessage'] // 必填，需要使用的JS接口列表
+  });
+
+
+  /**
+   * 分享到 facebook
+   * @param url
+   * @param title「无用可忽略」
+   * @param w
+   * @param h
+   * @returns {Window}
+   */
+  function popupwindow(url, title, w, h) {
+    wLeft = window.screenLeft ? window.screenLeft : window.screenX;
+    wTop = window.screenTop ? window.screenTop : window.screenY;
+
+    var left = wLeft + (window.innerWidth / 2) - (w / 2);
+    var top = wTop + (window.innerHeight / 2) - (h / 2);
+    return window.open(url, title, 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=' + w + ', height=' + h + ', top=' + top + ', left=' + left);
+  }
+
+  window.onload = function () {
+    document.getElementById('share_button').onclick = function () {
+      var shareUrl = "http://www.facebook.com/sharer/sharer.php?u=http://8.130.26.238/animation/fb.html";
+      popupwindow(shareUrl, 'facebook', 600, 400);
+    }
+  }
+
+
+  function shareOnTwitter() {
+    // var url = encodeURIComponent('http://8.130.26.238/animation/fb.html');
+    // var text = encodeURIComponent('Linz');
+    var url = 'http://8.130.26.238/animation/fb.html';
+    var text = "Test"
+    var via = "Test";
+    var hashtags = "Test";
+    var intentUrl = "https://twitter.com/intent/tweet?text="
+            + encodeURIComponent(text) + "&url=" + encodeURIComponent(url)
+            + "&via=" + encodeURIComponent(via) + "&hashtags=" + encodeURIComponent(hashtags);
+    // var shareUrl = 'https://twitter.com/intent/tweet?text=' + text + '&url=' + url;
+    window.open(intentUrl, "_blank", "width=550,height=420");
+  }
+
+  function shareOnDiscord() {
+    // var webhookUrl = "https://discord.com/api/webhooks/1192450011699609702/Mr8cJhiIpvMjSC2ZWiPeDy3exVtCHz5AwNNhKmCh2zEtMQ14TSxrwq08PLfRWColhKo-"; // 替换为您的 Webhook URL
+    var webhookUrl = "https://discord.com/api/webhooks/1193448349815275520/ZwCQaJHOlD__WYhIFTde-LjJj8mKakgujkvZvnFlCFUnnbYHSES-F6tkfsylVgqbs7vy"; // 替换为您的 Webhook URL
+    var content = "这是Linz的测试\n  ";
+   // var imageUrl = "https://public-cdn.mokahr.com/72f7c42e-b069-4e14-9c29-ee20229cc256.png"; // 可选，要分享的图片链接
+    var payload = {
+      content: content,
+      embeds: [
+        {
+          title: 'QiNiu Official Website',
+          description: 'This is the description of the QiNiu card.',
+          url: "https://www.qiniu.com/",
+         /* thumbnail: {
+            url: 'https://public-cdn.mokahr.com/72f7c42e-b069-4e14-9c29-ee20229cc256.png',
+          },*/
+          image: {
+            url: "https://public-cdn.mokahr.com/72f7c42e-b069-4e14-9c29-ee20229cc256.png",
+            // proxy_url: "https://www.qiniu.com/",
+          },
+          fields: [
+            {
+              name: 'Go+ ?',
+              value: '+GO !',
+              inline: true,
+            },
+            {
+              name: 'Hello',
+              value: 'Hi',
+              inline: true,
+            },
+          ],
+          footer: {
+            text: 'https://www.qiniu.com/',
+          },
+        }
+      ]
+    };
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", webhookUrl);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.send(JSON.stringify(payload));
+    alert("分享到discord成功")
+    console.log("https://discord.com/channels/1192449635265036409/1192449635265036412")
+  }
+
+  /*const axios = require('axios');
+
+  const webhookUrl = 'YOUR_DISCORD_WEBHOOK_URL';
+
+  const message = {
+    content: 'Check out this card!',
+    embeds: [
+      {
+        title: 'Card Title',
+        description: 'This is the description of the card.',
+        url: 'https://example.com',
+        thumbnail: {
+          url: 'https://example.com/thumbnail.png',
+        },
+        image: {
+          url: 'https://example.com/image.png',
+        },
+        fields: [
+          {
+            name: 'Field 1',
+            value: 'Value 1',
+            inline: true,
+          },
+          {
+            name: 'Field 2',
+            value: 'Value 2',
+            inline: true,
+          },
+        ],
+        footer: {
+          text: 'Card Footer',
+        },
+      },
+    ],
+  };
+
+  axios
+          .post(webhookUrl, message)
+          .then(() => {
+            console.log('Message sent successfully.');
+          })
+          .catch((error) => {
+            console.error('Failed to send message:', error);
+          });
+
+*/
+</script>
+</body>
+</html>
