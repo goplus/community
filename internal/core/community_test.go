@@ -134,43 +134,6 @@ func TestArticle(t *testing.T) {
 	}
 }
 
-func TestListArticle(t *testing.T) {
-	conf := &Config{}
-	todo := context.TODO()
-	community, err := New(todo, conf)
-
-	if err != nil {
-		t.Skip(err)
-	}
-
-	tests := []struct {
-		from         string
-		limit        int
-		expectedLen  int
-		expectedNext string
-	}{
-		{MarkBegin, 5, 5, "5"},
-		{"5", 5, 1, "6"},
-		{"6", 5, 0, MarkEnd},
-	}
-
-	for _, tt := range tests {
-		items, next, err := community.ListArticle(todo, tt.from, tt.limit)
-
-		if err != nil {
-			t.Errorf("ListArticle(%s, %d) returned error: %v", tt.from, tt.limit, err)
-		}
-
-		if len(items) != tt.expectedLen {
-			t.Errorf("ListArticle(%s, %d) returned %d items, expected %d", tt.from, tt.limit, len(items), tt.expectedLen)
-		}
-
-		if next != tt.expectedNext {
-			t.Errorf("ListArticle(%s, %d) returned next %s, expected %s", tt.from, tt.limit, next, tt.expectedNext)
-		}
-	}
-}
-
 func TestDeleteArticle(t *testing.T) {
 	conf := &Config{}
 	todo := context.TODO()

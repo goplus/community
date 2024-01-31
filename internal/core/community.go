@@ -66,11 +66,12 @@ type Article struct {
 }
 
 type Community struct {
-	bucket        *blob.Bucket
-	db            *sql.DB
-	domain        string
-	casdoorConfig *CasdoorConfig
-	xLog          *xlog.Logger
+	bucket         *blob.Bucket
+	db             *sql.DB
+	domain         string
+	casdoorConfig  *CasdoorConfig
+	xLog           *xlog.Logger
+	videoTaskCache *VideoTaskCache
 }
 type CasdoorConfig struct {
 	endPoint         string
@@ -90,6 +91,7 @@ type Account struct {
 func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 	// Init log
 	xLog := xlog.New("")
+	videoTaskCache := NewVideoTaskCache()
 
 	if conf == nil {
 		conf = new(Config)
@@ -119,7 +121,7 @@ func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 		xLog.Error(err)
 		return
 	}
-	return &Community{bucket, db, domain, casdoorConf, xLog}, nil
+	return &Community{bucket, db, domain, casdoorConf, xLog, videoTaskCache}, nil
 }
 
 func (p *Community) getTotal(ctx context.Context, searchValue string) (total int, err error) {
