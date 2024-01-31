@@ -36,6 +36,14 @@ var (
 )
 
 func TestUploadVideo(t *testing.T) {
+	if mockAccessKey == "" {
+		t.Skip("QINIU_ACCESS_KEY not set")
+	}
+
+	if mockSecretKey == "" {
+		t.Skip("QINIU_SECRET_KEY not set")
+	}
+
 	localFile := "./test.mp4"
 	key := "test.mp4"
 	mac := auth.New(mockAccessKey, mockSecretKey)
@@ -61,8 +69,34 @@ func TestUploadVideo(t *testing.T) {
 }
 
 func TestVideo2Text(t *testing.T) {
+	if mockAccessKey == "" {
+		t.Skip("QINIU_ACCESS_KEY not set")
+	}
+
+	if mockSecretKey == "" {
+		t.Skip("QINIU_SECRET_KEY not set")
+	}
+
 	e := New("", mockAccessKey, mockSecretKey)
 	resp, err := e.Video2Text("http://test.com/test.mp4", "http://test.com/callback")
+	fmt.Printf("resp: %#v", resp)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(resp)
+}
+
+func TestQueryTask(t *testing.T) {
+	if mockAccessKey == "" {
+		t.Skip("QINIU_ACCESS_KEY not set")
+	}
+
+	if mockSecretKey == "" {
+		t.Skip("QINIU_SECRET_KEY not set")
+	}
+
+	e := New("", mockAccessKey, mockSecretKey)
+	resp, err := e.QueryVideo2TextTask("mockTaskId")
 	if err != nil {
 		t.Fatal(err)
 	}

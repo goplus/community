@@ -19,6 +19,7 @@ package translation
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/qiniu/go-sdk/v7/auth"
 	"github.com/qiniu/go-sdk/v7/client"
@@ -50,6 +51,8 @@ type ASRResponse struct {
 	AudioUrl string `json:"audio"`
 }
 
+type ASRTaskData Video2TextCallbackResponse
+
 // TTSRequest
 type TTSRequest struct {
 	Content string `json:"content"`
@@ -70,7 +73,40 @@ func (e *Engine) Video2Text(src string, callback string) (*ASRResponse, error) {
 
 	c := client.DefaultClient
 	res := &ASRResponse{}
-	err := c.CredentialedCallWithJson(context.Background(), e.qiniuCred, auth.TokenQiniu, &res, "POST", qiniuASRAPI, nil, requestBody)
+	err := c.CredentialedCallWithJson(
+		context.Background(),
+		e.qiniuCred,
+		auth.TokenQiniu,
+		&res,
+		"POST",
+		qiniuASRAPI,
+		nil,
+		requestBody,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+// QueryVideo2TextTask
+func (e *Engine) QueryVideo2TextTask(taskId string) (*ASRTaskData, error) {
+	// Prepare request url
+	requestURL := fmt.Sprintf("%s/%s", qiniuASRAPI, taskId)
+
+	c := client.DefaultClient
+	res := &ASRTaskData{}
+	err := c.CredentialedCallWithJson(
+		context.Background(),
+		e.qiniuCred,
+		auth.TokenQiniu,
+		&res,
+		"GET",
+		requestURL,
+		nil,
+		nil,
+	)
 	if err != nil {
 		return nil, err
 	}
