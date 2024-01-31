@@ -32,7 +32,7 @@
     <!-- Header -->
     <header class="bg-cover bg-center" style="
         height: 30vh;
-        background-image: url('/img/home-background.png');
+        background-image: url('/static/img/home-background.png');
       ">
         <nav class="border-gray-200 px-4 lg:px-6 py-2.5 dark:bg-gray-800">
             <div class="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl">
@@ -55,10 +55,16 @@
                             Write
                         </a>
                     </button>
+                    <button type="button"
+                        class="text-white hover:text-white border border-white-700 hover:bg-white-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-500 dark:focus:ring-blue-800">
+                        <a href="/logout">
+                            Exit
+                        </a>
+                    </button>
                     {{else}}
                     <button type="button"
                         class="text-white hover:text-white border border-white-700 hover:bg-white-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-500 dark:focus:ring-blue-800">
-                        <a href="http://localhost:8080/login?redirect_url=http://localhost:8080/callback">
+                        <a href="/login">
                             Sign in
                         </a>
                     </button>

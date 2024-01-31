@@ -33,7 +33,7 @@
     <!-- Header -->
     <header class="bg-cover bg-center" style="
         height: 10vh;
-        background-image: url('/img/home-background.png');
+        background-image: url('/static/img/home-background.png');
       ">
         <nav class="border-gray-200 px-4 lg:px-6 py-2.5 dark:bg-gray-800">
             <div class="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl">
@@ -81,7 +81,7 @@
                                         stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
                                 </svg>
                             </div>
-                            <input type="search" id="default-search"
+                            <input type="search" id="default-search" name="value"
                                 class="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                 placeholder="Search..." required />
                             <button type="submit"
@@ -231,6 +231,7 @@
                                 </n-button>
 
                                 <!-- Delete Button -->
+                                {{if .User}}
                                 <n-popconfirm :show="deleteId === item.ID">
                                     <template #icon>
                                         <i class="ph-fill ph-siren" style="color: #f25858;"></i>
@@ -252,6 +253,7 @@
                                             type="error">Delete</n-button>
                                     </template>
                                 </n-popconfirm>
+                                {{end}}
                             </div>
 
                             <!-- Image -->
@@ -287,13 +289,12 @@
 
             // Article List
             let articleList = ref(JSON.parse("{{.Items}}"));
-            const userId = ref("{{ .User.Id }}");
 
             /*=======delete Article=======*/
             // const showPopConfirm = ref(false);
             let deleteId = 0;
             function deleteArticle(id) {
-                if (userId.value !== "" && id !== 0){
+                if (id !== 0){
                     fetch("/delete?id="+id)
                     .then(res => {
                         return res.json();
