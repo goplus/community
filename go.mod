@@ -20,6 +20,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/qiniu/go-cdk-driver v0.1.0
 	github.com/qiniu/go-sdk/v7 v7.18.0
+	github.com/qiniu/x v1.13.2
 	github.com/yuin/goldmark v1.4.13
 	go.uber.org/zap v1.26.0
 	gocloud.dev v0.34.0
