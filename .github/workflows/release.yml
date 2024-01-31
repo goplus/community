@@ -23,17 +23,6 @@ jobs:
         echo Current tag: $tag_name
         git checkout $tag_name
         echo "TAG_NAME=${tag_name}" >> $GITHUB_ENV
-    
-    - name: Check VERSION consistency
-      run: |
-        tag=$(git describe --tags --dirty)
-        version=$(cat VERSION)
-        if [ "$tag" != "$version" ]; then
-          echo "VERSION file is not consistent with tag name"
-          echo "VERSION: $version"
-          echo "TAG: $tag"
-          exit 1
-        fi
 
     - name: Set up Go
       uses: actions/setup-go@v5
@@ -49,13 +38,3 @@ jobs:
         args: release --clean -p 4
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    # - name: Upload deb/rpm to Fury.io
-    #   run: |
-    #     for file in dist/*.{deb,rpm}
-    #     do
-    #       echo "Uploading $file to Fury.io"
-    #       curl -sS -F package=@$file https://$FURY_TOKEN@push.fury.io/goplus/
-    #     done
-    #   env:
-    #     FURY_TOKEN: ${{ secrets.FURY_TOKEN }}

@@ -33,7 +33,7 @@ func CasdoorConfigInit() {
 func (p *Community) GetUser(token string) (user *User, err error) {
 	claim, err := casdoorsdk.ParseJwtToken(token)
 	if err != nil {
-		p.zlog.Error(err)
+		p.xLog.Error(err)
 		return &User{}, ErrNotExist
 	}
 	user = &User{
@@ -48,7 +48,7 @@ func (p *Community) GetUser(token string) (user *User, err error) {
 func (p *Community) ParseJwtToken(token string) (userId string, err error) {
 	claim, err := casdoorsdk.ParseJwtToken(token)
 	if err != nil {
-		p.zlog.Error(err)
+		p.xLog.Error(err)
 		return "", ErrNotExist
 	}
 	return claim.Id, nil
@@ -58,7 +58,7 @@ func (p *Community) ParseJwtToken(token string) (userId string, err error) {
 func (p *Community) GetUserClaim(uid string) (claim *casdoorsdk.User, err error) {
 	claim, err = casdoorsdk.GetUserByUserId(uid)
 	if err != nil {
-		p.zlog.Error(err)
+		p.xLog.Error(err)
 		return &casdoorsdk.User{}, ErrNotExist
 	}
 	return
@@ -68,7 +68,7 @@ func (p *Community) GetUserClaim(uid string) (claim *casdoorsdk.User, err error)
 func (p *Community) GetUserById(uid string) (user *User, err error) {
 	claim, err := casdoorsdk.GetUserByUserId(uid)
 	if err != nil {
-		p.zlog.Error(err)
+		p.xLog.Error(err)
 		return &User{}, ErrNotExist
 	}
 	user = &User{
