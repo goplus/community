@@ -20,13 +20,15 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/url"
 	"os"
 	"strconv"
 	"time"
 
+	"github.com/qiniu/x/xlog"
+
 	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 	_ "github.com/go-sql-driver/mysql"
-	"go.uber.org/zap"
 	"gocloud.dev/blob"
 	"golang.org/x/oauth2"
 )
@@ -68,7 +70,7 @@ type Community struct {
 	db            *sql.DB
 	domain        string
 	casdoorConfig *CasdoorConfig
-	zlog          *zap.SugaredLogger
+	xLog          *xlog.Logger
 }
 type CasdoorConfig struct {
 	endPoint         string
@@ -82,13 +84,12 @@ type CasdoorConfig struct {
 type Account struct {
 	casdoorConfig *CasdoorConfig
 
-	zlog *zap.SugaredLogger
+	xLog *xlog.Logger
 }
 
 func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 	// Init log
-	logger, _ := zap.NewProduction()
-	zlog := logger.Sugar()
+	xLog := xlog.New("")
 
 	if conf == nil {
 		conf = new(Config)
@@ -110,15 +111,15 @@ func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 
 	bucket, err := blob.OpenBucket(ctx, bus)
 	if err != nil {
-		zlog.Error(err)
+		xLog.Error(err)
 		return
 	}
 	db, err := sql.Open(driver, dsn)
 	if err != nil {
-		zlog.Error(err)
+		xLog.Error(err)
 		return
 	}
-	return &Community{bucket, db, domain, casdoorConf, zlog}, nil
+	return &Community{bucket, db, domain, casdoorConf, xLog}, nil
 }
 
 func (p *Community) getTotal(ctx context.Context, searchValue string) (total int, err error) {
@@ -139,7 +140,7 @@ func (p *Community) Article(ctx context.Context, id string) (article *Article, e
 	sqlStr := "select id,title,user_id,cover,tags,abstract,content,html_id,ctime,mtime from article where id=?"
 	err = p.db.QueryRow(sqlStr, id).Scan(&article.ID, &article.Title, &article.UId, &article.Cover, &article.Tags, &article.Abstract, &article.Content, &htmlId, &article.Ctime, &article.Mtime)
 	if err == sql.ErrNoRows {
-		p.zlog.Warn("not found the article")
+		p.xLog.Warn("not found the article")
 		return article, ErrNotExist
 	} else if err != nil {
 		return article, err
@@ -154,7 +155,7 @@ func (p *Community) Article(ctx context.Context, id string) (article *Article, e
 	fileKey, err := p.GetMediaUrl(ctx, htmlId)
 	article.HtmlUrl = fmt.Sprintf("%s%s", p.domain, fileKey)
 	if err != nil {
-		p.zlog.Warn("have no html media")
+		p.xLog.Warn("have no html media")
 		article.HtmlUrl = ""
 	}
 	return
@@ -166,7 +167,7 @@ func (p *Community) TransHtmlUrl(ctx context.Context, id string) (htmlUrl string
 	sqlStr := "select trans_html_id from article where id=?"
 	err = p.db.QueryRow(sqlStr, id).Scan(&htmlId)
 	if err == sql.ErrNoRows {
-		p.zlog.Warn("not found the translation html")
+		p.xLog.Warn("not found the translation html")
 		return "", ErrNotExist
 	}
 
@@ -174,7 +175,7 @@ func (p *Community) TransHtmlUrl(ctx context.Context, id string) (htmlUrl string
 	fileKey, err := p.GetMediaUrl(ctx, htmlId)
 	htmlUrl = fmt.Sprintf("%s%s", p.domain, fileKey)
 	if err != nil {
-		p.zlog.Warn("have no html media")
+		p.xLog.Warn("have no html media")
 		htmlUrl = ""
 	}
 	return
@@ -404,18 +405,22 @@ func casdoorConfigInit() *CasdoorConfig {
 
 func (a *Community) RedirectToCasdoor(redirect string) (loginURL string) {
 	// TODO: Check whitelist from referer
-	ResponseType := "code"
-	Scope := "read"
-	State := "casdoor"
+	responseType := "code"
+	scope := "read"
+	state := "casdoor"
+	redirectEncodeURL := url.QueryEscape(redirect)
+
 	loginURL = fmt.Sprintf(
 		"%s/login/oauth/authorize?client_id=%s&response_type=%s&redirect_uri=%s&scope=%s&state=%s",
 		a.casdoorConfig.endPoint,
 		a.casdoorConfig.clientId,
-		ResponseType,
-		redirect,
-		Scope,
-		State,
+		responseType,
+		redirectEncodeURL,
+		scope,
+		state,
 	)
+
+	fmt.Println("loginURL", loginURL)
 
 	return loginURL
 }
@@ -423,7 +428,7 @@ func (a *Community) RedirectToCasdoor(redirect string) (loginURL string) {
 func (a *Community) GetAccessToken(code, state string) (token *oauth2.Token, err error) {
 	token, err = casdoorsdk.GetOAuthToken(code, state)
 	if err != nil {
-		a.zlog.Error(err)
+		a.xLog.Error(err)
 
 		return nil, ErrNotExist
 	}
