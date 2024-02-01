@@ -25,6 +25,7 @@ var (
 
 const (
 	layoutUS = "January 2, 2006"
+	limitConst = 10
 )
 
 todo := context.TODO()
@@ -147,10 +148,6 @@ get "/delete", ctx => {
 }
 
 get "/", ctx => {
-	// from := ctx.param("from")
-	from := ctx.param("page")
-	limit := ctx.param("limit")
-	// todo middleware
 	// Get User Info
 	var user *core.User
 	token, err := ctx.Request.Cookie("token")
@@ -160,25 +157,33 @@ get "/", ctx => {
 			xLog.Error("get user error:", err)
 		}
 	}
-
-	page, err := strconv.Atoi(from)
-	if err != nil {
-		page = 1
-	}
-
-	limitInt, err := strconv.Atoi(limit)
-	if err != nil {
-		limitInt = 20
-	}
 	// Get Article Info
-	// articles, next, _ := community.listArticle(todo, from, limitInt)
-	articles, total, _ := community.articles(todo, page, limitInt, "")
+	articles, next, _ := community.listArticle(todo, core.MarkBegin, limitConst, "")
+	articlesJson, _ := json.Marshal(&articles)
 	ctx.yap "home", {
 		"User":      user,
-		"Items":     articles,
-		"Page":      page,
-		"TotalPage": (total + limitInt - 1) / limitInt,
-		"Total":     total,
+		"Items":     strings.Replace(string(articlesJson), `\"`, `"`, -1),
+		"Next": 	 next,
+	}
+}
+
+get "/get", ctx => {
+	from := ctx.param("from")
+	limit := ctx.param("limit")
+	searchValue := ctx.param("value")
+	
+	limitInt, err := strconv.Atoi(limit)
+	if err != nil {
+		limitInt = limitConst
+	}
+	// Get Article Info
+	articles, next, _ := community.listArticle(todo, from, limitInt, searchValue)
+	// articles, total, _ := community.articles(todo, page, limitInt, "")
+	ctx.json {
+		"code": 	200,
+		"items":    articles,
+		"next": 	next,
+		"value":	searchValue,
 	}
 }
 
@@ -191,17 +196,6 @@ get "/search", ctx => {
 		}
 	}
 
-	from := ctx.param("page")
-	limit := ctx.param("limit")
-	limitInt, err := strconv.Atoi(limit)
-	if err != nil {
-		limitInt = 10
-	}
-	page, err := strconv.Atoi(from)
-	if err != nil {
-		page = 1
-	}
-
 	// todo middleware
 	var user *core.User
 	token, err := ctx.Request.Cookie("token")
@@ -212,14 +206,13 @@ get "/search", ctx => {
 		}
 	}
 
-	articles, total, _ := community.articles(todo, page, limitInt, searchValue)
+	articles, next, _ := community.listArticle(todo, core.MarkBegin, limitConst, searchValue)
+	articlesJson, _ := json.Marshal(&articles)
 	ctx.yap "home", {
 		"User":      user,
-		"Items":     articles,
+		"Items":     strings.Replace(string(articlesJson), `\"`, `"`, -1),
 		"Value":     searchValue,
-		"Page":      page,
-		"TotalPage": (total + limitInt - 1) / limitInt,
-		"Total":     total,
+		"Next": 	 next,
 	}
 }
 

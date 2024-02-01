@@ -29,10 +29,11 @@
 </head>
 
 <body style="background-color: #f7fafc;">
+    <input style="display:none" id="usertoken" value="{{.usertoken}}"/>
     <!-- Header -->
     <header class="bg-cover bg-center" style="
         height: 30vh;
-        background-image: url('/img/home-background.png');
+        background-image: url('/static/img/home-background.png');
       ">
         <nav class="border-gray-200 px-4 lg:px-6 py-2.5 dark:bg-gray-800">
             <div class="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl">
@@ -166,8 +167,7 @@
             <div class="container px-5 py-3 mx-auto bg-white rounded-lg"
                 style="box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05);">
                 <!-- TODO: 暂时注释Empty Status -->
-                <!-- {{if (eq .Total 0)}}
-                <section>
+                <section v-if="articleList === null || articleList.length === 0">
                     <div class="flex w-full flex-col items-center justify-center rounded-lg p-8">
                         <div style="margin-top:200px;">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 fill-current text-gray-500" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M0 3.75A.75.75 0 01.75 3h7.497c1.566 0 2.945.8 3.751 2.014A4.496 4.496 0 0115.75 3h7.5a.75.75 0 01.75.75v15.063a.75.75 0 01-.755.75l-7.682-.052a3 3 0 00-2.142.878l-.89.891a.75.75 0 01-1.061 0l-.902-.901a3 3 0 00-2.121-.879H.75a.75.75 0 01-.75-.75v-15zm11.247 3.747a3 3 0 00-3-2.997H1.5V18h6.947a4.5 4.5 0 012.803.98l-.003-11.483zm1.503 11.485V7.5a3 3 0 013-3h6.75v13.558l-6.927-.047a4.5 4.5 0 00-2.823.971z"></path></svg>
@@ -184,10 +184,9 @@
                         </button>
                     </div>
                 </section>
-                {{else}} -->
 
                 <!-- Article List -->
-                <n-list hoverable>
+                <n-list hoverable v-else>
                     <!-- Article List Item -->
                     <n-list-item v-for="(item, i) in articleList">
                         <!-- left part -->
@@ -211,7 +210,8 @@
                             <p class="leading-7 mt-1 text-neutral-700">
                                 ${ item.Abstract }
                             </p>
-
+                            
+                            {{if .User}}
                             <!-- Avatar & Nick Name & Update Time -->
                             <div class="flex items-center absolute bottom-4">
                                 <a class="flex items-center" href="/user/{{.User.Id}}">
@@ -219,7 +219,7 @@
                                     <n-avatar class="mr-2" round :size="25" src="{{.User.Avatar}}"></n-avatar>
 
                                     <!-- Nick Name -->
-                                    <p class="text-sm font-medium mr-1 text-black">{{User.Name}}</p>
+                                    <p class="text-sm font-medium mr-1 text-black">{{ .User.Name }}</p>
                                 </a>
 
                                 <!-- Update Time -->
@@ -227,6 +227,7 @@
                                     · ${ item.Ctime }
                                 </span>
                             </div>
+                            {{end}}
                         </div>
 
                         <!-- right part -->
@@ -269,44 +270,53 @@
             const { reactive, toRefs, ref, h } = Vue;
 
             /*======= load more data after reaching bottom =======*/
-            const isBottom = ref(false);
+            const isBottom = ref(true);
 
             const articleList = ref(JSON.parse("{{.Items}}"));
 
-            // TODO: 传入分页信息 @Bai
-            const pageSize = ref(1); // the page size
-            const currentPage = ref(1); // the page number of current rendering
-            const totalPage = ref(3); // TODO: the total page number
+            const next = ref("{{.Next}}"); // the page size
 
             function listenBottom() {
-                if (isBottom.value)
-                    return
                 let scrollTop = window.scrollY;
                 let clientHeight = document.documentElement.clientHeight;
                 let scrollHeight = document.documentElement.scrollHeight;
-                if (scrollTop + clientHeight >= scrollHeight) {
+                if (isBottom.value && scrollTop + clientHeight + 10>= scrollHeight) {
+                    
                     // reaching bottom detected
                     loadMore();
                 }
             }
 
             function loadMore() {
-                console.log('Reach bottom! Current page is ', currentPage.value, '. Loading more...');
+                console.log('Reach bottom! next is ', next.value, '. Loading more...');
 
                 // load more data into articleList
-                if (currentPage.value <= totalPage.value) {
+                if (next.value !== "eof") {
+                    isBottom.value = false;
                     window.setTimeout(() => {
+                        let url = "/get?from="+next.value
+                        if("{{.Value}}"){
+                            url = url + "&value="+"{{.Value}}"
+                        }
+                        console.log("url",url)
                         // load a new page of articles, and append it to the articleList
-                        let newData = []; // TODO: 传入新的一页数据 @Bai
-                        articleList.value.push(...newData);
-
-                        // add 1 to currentPage
-                        currentPage.value += 1;
+                        fetch(url)
+                        .then(res => {
+                            return res.json();
+                        })
+                        .then(todos => {
+                            if(todos.code === 200){
+                                console.log("todos.next",todos.next)
+                                articleList.value.push(...todos.items);
+                                next.value = todos.next;
+                                isBottom.value = true
+                            }
+                        });
                     }, 1500)
-                } else {
-                    isBottom.value = true;
+                }else{
+                    isBottom.value = true
                 }
-                console.log(isBottom.value);
+                console.log(isBottom)
             };
 
             /*======= register vue component =======*/
@@ -322,11 +332,9 @@
                         articleList,
                     }
                 },
-                method() {
-                    return {
-                        listenBottom,
-                        loadMore
-                    }
+                methods: {
+                    listenBottom,
+                    loadMore
                 }
             });
 
