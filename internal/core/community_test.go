@@ -191,7 +191,7 @@ func TestListArticle(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		items, next, err := community.ListArticle(todo, tt.from, tt.limit)
+		items, next, err := community.ListArticle(todo, tt.from, tt.limit, "")
 
 		if err != nil {
 			t.Errorf("ListArticle(%s, %d) returned error: %v", tt.from, tt.limit, err)

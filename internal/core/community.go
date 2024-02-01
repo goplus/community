@@ -371,7 +371,7 @@ func (p *Community) Articles(ctx context.Context, page int, limit int, searchVal
 }
 
 // ListArticle lists articles from a position.
-func (p *Community) ListArticle(ctx context.Context, from string, limit int) (items []*ArticleEntry, next string, err error) {
+func (p *Community) ListArticle(ctx context.Context, from string, limit int, searchValue string) (items []*ArticleEntry, next string, err error) {
 	if from == MarkBegin {
 		from = "0"
 	} else if from == MarkEnd {
@@ -381,12 +381,13 @@ func (p *Community) ListArticle(ctx context.Context, from string, limit int) (it
 	if err != nil {
 		return []*ArticleEntry{}, from, err
 	}
-
-	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover from article order by ctime desc limit ? offset ?"
-	rows, err := p.db.Query(sqlStr, limit, fromInt)
+	
+	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover from article where title like ? order by ctime desc limit ? offset ?"
+	rows, err := p.db.Query(sqlStr, "%"+searchValue+"%", limit, fromInt)
 	if err != nil {
 		return []*ArticleEntry{}, from, err
 	}
+
 	defer rows.Close()
 
 	var rowLen int
