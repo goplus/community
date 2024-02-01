@@ -10,7 +10,7 @@
             <div style="color:#4580dd; padding-top: 4px;" class="text h_d"><strong>Markdown Editor</strong></div>
             <div class="divide h_d" style="padding-top: 4px">|</div>
             <div class="h_d">
-                <a-input v-model:value="input_title" placeholder="Input the article title" style="width: 63vw;"/>
+                <a-input :value="input_title" placeholder="Input the article title" style="width: 63vw;"/>
             </div>
             <a-button class="h_d">
                 <template #icon><UploadOutlined /></template>
@@ -23,20 +23,20 @@
                 <template #icon><UserOutlined /></template>
             </a-avatar>
         </div>
-        <a-modal v-model:open="open" title="Post the article" @ok="handleOk" >
+        <a-modal :open="open" title="Post the article" @ok="handleOk" >
             <a-form :model="formState" :label-col="labelCol" :wrapper-col="wrapperCol" layout="vertical">
                 <a-form-item label="Resources" :rules="[{ required: true }]">
-                    <a-radio-group v-model:value="formState.resource">
+                    <a-radio-group :value="formState.resource">
                         <a-radio value="1">original</a-radio>
                         <a-radio value="2">reposted</a-radio>
                         <a-radio value="3">translated from the other ariticle</a-radio>
                     </a-radio-group>
                 </a-form-item>
                 <a-form-item label="Tags" :rules="[{ required: true }]">
-                    <a-input v-model:value="formState.tags" />
+                    <a-input :value="formState.tags" />
                 </a-form-item>
                 <a-form-item label="Activity form" :rules="[{ required: true }]">
-                    <a-textarea v-model:value="formState.abs" />
+                    <a-textarea :value="formState.abs" />
                 </a-form-item>
 
                 <a-form-item label="Article cover" :rules="[{ required: true }]">
@@ -77,6 +77,7 @@ axios.defaults.baseURL = 'http://localhost:8080/';
     import 'cherry-markdown/dist/cherry-markdown.min.css'
     // import "https://goplus.org/_next/static/widgets/code.85827e18ab6a0fa63bdc.js"
     export default {
+        name:'GoplusMarkdown',
         props: {
 
         },

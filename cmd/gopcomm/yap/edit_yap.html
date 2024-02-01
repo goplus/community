@@ -1,13 +1,38 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Markdown</title>
-    <script type="module" crossorigin src="/static/assets/index-2uz3vrDa.js"></script>
-    <link rel="stylesheet" crossorigin href="/static/assets/index-LlLbasiD.css">
-  </head>
-  <body>
-    <div id="app"></div>
-  </body>
-</html>
+<meta charset="utf-8">
+<title>communityeditor demo</title>
+<script src="./dist/water-marker.js"></script>
+<!-- <script src="F:\实习\七牛云\go for engineering\community\cmd\gopcomm\yap\markdown-vue\dist\water-marker.js"></script> -->
+<link rel="stylesheet" href="./dist/style.css">
+
+<!-- <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script>
+    var app = new Vue({
+		el: "#app",
+		components: {communityeditor: communityeditor.default},
+		render: h => h('communityeditor')
+	})
+</script> -->
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+<div id="app">
+    <!-- <community-editor></community-editor> -->
+    <GoplusMarkdown></goplusMarkdown>
+</div>
+
+<script type="module">
+    import {GoplusMarkdown} from './dist/water-marker.js';
+
+    console.log(GoplusMarkdown)
+  const { createApp } = Vue
+  
+  createApp({
+    data() {
+      return {
+        // message: 'Hello Vue!'
+      }
+    },
+    // components: {goplusMarkdown: goplusMarkdown},
+  }).mount('#app')
+</script>

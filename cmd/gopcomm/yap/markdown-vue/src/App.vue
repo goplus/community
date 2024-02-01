@@ -1,6 +1,7 @@
 <script setup>
 import Cherry from './components/Cherry.vue';
 // import gop from './components/gop.vue'
+import GoplusMarkdown from '../dist/water-marker.js';
 
 // import { ref } from 'vue';
 
@@ -46,10 +47,13 @@ import Cherry from './components/Cherry.vue';
 </script> -->
 
 <template>
-    <Cherry></Cherry>
+<div>
+
+    <!-- <Cherry></Cherry> -->
+    <GoplusMarkdown/>
 
     <!-- <gop :cont="con"></gop> -->
-
+</div>
 </template>
 
 <style scoped>
