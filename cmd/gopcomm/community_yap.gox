@@ -459,7 +459,7 @@ get "/logout", ctx => {
 	http.SetCookie(ctx.ResponseWriter, tokenCookie)
 
 	// Redirect to home page
-	http.Redirect(ctx.ResponseWriter, ctx.Request, fmt.Sprintf("http://localhost:8080"), http.StatusFound)
+	http.Redirect(ctx.ResponseWriter, ctx.Request, fmt.Sprintf("/"), http.StatusFound)
 }
 
 get "/callback", ctx => {
@@ -481,7 +481,7 @@ get "/callback", ctx => {
 
 	// Redirect to home page
 	// TODO: Get redirect URL from state
-	http.Redirect(ctx.ResponseWriter, ctx.Request, fmt.Sprintf("http://localhost:8080"), http.StatusFound)
+	http.Redirect(ctx.ResponseWriter, ctx.Request, fmt.Sprintf("/"), http.StatusFound)
 }
 
 conf := &core.Config{}
