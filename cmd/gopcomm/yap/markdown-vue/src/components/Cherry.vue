@@ -54,7 +54,6 @@
 </template>
 <!-- <script src="/path/to/external-file.js" data-style-url="https://goplus.org/_next/static/widgets/code.f81abac15122c88e65d7.css"></script> -->
 
-
 <script>
 import Cherry from 'cherry-markdown'
 import axios from 'axios'
@@ -75,6 +74,8 @@ axios.defaults.baseURL = 'http://localhost:8080/';
     //   getToken
     // } from '@/utils/auth'
     import 'cherry-markdown/dist/cherry-markdown.min.css'
+    // import 'https://cdn.plyr.io/3.6.8/plyr.css';
+
     // import "https://goplus.org/_next/static/widgets/code.85827e18ab6a0fa63bdc.js"
     export default {
         props: {
@@ -130,7 +131,20 @@ axios.defaults.baseURL = 'http://localhost:8080/';
             let e = "https://goplus.org/_next/static/widgets/code.f81abac15122c88e65d7.css"
             var o=document.createElement("script");
             o.src=t,null!=e&&o.setAttribute("data-style-url",e),document.body.appendChild(o)
-            
+
+
+            let v_s = "https://cdn.plyr.io/3.6.8/plyr.js"
+            let v_css = "https://cdn.plyr.io/3.6.8/plyr.css"
+            var v=document.createElement("script");
+            v.src=v_s,null!=v_css&&v.setAttribute("data-style-url",v_css),document.body.appendChild(v)
+
+            let v_c = document.createElement("link")
+            v_c.href = v_css
+            v_c.setAttribute("href", "stylesheet")
+            document.head.appendChild(v_c)
+
+
+
             // gop代码
             // !function(){
             //     var t,e={
@@ -391,6 +405,8 @@ axios.defaults.baseURL = 'http://localhost:8080/';
                             let video_src = ""
                             if (matchResult && matchResult[1]) {
                                 console.log("提取到的结果为：" + matchResult[1]);
+                                const player = new Plyr('#player');
+
                                 video_src = matchResult[1]
                                 return `<div><video controls crossorigin playsinline data-poster="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg" id="player"><source src=${video_src} type="video/mp4" size="576"/><track kind="captions" label="English" srclang="en" src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt" default/><track kind="captions" label="Français" srclang="fr" src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.fr.vtt"/><a href=${video_src} download>Download</a></video></div>`
                             } else {
@@ -885,6 +901,8 @@ axios.defaults.baseURL = 'http://localhost:8080/';
   
   <style lang="scss" >
 
+@import url('https://cdn.plyr.io/3.6.8/plyr.css');
+
   body {
     background-image: url('../assets/background.svg');
     background-repeat: no-repeat;
@@ -923,6 +941,7 @@ a-alert {
     position: absolute;
     z-index: 999;
 }
+
 
     
   </style>
