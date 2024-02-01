@@ -899,7 +899,7 @@ axios.defaults.baseURL = 'http://localhost:8080/';
     }
   </script>
   
-  <style lang="scss" >
+  <style>
 
 @import url('https://cdn.plyr.io/3.6.8/plyr.css');
 
@@ -928,15 +928,6 @@ axios.defaults.baseURL = 'http://localhost:8080/';
   .h_d {
     margin-right: 1vw;
   }
-
-// .custom-syntax {
-//   color: red;
-// }
-
-// // 这里样式要修改
-// .language-go {
-//     white-space: break-spaces;
-// }
 a-alert {
     position: absolute;
     z-index: 999;
