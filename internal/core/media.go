@@ -2,6 +2,10 @@ package core
 
 import (
 	"context"
+	"github.com/goplus/yap"
+	"github.com/qiniu/x/xlog"
+	"io"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -139,4 +143,58 @@ func (c *Community) uploadMedia(fileKey string, data []byte) error {
 		return err
 	}
 	return nil
+}
+
+func UploadFile(ctx *yap.Context, community *Community) {
+	xLog := xlog.New("")
+	file, header, err := ctx.FormFile("file")
+	filename := header.Filename
+	ctx.ParseMultipartForm(10 << 20)
+	if err != nil {
+		xLog.Error("upload file error:", filename)
+		ctx.JSON(500, err.Error())
+		return
+	}
+	dst, err := os.Create(filename)
+	if err != nil {
+		xLog.Error("create file error:", file)
+		ctx.JSON(500, err.Error())
+		return
+	}
+	defer func() {
+		file.Close()
+		dst.Close()
+		err = os.Remove(filename)
+		if err != nil {
+			xLog.Error("delete file error:", filename)
+			return
+		}
+	}()
+	_, err = io.Copy(dst, file)
+	if err != nil {
+		xLog.Error("copy file errer:", filename)
+		ctx.JSON(500, err.Error())
+		return
+	}
+	bytes, err := os.ReadFile(filename)
+	if err != nil {
+		xLog.Error("read file errer:", filename)
+		ctx.JSON(500, err.Error())
+		return
+	}
+	token, err := GetToken(ctx)
+	if err != nil {
+		ctx.JSON(500, err.Error())
+	}
+	uid, err := community.ParseJwtToken(token.Value)
+	if err != nil {
+		ctx.JSON(500, err.Error())
+	}
+	id, err := community.SaveMedia(context.Background(), uid, bytes)
+	if err != nil {
+		xLog.Error("save file", err.Error())
+		ctx.JSON(500, err.Error())
+		return
+	}
+	ctx.JSON(200, id)
 }
