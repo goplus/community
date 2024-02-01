@@ -1,6 +1,8 @@
 package core
 
 import (
+	"github.com/goplus/yap"
+	"net/http"
 	"os"
 
 	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
@@ -83,4 +85,40 @@ func (p *Community) GetUserById(uid string) (user *User, err error) {
 func (p *Community) UpdateUserById(uid string, user *casdoorsdk.User) (res bool, err error) {
 	res, err = casdoorsdk.UpdateUserById(uid, user)
 	return
+}
+
+func SetToken(ctx *yap.Context) (err error) {
+	code := ctx.URL.Query().Get("code")
+	state := ctx.URL.Query().Get("state")
+	token, err := casdoorsdk.GetOAuthToken(code, state)
+	if err != nil {
+		return err
+	}
+	cookie := http.Cookie{
+		Name:   "token",
+		Value:  token.AccessToken,
+		Path:   "/",
+		MaxAge: 3600,
+	}
+	http.SetCookie(ctx.ResponseWriter, &cookie)
+	return err
+}
+
+func GetToken(ctx *yap.Context) (token *http.Cookie, err error) {
+	tokenCookie, err := ctx.Request.Cookie("token")
+	if err != nil {
+		return tokenCookie, err
+	}
+	return tokenCookie, err
+}
+
+func RemoveToken(ctx *yap.Context) (err error) {
+	tokenCookie, err := ctx.Request.Cookie("token")
+	if err != nil {
+		return err
+	}
+	// Delete token
+	tokenCookie.MaxAge = -1
+	http.SetCookie(ctx.ResponseWriter, tokenCookie)
+	return err
 }
