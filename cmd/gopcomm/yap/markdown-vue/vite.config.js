@@ -40,6 +40,7 @@ export default defineConfig({
     //   resolvers: [ElementPlusResolver()],
     // }),
   ],
+  base:'./',
   build: {
     lib: {
       // Could also be a dictionary or array of multiple entry points
