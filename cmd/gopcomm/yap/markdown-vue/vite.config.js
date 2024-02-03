@@ -44,7 +44,7 @@ export default defineConfig({
   build: {
     lib: {
       // Could also be a dictionary or array of multiple entry points
-      entry: "src/main.js",
+      entry: "src/library.js",
       name: "goplusMarkdown",
       // the proper extensions will be added
       fileName: "goplusMarkdown",
@@ -55,7 +55,8 @@ export default defineConfig({
       output: {
         // 在 UMD 构建模式下为这些外部化的依赖提供一个全局变量
         globals: {
-          waterMarker: "goplusMarkdown",
+          // TODO: naive-ui?
+          vue: "Vue",
         },
       },
     },
