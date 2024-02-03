@@ -1,9 +1,10 @@
 <!doctype html>
 <meta charset="utf-8">
 <title>communityeditor demo</title>
-<script type="module" src="./dist/goplusMarkdown.js"></script>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="./markdown-vue/dist/goplusMarkdown.umd.cjs"></script>
 <!-- <script src="F:\实习\七牛云\go for engineering\community\cmd\gopcomm\yap\markdown-vue\dist\water-marker.js"></script> -->
-<link rel="stylesheet" href="./dist/style.css">
+<link rel="stylesheet" href="./markdown-vue/dist/style.css">
 
 <!-- <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script>
@@ -14,11 +15,10 @@
 	})
 </script> -->
 
-<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 
 <div id="app">
     <!-- <community-editor></community-editor> -->
-    <GoplusMarkdown></GoplusMarkdown>
+    <cherry></cherry>
 </div>
 
 <script type="module">
@@ -30,6 +30,6 @@
         // message: 'Hello Vue!'
       }
     },
-    // components: {goplusMarkdown: goplusMarkdown},
+    components: { Cherry: window.goplusMarkdown.Cherry },
   }).mount('#app')
 </script>
