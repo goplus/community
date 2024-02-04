@@ -2,12 +2,15 @@
 <meta charset="utf-8">
 <title>communityeditor demo</title>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-<script src="./markdown-vue/dist/goplusMarkdown.umd.cjs"></script>
-<!-- <script src="F:\实习\七牛云\go for engineering\community\cmd\gopcomm\yap\markdown-vue\dist\water-marker.js"></script> -->
-<link rel="stylesheet" href="./markdown-vue/dist/style.css">
+<!-- static page -->
+<!-- <script src="./markdown-vue/dist/goplusMarkdown.umd.cjs"></script>
+<link rel="stylesheet" href="./markdown-vue/dist/style.css"> -->
+<!-- community -->
+<script src="/static/goplusMarkdown/goplusMarkdown.umd.cjs"></script>
+<link rel="stylesheet" href="/static/goplusMarkdown/style.css">
 
-<!-- <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-<script>
+
+<!-- <script>
     var app = new Vue({
 		el: "#app",
 		components: {communityeditor: communityeditor.default},
@@ -15,14 +18,17 @@
 	})
 </script> -->
 
-
-<div id="app">
-    <!-- <community-editor></community-editor> -->
+<!-- method 1  Import Cherry directly as a component -->
+<!-- <div id="app">
     <cherry></cherry>
-</div>
+</div> -->
 
 <script type="module">
   const { createApp } = Vue
+  console.log("window.goplusMarkdown",window.goplusMarkdown)
+  console.log("window.goplusMarkdown",window.goplusMarkdown.Cherry.data().content)
+  // method 2 invoke init function （TODO If you want to wrap it before packaging, call it now because some useless functions will give you an error）
+  console.log("window.goplusMarkdown",window.goplusMarkdown.Cherry.methods.initCherryMD())
   
   createApp({
     data() {
@@ -30,6 +36,11 @@
         // message: 'Hello Vue!'
       }
     },
+    methods: {
+    },
+
+    mounted(){
+        },
     components: { Cherry: window.goplusMarkdown.Cherry },
   }).mount('#app')
 </script>

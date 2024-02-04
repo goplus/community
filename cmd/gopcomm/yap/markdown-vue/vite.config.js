@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
+// import libCss from 'vite-plugin-libcss';
 
 // import { fileURLToPath, URL } from 'node:url'
 
@@ -32,6 +33,7 @@ import vue from '@vitejs/plugin-vue'
 export default defineConfig({
   plugins: [
     vue(),
+    // libCss(),
     // viteSingleFile(),
     // AutoImport({
     //   resolvers: [ElementPlusResolver()],
@@ -42,6 +44,7 @@ export default defineConfig({
   ],
   base:'./',
   build: {
+    // cssCodeSplit: true,
     lib: {
       // Could also be a dictionary or array of multiple entry points
       entry: "src/library.js",
