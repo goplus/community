@@ -147,6 +147,48 @@ get "/delete", ctx => {
 	}
 }
 
+get "/medias", ctx => {
+	format := ctx.param("format")
+	uid := ctx.param("uid")
+	files, err :=community.listMediaByUserId(todo, uid, format)
+	if err != nil {
+		ctx.json {
+			"code": 0,
+			"err":  "get media failed",
+		}
+	} else {
+		ctx.json {
+			"code": 200,
+			"items": files,
+		}
+	}
+}
+
+get "/delMedia", ctx =>{
+	id := ctx.param("id")
+	token, err := core.GetToken(ctx)
+	uid, err := community.ParseJwtToken(token.Value)
+	if err != nil {
+		xLog.Error("token parse error")
+		ctx.json {
+			"code": 0,
+			"err":  err.Error(),
+		}
+	}
+	err = community.delMedia(todo, uid, id)
+	if err != nil {
+		ctx.json {
+			"code": 0,
+			"err":  "delete failed",
+		}
+	} else {
+		ctx.json {
+			"code": 200,
+			"msg":  "delete success",
+		}
+	}
+}
+
 get "/", ctx => {
 	// Get User Info
 	var user *core.User
