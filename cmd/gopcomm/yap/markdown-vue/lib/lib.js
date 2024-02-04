@@ -1,0 +1,1 @@
+export { default as MyCom1 } from "./MyCom1Install";

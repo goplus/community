@@ -58,8 +58,6 @@
 import Cherry from 'cherry-markdown'
 import axios from 'axios'
 
-import { NButton } from 'naive-ui'
-
 import {  UploadOutlined, SendOutlined } from '@ant-design/icons-vue';
 
 
@@ -78,6 +76,7 @@ axios.defaults.baseURL = 'http://localhost:8080/';
 
     // import "https://goplus.org/_next/static/widgets/code.85827e18ab6a0fa63bdc.js"
     export default {
+        name: "communityEditor",
         props: {
 
         },
