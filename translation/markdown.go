@@ -146,6 +146,19 @@ func (e *Engine) TranslateMarkdownText(src string, from, to language.Tag) (ret s
 	return string(retByte), err
 }
 
+// TranslateWebVTT translate WebVTT with bytes
+func (e *Engine) TranslateWebVTT(src []byte, from, to language.Tag) (ret []byte, err error) {
+
+	return nil, nil
+}
+
+// TranslateWebVTTText translate WebVTT text
+func (e *Engine) TranslateWebVTTText(src string, from, to language.Tag) (ret string, err error) {
+	retString, err := e.TranslateWebVTT([]byte(src), from, to)
+
+	return string(retString), err
+}
+
 // joinWithMaxLength join []string with sep, and make sure the length of joined string is less than maxLen
 // if the length of joined string is greater than maxLen, create a new string with sep
 // and append it to the result

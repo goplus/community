@@ -17,9 +17,12 @@
 package translation
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"strconv"
 
 	"github.com/qiniu/go-sdk/v7/auth"
 	"github.com/qiniu/go-sdk/v7/client"
@@ -29,6 +32,7 @@ import (
 var (
 	ErrRequestASRFailed = errors.New("request ASR failed")
 	ErrRequestTTSFailed = errors.New("request TTS failed")
+	ErrPathNotExisted   = errors.New("requested path is not existed")
 )
 
 const (
@@ -196,4 +200,78 @@ func (e *Engine) Text2Audio(content string) (*TTSResponse, error) {
 	}
 
 	return res, nil
+}
+
+// GenerateWebVTTFile generate caption for speech result
+func (e *Engine) GenerateWebVTTFile(asrTaskData ASRTaskData, path string) error {
+	var buffer bytes.Buffer
+
+	// Write head
+	buffer.WriteString("WEBVTT FILE\n\n")
+
+	// Write content
+	for i, detail := range asrTaskData.Data.SpeechResult.Detail {
+		startTime := formatTime(detail.StartTime)
+		endTime := formatTime(detail.EndTime)
+		buffer.WriteString(fmt.Sprintf("%d\n%s --> %s\n%s\n\n", i+1, startTime, endTime, detail.Sentences))
+	}
+
+	// Write buffer to file
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = buffer.WriteTo(file)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// GenerateWebVTTFileWithTranslation generate caption for speech result with translation
+func (e *Engine) GenerateWebVTTFileWithTranslation(asrTaskData ASRTaskData, path string, from, to language.Tag) error {
+	var buffer bytes.Buffer
+
+	// Write head
+	buffer.WriteString("WEBVTT\n\n")
+
+	// Write content
+	for i, detail := range asrTaskData.Data.SpeechResult.Detail {
+		startTime := formatTime(detail.StartTime)
+		endTime := formatTime(detail.EndTime)
+		buffer.WriteString(fmt.Sprintf("%d\n%s --> %s\n%s\n\n", i+1, startTime, endTime, detail.Sentences))
+	}
+
+	// Translate buffer
+	translatedBytes, err := e.TranslateWebVTT(buffer.Bytes(), from, to)
+	if err != nil {
+		return err
+	}
+	buffer = *bytes.NewBuffer(translatedBytes)
+
+	// Write buffer to file
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = buffer.WriteTo(file)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func formatTime(timeInMs string) string {
+	time, _ := strconv.Atoi(timeInMs)
+	hours := time / 3600000
+	minutes := (time % 3600000) / 60000
+	seconds := (time % 60000) / 1000
+	milliseconds := time % 1000
+	return fmt.Sprintf("%02d:%02d:%02d.%03d", hours, minutes, seconds, milliseconds)
 }

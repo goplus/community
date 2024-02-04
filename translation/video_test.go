@@ -103,6 +103,29 @@ func TestQueryTask(t *testing.T) {
 	t.Log(resp)
 }
 
+func TestGenerateWebVTTFile(t *testing.T) {
+	if mockAccessKey == "" {
+		t.Skip("QINIU_ACCESS_KEY not set")
+	}
+
+	if mockSecretKey == "" {
+		t.Skip("QINIU_SECRET_KEY not set")
+	}
+
+	e := New("", mockAccessKey, mockSecretKey)
+	resp, err := e.QueryVideo2TextTask("")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = e.GenerateWebVTTFile(*resp, "test.vtt")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Log(resp)
+}
+
 func TestText2Video(t *testing.T) {
 	e := New("", mockAccessKey, mockSecretKey)
 	resp, err := e.Text2Audio("hello world")
