@@ -12,11 +12,12 @@ require (
 	golang.org/x/text v0.14.0
 )
 
+replace github.com/goplus/yap v0.7.2 => github.com/LiusCraft/yap v0.8.2
+
 require (
 	github.com/casdoor/casdoor-go-sdk v0.35.0
-	github.com/joho/godotenv v1.5.1
 	github.com/qiniu/go-cdk-driver v0.1.0
-	github.com/qiniu/x v1.13.2
+	github.com/qiniu/x v1.13.3-0.20240129201727-4013f184c5c7
 	golang.org/x/oauth2 v0.16.0
 )
 
@@ -25,6 +26,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
+	github.com/joho/godotenv v1.5.1
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/net v0.20.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect
