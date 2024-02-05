@@ -47,17 +47,16 @@ func (c *Community) DelMedias(ctx context.Context, userId string, ids []string) 
 }
 
 func (c *Community) DelMedia(ctx context.Context, userId, mediaId string) error {
-
-	uId, err := strconv.Atoi(userId)
+	// del cloud oss media
+	fileKey, err := c.GetMediaUrl(ctx, mediaId)
 	if err != nil {
 		return err
 	}
-	mId, err := strconv.Atoi(mediaId)
-	if err != nil {
+	if err := c.bucket.Delete(context.Background(), fileKey); err != nil {
 		return err
 	}
 	// del db media
-	res, err := c.db.ExecContext(ctx, "delete from file where user_id = ? and id = ?", uId, mId)
+	res, err := c.db.ExecContext(ctx, "delete from file where user_id = ? and id = ?", userId, mediaId)
 	if err != nil {
 		return err
 	}
@@ -68,15 +67,6 @@ func (c *Community) DelMedia(ctx context.Context, userId, mediaId string) error 
 	if aff == 0 {
 		c.xLog.Warn("no need del data")
 		return nil
-	}
-
-	// del cloud oss media
-	fileKey, err := c.GetMediaUrl(ctx, mediaId)
-	if err != nil {
-		return err
-	}
-	if err := c.bucket.Delete(context.Background(), fileKey); err != nil {
-		return err
 	}
 	return nil
 }
@@ -209,15 +199,15 @@ func UploadFile(ctx *yap.Context, community *Community) {
 	ctx.JSON(200, id)
 }
 
-func (c *Community) ListMediaByUserId(ctx context.Context, userId int, format string) ([]File, error) {
-	sqlStr := "select * from file file where user_id = ?"
+func (c *Community) ListMediaByUserId(ctx context.Context, userId string, format string) ([]File, error) {
+	sqlStr := "select * from file where user_id = ?"
 	var args []any
 	args = append(args, userId)
 	var rows *sql.Rows
 	var err error
 	if format != "" {
-		sqlStr += " and format = ?"
-		args = append(args, format)
+		sqlStr += " and format like ?"
+		args = append(args, "%"+format+"%")
 	}
 	rows, err = c.db.Query(sqlStr, args...)
 
@@ -231,6 +221,7 @@ func (c *Community) ListMediaByUserId(ctx context.Context, userId int, format st
 		if err := rows.Scan(&file.Id, &file.CreateAt, &file.UpdateAt, &file.FileKey, &file.Format, &file.UserId, &file.Size); err != nil {
 			return files, err
 		}
+		file.FileKey = c.domain + file.FileKey
 		files = append(files, file)
 	}
 	return files, nil
