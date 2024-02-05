@@ -9,16 +9,16 @@
     <!-- Share to Twitter -->
     <meta charset="UTF-8">
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="test">
-    <meta name="twitter:description" content="test">
+    <meta name="twitter:title" content="GoplusCommunity">
+    <meta name="twitter:description" content="GoplusCommunity">
     <meta name="twitter:image" content="https://public-cdn.mokahr.com/72f7c42e-b069-4e14-9c29-ee20229cc256.png">
 
     <!-- Share to Facebook -->
-    <meta name="description" content="Linz">
-    <meta property="og:title" content="Linz">
-    <meta property="og:description" content="Linz">
+    <meta name="description" content="GoplusCommunity">
+    <meta property="og:title" content="GoplusCommunity">
+    <meta property="og:description" content="GoplusCommunity">
     <meta property="og:image" content="https://public-cdn.mokahr.com/72f7c42e-b069-4e14-9c29-ee20229cc256.png">
-    <meta property="og:url" content="http://8.130.26.238/animation/fb.html">
+    
     <meta property="og:type" content="website">
 
     <!-- UI -->
@@ -41,6 +41,9 @@
             font-family: 'Inter', 'Noto Sans SC'
         }
     </style>
+
+    <!--qrcode    -->
+    <script type="text/javascript" src="static/qrcode/qrcode.js"></script>
 </head>
 
 <body style="background-color: #f7fafc;">
@@ -293,6 +296,7 @@
                                             <i class="ph-fill ph-wechat-logo" style="font-size: 20px;"></i>
                                         </n-button>
                                     </template>
+<!--                                    <div id="qrcode"></div>-->
                                     WeChat
                                 </n-tooltip>
                             </div>
@@ -393,8 +397,8 @@
                 wTop = window.screenTop ? window.screenTop : window.screenY;
                 var left = wLeft + (window.innerWidth / 2) - (w / 2);
                 var top = wTop + (window.innerHeight / 2) - (h / 2);
-
-                var shareUrl = "http://www.facebook.com/sharer/sharer.php?u=http://8.130.26.238/animation/fb.html";
+                var url = window.location.href;
+                var shareUrl = "http://www.facebook.com/sharer/sharer.php?u="+url;
                 var title = 'facebook';
 
                 window.open(shareUrl, title, 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=' + w + ', height=' + h + ', top=' + top + ', left=' + left);
@@ -403,20 +407,28 @@
             function shareToTwitter() {
                 // var url = encodeURIComponent('http://8.130.26.238/animation/fb.html');
                 // var text = encodeURIComponent('Linz');
-                var url = 'http://8.130.26.238/animation/fb.html';
-                var text = "Test"
-                var via = "Test";
+                var url = window.location.href;
                 var hashtags = "Test";
-                var intentUrl = "https://twitter.com/intent/tweet?text="
-                    + encodeURIComponent(text) + "&url=" + encodeURIComponent(url)
-                    + "&via=" + encodeURIComponent(via) + "&hashtags=" + encodeURIComponent(hashtags);
+                var intentUrl = "https://twitter.com/intent/tweet?url=" + encodeURIComponent(url)
+                    +"&hashtags=" + encodeURIComponent(hashtags);
                 // var shareUrl = 'https://twitter.com/intent/tweet?text=' + text + '&url=' + url;
                 window.open(intentUrl, "_blank", "width=900, height=600");
             };
 
+
             function shareToWeChat() {
+                qrcode = new QRCode(document.getElementById("qrcode"), {
+                    width : 60,
+                    height : 60
+                })
+
                 // TODO: @Lin 分享到微信
+                elText = window.location.href;
+                // elText = "https://www.baidu.com";
+                console.log(elText)
+                qrcode.makeCode(elText);
             };
+
 
             /*======= register vue component =======*/
             const app = Vue.createApp({
