@@ -1,23 +1,33 @@
 <script setup>
-import Cherry from './components/Cherry.vue';
+// import MarkdownViewer, {MarkdownEditor} from './components/Cherry.vue';
 // import Try from './components/try.vue'
 
 // import communityEditor from '../my_com/try'
-import communityEditor from '../dist/cherry'
+// import communityEditor from '../dist/cherry'
+import { ConsoleSqlOutlined } from '@ant-design/icons-vue';
 
+import MarkdownViewer, { MarkdownEditor } from '../dist_new/GoplusMarkdown';
+import '../dist_new/style.css'
 </script>
 
 
 
 <template>
-    <!-- <Cherry></Cherry> -->
+    <MarkdownViewer></MarkdownViewer>
     <!-- <Try></Try> -->
     <!-- <my-com /> -->
 
-    <communityEditor />
+    <!-- <communityEditor /> -->
 </template>
 
+
+<script>
+
+console.log(MarkdownEditor)
+// console.log(MarkdownEditor.getMarkdown())
+    
+</script>
+
 <style scoped>
-@import url("../dist/style.css");
 
 </style>

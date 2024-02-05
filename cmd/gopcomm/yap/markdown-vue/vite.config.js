@@ -31,7 +31,7 @@ export default defineConfig({
           vue: "Vue",
           Antd: "Antd"
         },
-        dir: "dist",
+        dir: "dist_new",
       },
     },
     // lib: {
@@ -41,8 +41,8 @@ export default defineConfig({
     // },
     lib: {
       entry: 'src/components/Cherry.vue',
-      name: 'cherry',
-      fileName: 'cherry'
+      name: 'GoplusMarkdown',
+      fileName: 'GoplusMarkdown'
     }
   }
 

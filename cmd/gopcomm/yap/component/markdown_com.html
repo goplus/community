@@ -1,0 +1,42 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- {{ message }} -->
+        <markdown-viewer></markdown-viewer>
+    </div>
+
+    <!-- <MarkdownViewer></MarkdownViewer> -->
+</body>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+
+<script type="importmap"> 
+    { "imports": { 
+        "vue":        "https://cdnjs.cloudflare.com/ajax/libs/vue/3.2.41/vue.esm-browser.prod.js", 
+        "vue-router": "https://cdnjs.cloudflare.com/ajax/libs/vue-router/4.1.5/vue-router.esm-browser.min.js" 
+    } } 
+  </script>     
+   
+
+<script type="module">
+    import MarkdownViewer, { MarkdownEditor } from './GoplusMarkdown.js';
+    console.log("Markdown", MarkdownViewer)
+    const { createApp } = Vue
+    
+    createApp({
+      data() {
+        return {
+          message: 'Hello Vue!'
+        }
+      },
+      components: {
+        MarkdownViewer: MarkdownViewer
+      }
+    }).mount('#app')
+  </script>
+
+</html>
