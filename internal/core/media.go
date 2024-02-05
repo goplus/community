@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"database/sql"
 
 	"github.com/google/uuid"
 	_ "github.com/qiniu/go-cdk-driver/kodoblob"
@@ -68,7 +67,7 @@ func (c *Community) DelMedia(ctx context.Context, userId, mediaId string) error 
 	if aff == 0 {
 		c.xLog.Warn("no need del data")
 		return nil
-	}	
+	}
 	return nil
 }
 

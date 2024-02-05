@@ -1,4 +1,5 @@
 package markdown
+
 // Render renders a markdown text into html.
 //
 //line markdown/render.gop:20:1
