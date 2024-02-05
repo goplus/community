@@ -42,8 +42,6 @@
         }
     </style>
 
-    <!--qrcode    -->
-    <script type="text/javascript" src="static/qrcode/qrcode.js"></script>
 </head>
 
 <body style="background-color: #f7fafc;">
@@ -292,12 +290,14 @@
                                         <n-button text class="mr-2" style="--n-text-color-hover: #3182ce;
                                             --n-text-color-pressed: #3182ce;
                                             --n-text-color-focus: #3182ce;
-                                            --n-text-color: #a0aec0;" @click="shareToWeChat">
+                                            --n-text-color: #a0aec0;">
                                             <i class="ph-fill ph-wechat-logo" style="font-size: 20px;"></i>
                                         </n-button>
                                     </template>
-<!--                                    <div id="qrcode"></div>-->
-                                    WeChat
+                                    <n-space vertical>
+                                        <n-qr-code :value="currentHref" />
+                                    </n-space>
+                                    Scan qrcode to share on WeChat
                                 </n-tooltip>
                             </div>
                         </n-gi>
@@ -388,6 +388,7 @@
                 Avatar: '',
                 Name: 'Nick_1977',
             })
+            const currentHref = ref(window.location.href)
 
             /*======= share related functions =======*/
             function shareToFacebook() {
@@ -415,33 +416,18 @@
                 window.open(intentUrl, "_blank", "width=900, height=600");
             };
 
-
-            function shareToWeChat() {
-                qrcode = new QRCode(document.getElementById("qrcode"), {
-                    width : 60,
-                    height : 60
-                })
-
-                // TODO: @Lin 分享到微信
-                elText = window.location.href;
-                // elText = "https://www.baidu.com";
-                console.log(elText)
-                qrcode.makeCode(elText);
-            };
-
-
             /*======= register vue component =======*/
             const app = Vue.createApp({
                 data() {
                     return {
                         article,
-                        author
+                        author,
+                        currentHref
                     }
                 },
                 methods: {
                     shareToFacebook,
                     shareToTwitter,
-                    shareToWeChat,
                 }
             });
 
