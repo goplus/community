@@ -2,6 +2,8 @@ package core
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 	"github.com/goplus/yap"
 	"github.com/qiniu/x/xlog"
 	"io"
@@ -14,6 +16,14 @@ import (
 	"github.com/google/uuid"
 	_ "github.com/qiniu/go-cdk-driver/kodoblob"
 )
+
+// todo
+type VideoSubtitle struct {
+	VideoId    int
+	SubtitleId int
+	UserId     int
+	Language   string
+}
 
 type File struct {
 	Id       int
@@ -190,7 +200,6 @@ func UploadFile(ctx *yap.Context, community *Community) {
 	ctx.JSON(200, id)
 }
 
-
 func (c *Community) ListMediaByUserId(ctx context.Context, userId string, format string) ([]File, error) {
 	sqlStr := "select * from file where user_id = ?"
 	var args []any
@@ -217,4 +226,45 @@ func (c *Community) ListMediaByUserId(ctx context.Context, userId string, format
 		files = append(files, file)
 	}
 	return files, nil
+}
+
+func (c *Community) ListSubtitleByVideoId(ctx context.Context, videoId int) ([]VideoSubtitle, error) {
+	sqlStr := "select * from video_subtitle where video_id =? and "
+	rows, err := c.db.Query(sqlStr, videoId)
+	var videoSubtitles []VideoSubtitle
+	if err != nil {
+		return videoSubtitles, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var videoSubtitle VideoSubtitle
+		err = rows.Scan(&videoSubtitle.VideoId, &videoSubtitle.SubtitleId, &videoSubtitle.UserId, &videoSubtitle.Language)
+		if err != nil {
+			fmt.Println("get data fail:", err.Error())
+			return videoSubtitles, err
+		}
+		videoSubtitles = append(videoSubtitles, videoSubtitle)
+	}
+	return videoSubtitles, nil
+}
+
+func (c *Community) AddSubtitle(ctx context.Context, videoId, subtitleId, userId int, language string) error {
+	sqlStr := "INSERT INTO video_subtitle (video_id,user_id,subtitle_id,language) values (?,?,?,?)"
+	_, err := c.db.Exec(sqlStr, videoId, userId, subtitleId, language)
+	if err != nil {
+		c.xLog.Fatalln(err.Error())
+		return err
+	}
+	return nil
+}
+
+func (c *Community) DelSubtitle(ctx context.Context, videoId, subtitleId, userId int) error {
+	sqlStr := "DELETE FROM video_subtitle where video_id = ? and subtitle_id = ? and user_id = ?"
+	_, err := c.db.Exec(sqlStr, videoId, subtitleId, userId)
+	if err != nil {
+		c.xLog.Fatalln(err.Error())
+		return err
+	}
+	return nil
 }
