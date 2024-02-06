@@ -83,9 +83,6 @@ type CasdoorConfig struct {
 }
 
 type Account struct {
-	casdoorConfig *CasdoorConfig
-
-	xLog *xlog.Logger
 }
 
 func New(ctx context.Context, conf *Config) (ret *Community, err error) {
@@ -195,6 +192,9 @@ func (p *Community) CanEditable(ctx context.Context, uid, id string) (editable b
 // SaveHtml upload origin html(string) to media for html id and save id to database
 func (p *Community) SaveHtml(ctx context.Context, uid, htmlStr, mdData, id string) (articleId string, err error) {
 	htmlId, err := p.SaveMedia(ctx, uid, []byte(htmlStr))
+	if err != nil {
+		return "", err
+	}
 	if id == "" {
 		// save to database
 		sqlStr := "insert into article (user_id, html_id, ctime, mtime, content) values (?, ?, ?)"
@@ -203,6 +203,9 @@ func (p *Community) SaveHtml(ctx context.Context, uid, htmlStr, mdData, id strin
 			return "", err
 		}
 		articleId, err := res.LastInsertId()
+		if err != nil {
+			return "", err
+		}
 		return strconv.FormatInt(articleId, 10), nil
 	}
 	sqlStr := "update article set content=?, html_id=?, mtime=? where id=?"
@@ -233,6 +236,9 @@ func (p *Community) PutArticle(ctx context.Context, uid string, trans string, ar
 			return "", err
 		}
 		idInt, err := res.LastInsertId()
+		if err != nil {
+			return "", err
+		}
 		return strconv.FormatInt(idInt, 10), nil
 	}
 	if trans != "" {
@@ -253,10 +259,17 @@ func (p *Community) deleteMedias(ctx context.Context, uid, id string) (err error
 	var htmlIds []string
 	sqlStr := "select html_id from article where id=? and user_id=?"
 	rows, err := p.db.Query(sqlStr, id, uid)
-	defer rows.Close()
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			p.xLog.Error(err)
+		}
+	}()
 	for rows.Next() {
 		var htmlId string
-		rows.Scan(&htmlId)
+		if err := rows.Scan(&htmlId); err != nil {
+			return err
+		}
 		htmlIds = append(htmlIds, htmlId)
 	}
 	err = p.DelMedias(ctx, uid, htmlIds)
@@ -285,7 +298,10 @@ func (p *Community) DeleteArticle(ctx context.Context, uid, id string) (err erro
 	defer func() {
 		if err != nil {
 			// Rollback if there's an error
-			tx.Rollback()
+			err = tx.Rollback()
+			if err != nil {
+				p.xLog.Error(err)
+			}
 		}
 	}()
 
