@@ -18,7 +18,7 @@
     <meta property="og:title" content="GoplusCommunity">
     <meta property="og:description" content="GoplusCommunity">
     <meta property="og:image" content="https://public-cdn.mokahr.com/72f7c42e-b069-4e14-9c29-ee20229cc256.png">
-    
+
     <meta property="og:type" content="website">
 
     <!-- UI -->
@@ -55,7 +55,7 @@
                 <n-gi :span="3">
                     <!-- Breadcrumb -->
                     <n-breadcrumb>
-                        <n-breadcrumb-item>
+                        <n-breadcrumb-item href="/">
                             <i class="ph-duotone ph-house" style="font-size: 18px; margin-right: 5px;"></i>
                             Home
                         </n-breadcrumb-item>
@@ -121,7 +121,7 @@
                             <!-- </n-badge> -->
 
                             <!-- Share Button -->
-                            <n-button type="tertiary" style="--n-text-color-hover: #3182ce;
+                            <!-- <n-button type="tertiary" style="--n-text-color-hover: #3182ce;
                                     --n-text-color-pressed: #3182ce;
                                     --n-text-color-focus: #3182ce;
                                     --n-ripple-color: #659fd6;
@@ -131,8 +131,7 @@
                                     height: 7vh; width: 7vh;
                                     --n-padding: 0; --n-border-radius: 5px;">
                                 <i class="ph-duotone ph-share-network" style="font-size: 22px;"></i>
-                            </n-button>
-                            <!-- </n-badge> -->
+                            </n-button> -->
                         </n-gi>
 
                         <!-- Article -->
@@ -177,9 +176,9 @@
                                 </address>
 
                                 <!-- Description -->
-                                <p class="text-gray-500">
+                                <!-- <p class="text-gray-500">
                                     ${ article.Abstract }
-                                </p>
+                                </p> -->
 
                                 <!-- TODO: Cover -->
                             </header>
@@ -225,14 +224,18 @@
                                         <n-button text class="mr-2" style="--n-text-color-hover: #3182ce;
                                             --n-text-color-pressed: #3182ce;
                                             --n-text-color-focus: #3182ce;
-                                            --n-text-color: #a0aec0;">
+                                            --n-text-color: #a0aec0;" @click="shareToWeChat">
                                             <i class="ph-fill ph-wechat-logo" style="font-size: 20px;"></i>
                                         </n-button>
                                     </template>
-                                    <n-space vertical>
-                                        <n-qr-code :value="currentHref" />
-                                    </n-space>
-                                    Scan qrcode to share on WeChat
+                                    <template #header>
+                                        <div class="flex flex-col items-center">
+                                            <span class="mb-1">WeChat</span>
+                                            <n-qr-code :value="currentHref" error-correction-level="H" class="mb-1">
+                                            </n-qr-code>
+                                            <span style="font-size: x-small;">scan the QR Code</span>
+                                        </div>
+                                    </template>
                                 </n-tooltip>
                             </div>
                         </n-gi>
@@ -247,8 +250,7 @@
                         <div class="flex flex-row items-center">
                             <!-- Avatar -->
                             <a href="/user/${ author.Id }">
-                                <img class="w-12 h-12 rounded-full ml-3 mr-2" src="author.Avatar"
-                                    alt="Rounded avatar">
+                                <img class="w-12 h-12 rounded-full ml-3 mr-2" src="author.Avatar" alt="Rounded avatar">
                             </a>
 
                             <!-- Nick Name -->
@@ -323,9 +325,10 @@
                 Avatar: '',
                 Name: 'Nick_1977',
             })
-            const currentHref = ref(window.location.href)
 
             /*======= share related functions =======*/
+            const currentHref = ref(window.location.href);
+
             function shareToFacebook() {
                 var w = 900;
                 var h = 600;
@@ -334,14 +337,14 @@
                 var left = wLeft + (window.innerWidth / 2) - (w / 2);
                 var top = wTop + (window.innerHeight / 2) - (h / 2);
                 var url = window.location.href;
-                var shareUrl = "http://www.facebook.com/sharer/sharer.php?u="+url;
+                var shareUrl = "http://www.facebook.com/sharer/sharer.php?u=" + url;
                 var title = 'facebook';
 
                 window.open(shareUrl, title, 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=' + w + ', height=' + h + ', top=' + top + ', left=' + left);
             };
 
             editMetaUrl()
-            function editMetaUrl(){
+            function editMetaUrl() {
                 // Get the URL of the current page
                 var currentUrl = window.location.href;
 
@@ -361,7 +364,7 @@
                 var url = window.location.href;
                 var hashtags = "GoplusComminty";
                 var intentUrl = "https://twitter.com/intent/tweet?url=" + encodeURIComponent(url)
-                    +"&hashtags=" + encodeURIComponent(hashtags);
+                    + "&hashtags=" + encodeURIComponent(hashtags);
                 // var shareUrl = 'https://twitter.com/intent/tweet?text=' + text + '&url=' + url;
                 window.open(intentUrl, "_blank", "width=900, height=600");
             };

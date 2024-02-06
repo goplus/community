@@ -51,23 +51,23 @@ community, _ = core.New(todo, conf)  // Instantiate the community
 
 [func PutArticle(ctx context.Context, uid string, trans string, article *Article) (id string, err error)](#func-putarticle)
 
-[func TransHtmlUrl(ctx context.Context, id string) (htmlUrl string, err error)](https://github.com/goplus/community/blob/dev/internal/core/community.go#L164)
+[func TransHtmlUrl(ctx context.Context, id string) (htmlUrl string, err error)](https://github.com/goplus/community/blob/dev/internal/core/community.go#L163)
 
-[func SaveHtml(ctx context.Context, uid, htmlStr, mdData, id string) (articleId string, err error)](https://github.com/goplus/community/blob/dev/internal/core/community.go#L194)
+[func SaveHtml(ctx context.Context, uid, htmlStr, mdData, id string) (articleId string, err error)](https://github.com/goplus/community/blob/dev/internal/core/community.go#L193)
 
-[func DeleteArticle(ctx context.Context, uid, id string) (err error)](https://github.com/goplus/community/blob/dev/internal/core/community.go#L250)
+[func DeleteArticle(ctx context.Context, uid, id string) (err error)](https://github.com/goplus/community/blob/dev/internal/core/community.go#L292)
 
-[func DeleteArticles(ctx context.Context, uid string) (err error)](https://github.com/goplus/community/blob/dev/internal/core/community.go#L269)
+[func DeleteArticles(ctx context.Context, uid string) (err error)](https://github.com/goplus/community/blob/dev/internal/core/community.go#L327)
 
-[func Articles(ctx context.Context, page int, limit int, searchValue string) (items []*ArticleEntry, total int, err error)](https://github.com/goplus/community/blob/dev/internal/core/community.go#L296)
+[func ListArticle(ctx context.Context, from string, limit int, searchValue string) (items []*ArticleEntry, next string, err error)](https://github.com/goplus/community/blob/dev/internal/core/community.go#L390)
 
-[func GetArticlesByUid(ctx context.Context, uid string) (items []*ArticleEntry, err error)](https://github.com/goplus/community/blob/dev/internal/core/community.go#L359)
+[func GetArticlesByUid(ctx context.Context, uid string) (items []*ArticleEntry, err error)](https://github.com/goplus/community/blob/dev/internal/core/community.go#L438)
 
 
 
 ### Types
 
-#### type [ArticleEntry](https://github.com/goplus/community/blob/dev/internal/core/community.go#L46)
+#### type [ArticleEntry](https://github.com/goplus/community/blob/dev/internal/core/community.go#L49)
 
 > Article Brief information.
 
@@ -85,7 +85,7 @@ type ArticleEntry struct {
 }
 ```
 
-#### type [Article](https://github.com/goplus/community/blob/dev/internal/core/community.go#L58)
+#### type [Article](https://github.com/goplus/community/blob/dev/internal/core/community.go#L61)
 
 > All information of article.
 
@@ -100,7 +100,7 @@ type Article struct {
 
 ### Functions
 
-#### func [Article](https://github.com/goplus/community/blob/dev/internal/core/community.go#L136)
+#### func [Article](https://github.com/goplus/community/blob/dev/internal/core/community.go#L135)
 
 ```go
 func Article(ctx context.Context, id string) (article *Article, err error)
@@ -123,7 +123,7 @@ if editable, _ := community.canEditable(todo, uid, id); !editable {
 article, _ := community.article(todo, id)
 ```
 
-#### func [PutArticle](https://github.com/goplus/community/blob/dev/internal/core/community.go#L221)
+#### func [PutArticle](https://github.com/goplus/community/blob/dev/internal/core/community.go#L226)
 
 ```go
 func PutArticle(ctx context.Context, uid string, trans string, article *Article) (id string, err error)
