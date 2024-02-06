@@ -411,6 +411,9 @@ func (p *Community) ListArticle(ctx context.Context, from string, limit int, sea
 	if rowLen == 0 {
 		return []*ArticleEntry{}, MarkEnd, io.EOF
 	}
+	if rowLen < limit {
+		return items, MarkEnd, io.EOF
+	}
 	next = strconv.Itoa(fromInt + rowLen)
 	return items, next, nil
 }

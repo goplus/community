@@ -257,10 +257,11 @@
                 </n-list>
 
                 <!-- Loading Status -->
-                <div class="mt-2 text-center">
-                    <n-spin v-if="!isBottom" size="small" stroke="#3182ce"></n-spin>
-                    <!-- TODO: bug 列表末尾无法显示这行提示语 -->
-                    <span v-else class="text-xs text-gray-400">No more data🙌</span>
+                <div class="mt-2 text-center" v-if="!isBottom" key="span"> 
+                    <n-spin :key="spin" size="small" stroke="#3182ce"></n-spin>
+                </div>
+                <div class="mt-2 text-center" v-if="!haveMoreData" key="span">
+                    <span class="text-xs text-gray-400">No more data🙌</span>
                 </div>
             </div>
         </div>
@@ -275,12 +276,13 @@
             console.log(articleList)
 
             const next = ref("{{.Next}}"); // the page size
+            const haveMoreData = next.value === "eof" ? ref(false) : ref(true);
 
             function listenBottom() {
                 let scrollTop = window.scrollY;
                 let clientHeight = document.documentElement.clientHeight;
                 let scrollHeight = document.documentElement.scrollHeight;
-                if (isBottom.value && scrollTop + clientHeight + 10>= scrollHeight) {
+                if (isBottom.value && haveMoreData.value && scrollTop + clientHeight + 10>= scrollHeight) {
                     
                     // reaching bottom detected
                     loadMore();
@@ -309,14 +311,17 @@
                                 console.log("todos.next",todos.next)
                                 articleList.value.push(...todos.items);
                                 next.value = todos.next;
+                                if(todos.next === "eof") {
+                                    haveMoreData.value = false;
+                                }
                                 isBottom.value = true
                             }
                         });
-                    }, 1500)
+                    }, 500)
                 }else{
                     isBottom.value = true
+                    haveMoreData.value = false;
                 }
-                console.log(isBottom)
             };
 
             /*======= register vue component =======*/
@@ -330,6 +335,8 @@
                 data() {
                     return {
                         articleList,
+                        isBottom,
+                        haveMoreData
                     }
                 },
                 methods: {
