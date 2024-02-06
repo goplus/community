@@ -25,17 +25,26 @@ import (
 
 	"github.com/qiniu/go-sdk/v7/auth"
 	"github.com/qiniu/go-sdk/v7/storage"
+	language "golang.org/x/text/language"
 )
 
 var (
 	// Your api key
-	mockAccessKey = os.Getenv("QINIU_ACCESS_KEY")
-	mockSecretKey = os.Getenv("QINIU_SECRET_KEY")
-	mockBucket    = os.Getenv("QINIU_TEST_BUCKET")
-	mockPipeline  = os.Getenv("QINIU_TEST_PIPELINE")
+	mockAccessKey      = os.Getenv("QINIU_ACCESS_KEY")
+	mockSecretKey      = os.Getenv("QINIU_SECRET_KEY")
+	mockBucket         = os.Getenv("QINIU_TEST_BUCKET")
+	mockTranslationKey = os.Getenv("NIUTRANS_API_KEY")
 )
 
 func TestUploadVideo(t *testing.T) {
+	if mockAccessKey == "" {
+		t.Skip("QINIU_ACCESS_KEY not set")
+	}
+
+	if mockSecretKey == "" {
+		t.Skip("QINIU_SECRET_KEY not set")
+	}
+
 	localFile := "./test.mp4"
 	key := "test.mp4"
 	mac := auth.New(mockAccessKey, mockSecretKey)
@@ -61,11 +70,87 @@ func TestUploadVideo(t *testing.T) {
 }
 
 func TestVideo2Text(t *testing.T) {
+	if mockAccessKey == "" {
+		t.Skip("QINIU_ACCESS_KEY not set")
+	}
+
+	if mockSecretKey == "" {
+		t.Skip("QINIU_SECRET_KEY not set")
+	}
+
 	e := New("", mockAccessKey, mockSecretKey)
 	resp, err := e.Video2Text("http://test.com/test.mp4", "http://test.com/callback")
+	fmt.Printf("resp: %#v", resp)
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Log(resp)
+}
+
+func TestQueryTask(t *testing.T) {
+	if mockAccessKey == "" {
+		t.Skip("QINIU_ACCESS_KEY not set")
+	}
+
+	if mockSecretKey == "" {
+		t.Skip("QINIU_SECRET_KEY not set")
+	}
+
+	e := New("", mockAccessKey, mockSecretKey)
+	resp, err := e.QueryVideo2TextTask("mockTaskId")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(resp)
+}
+
+func TestGenerateWebVTTFile(t *testing.T) {
+	if mockAccessKey == "" {
+		t.Skip("QINIU_ACCESS_KEY not set")
+	}
+
+	if mockSecretKey == "" {
+		t.Skip("QINIU_SECRET_KEY not set")
+	}
+
+	e := New("", mockAccessKey, mockSecretKey)
+	resp, err := e.QueryVideo2TextTask("")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = e.GenerateWebVTTFile(*resp, "test.vtt")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Log(resp)
+}
+
+func TestGenerateWebVTTFileWithTranslation(t *testing.T) {
+	if mockAccessKey == "" {
+		t.Skip("QINIU_ACCESS_KEY not set")
+	}
+
+	if mockSecretKey == "" {
+		t.Skip("QINIU_SECRET_KEY not set")
+	}
+
+	if mockTranslationKey == "" {
+		t.Skip("NIUTRANS_API_KEY not set")
+	}
+
+	e := New(mockTranslationKey, mockAccessKey, mockSecretKey)
+	resp, err := e.QueryVideo2TextTask("8c5bd27079924fe884d4f67b512d6740")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = e.GenerateWebVTTFileWithTranslation(*resp, "test_en.vtt", language.Chinese, language.English)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	t.Log(resp)
 }
 
