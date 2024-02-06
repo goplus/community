@@ -405,11 +405,26 @@
                 window.open(shareUrl, title, 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=' + w + ', height=' + h + ', top=' + top + ', left=' + left);
             };
 
+            editMetaUrl()
+            function editMetaUrl(){
+                // 获取当前页面的 URL
+                var currentUrl = window.location.href;
+
+                // 查找 <meta> 标签中的 og:url 属性
+                var ogUrlMeta = document.querySelector('meta[property="og:url"]');
+
+                // 如果找到了 <meta> 标签并且 og:url 属性存在
+                if (ogUrlMeta) {
+                    // 将 og:url 属性的内容设置为当前页面的 URL
+                    ogUrlMeta.setAttribute('content', currentUrl);
+                }
+            }
+
             function shareToTwitter() {
                 // var url = encodeURIComponent('http://8.130.26.238/animation/fb.html');
                 // var text = encodeURIComponent('Linz');
                 var url = window.location.href;
-                var hashtags = "Test";
+                var hashtags = "GoplusComminty";
                 var intentUrl = "https://twitter.com/intent/tweet?url=" + encodeURIComponent(url)
                     +"&hashtags=" + encodeURIComponent(hashtags);
                 // var shareUrl = 'https://twitter.com/intent/tweet?text=' + text + '&url=' + url;
