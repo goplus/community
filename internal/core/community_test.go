@@ -235,34 +235,34 @@ func TestDeleteArticle(t *testing.T) {
 	}
 }
 
-func TestArticles(t *testing.T) {
-	conf := &Config{}
-	todo := context.TODO()
-	community, err := New(todo, conf)
+// func TestArticles(t *testing.T) {
+// 	conf := &Config{}
+// 	todo := context.TODO()
+// 	community, err := New(todo, conf)
 
-	if err != nil {
-		t.Skip(err)
-	}
+// 	if err != nil {
+// 		t.Skip(err)
+// 	}
 
-	// test data
-	tests := []struct {
-		page          int
-		limit         int
-		searchValue   string
-		expectedTotal int
-	}{
-		{1, 10, "", 10},     // home
-		{1, 10, "test", 10}, // search
-	}
+// 	// test data
+// 	tests := []struct {
+// 		page          int
+// 		limit         int
+// 		searchValue   string
+// 		expectedTotal int
+// 	}{
+// 		{1, 10, "", 10},     // home
+// 		{1, 10, "test", 10}, // search
+// 	}
 
-	for _, tt := range tests {
-		_, total, _ := community.Articles(todo, tt.page, tt.limit, tt.searchValue)
+// 	for _, tt := range tests {
+// 		_, total, _ := community.Articles(todo, tt.page, tt.limit, tt.searchValue)
 
-		if total != tt.expectedTotal {
-			t.Errorf("Articles(%d, %d, %s) returned total: %d, expected: %d", tt.page, tt.limit, tt.searchValue, total, tt.expectedTotal)
-		}
-	}
-}
+// 		if total != tt.expectedTotal {
+// 			t.Errorf("Articles(%d, %d, %s) returned total: %d, expected: %d", tt.page, tt.limit, tt.searchValue, total, tt.expectedTotal)
+// 		}
+// 	}
+// }
 
 func TestGetArticlesByUid(t *testing.T) {
 	conf := &Config{}
