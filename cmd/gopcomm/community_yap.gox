@@ -1,11 +1,13 @@
 import (
 	"context"
-	"time"
-	"os"
+	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
-	"fmt"
+	"os"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/goplus/community/internal/core"
 	"github.com/goplus/community/markdown"
@@ -18,11 +20,12 @@ import (
 
 var (
 	community *core.Community
-	trans *translation.Engine
+	trans     *translation.Engine
 )
 
 const (
-    layoutUS  = "January 2, 2006"
+	layoutUS = "January 2, 2006"
+	limitConst = 10
 )
 
 todo := context.TODO()
@@ -54,62 +57,64 @@ get "/p/:id", ctx => {
 	// todo middleware
 	// Get User Info
 	var user *core.User
-	token, err := ctx.Request.Cookie("token")
+	token, err := core.GetToken(ctx)
 	if err == nil {
-		user, err = community.getUser(token.Value)
+		user, err = community.GetUser(token.Value)
 		if err != nil {
 			xLog.Error("get user error:", err)
 		}
 	}
 
 	id := ctx.param("id")
-	article, _ := community.article(todo, id)
+	article, _ := community.Article(todo, id)
 	ctx.yap "article", {
-		"User": user,
+		"User":    user,
 		"ID":      id,
 		"Title":   article.Title,
 		"Content": article.HtmlUrl,
-		"Tags": article.Tags,
-		"Cover": article.Cover,
-		"Mtime": article.Mtime.Format(layoutUS),
-		"Author": article.User,
+		"Tags":    article.Tags,
+		"Cover":   article.Cover,
+		"Mtime":   article.Mtime.Format(layoutUS),
+		"Author":  article.User,
 		// "User": article.User,
 	}
 }
 
 get "/getArticle/:id", ctx => {
 	id := ctx.param("id")
-	article, _ := community.article(todo, id)
+	article, _ := community.Article(todo, id)
 	ctx.json {
 		"code": 200,
 		"data": article,
-   }
-   }
+	}
+}
 
 get "/user/:id", ctx => {
 	id := ctx.param("id")
 	// Get current User Info by id
-	userClaim, err := community.getUserClaim(id)
+	userClaim, err := community.GetUserClaim(id)
 	if err != nil {
 		xLog.Error("get current user error:", err)
 	}
 	// todo middleware
 	// get user by token
 	var user *core.User
-	token, err := ctx.Request.Cookie("token")
+	token, err := core.GetToken(ctx)
 	if err == nil {
-		user, err = community.getUser(token.Value)
+		user, err = community.GetUser(token.Value)
 		if err != nil {
 			xLog.Error("get user error:", err)
 		}
 	}
 	// get article list published by uid
-	items, _ :=community.GetArticlesByUid(todo, id)
+	items, _ := community.GetArticlesByUid(todo, id)
+	userClaimJson, _ := json.Marshal(&userClaim)
+	itemsJson, _ := json.Marshal(&items)
 	ctx.yap "user", {
-		"Id": id,
-		"CurrentUser": userClaim,
-		"User": user,
-		"Items": items,
+		"Id":          id,
+		"CurrentUser": strings.Replace(string(userClaimJson), `\"`, `"`, -1),
+		"User":        user,
+		"Items":       strings.Replace(string(itemsJson), `\"`, `"`, -1),
 	}
 }
 
@@ -117,36 +122,109 @@ get "/add", ctx => {
 	ctx.yap "edit", {}
 }
 
+get "/delete", ctx => {
+	id := ctx.param("id")
+	token, err := core.GetToken(ctx)
+	uid, err := community.ParseJwtToken(token.Value)
+	if err != nil {
+		xLog.Error("token parse error")
+		ctx.json {
+			"code": 0,
+			"err":  err.Error(),
+		}
+	}
+	err = community.DeleteArticle(todo, uid, id)
+	if err != nil {
+		ctx.json {
+			"code": 0,
+			"err":  "delete failed",
+		}
+	} else {
+		ctx.json {
+			"code": 200,
+			"msg":  "delete success",
+		}
+	}
+}
+
+get "/medias", ctx => {
+	format := ctx.param("format")
+	uid := ctx.param("uid")
+	files, err :=community.ListMediaByUserId(todo, uid, format)
+	if err != nil {
+		ctx.json {
+			"code": 0,
+			"err":  "get media failed",
+		}
+	} else {
+		ctx.json {
+			"code": 200,
+			"items": files,
+		}
+	}
+}
+
+get "/delMedia", ctx =>{
+	id := ctx.param("id")
+	token, err := core.GetToken(ctx)
+	uid, err := community.ParseJwtToken(token.Value)
+	if err != nil {
+		xLog.Error("token parse error")
+		ctx.json {
+			"code": 0,
+			"err":  err.Error(),
+		}
+	}
+	err = community.DelMedia(todo, uid, id)
+	if err != nil {
+		ctx.json {
+			"code": 0,
+			"err":  "delete failed",
+		}
+	} else {
+		ctx.json {
+			"code": 200,
+			"msg":  "delete success",
+		}
+	}
+}
+
 get "/", ctx => {
-	// from := ctx.param("from")
-	from := ctx.param("page")
-	limit := ctx.param("limit")
-	// todo middleware
 	// Get User Info
 	var user *core.User
-	token, err := ctx.Request.Cookie("token")
+	token, err := core.GetToken(ctx)
 	if err == nil {
-		user, err = community.getUser(token.Value)
+		user, err = community.GetUser(token.Value)
 		if err != nil {
 			xLog.Error("get user error:", err)
 		}
 	}
-
-	page, err := strconv.Atoi(from)
-	if err != nil {
-		page = 1
+	// Get Article Info
+	articles, next, _ := community.ListArticle(todo, core.MarkBegin, limitConst, "")
+	articlesJson, _ := json.Marshal(&articles)
+	ctx.yap "home", {
+		"User":      user,
+		"Items":     strings.Replace(string(articlesJson), `\"`, `"`, -1),
+		"Next": 	 next,
 	}
+}
 
+get "/get", ctx => {
+	from := ctx.param("from")
+	limit := ctx.param("limit")
+	searchValue := ctx.param("value")
+	
 	limitInt, err := strconv.Atoi(limit)
 	if err != nil {
-		limitInt = 20
+		limitInt = limitConst
 	}
 	// Get Article Info
-	articles, next, _ := community.articles(todo, page, limitInt, "")
-	ctx.yap "home", {
-		"User":  user,
-		"Items": articles,
-		"Next": next,
+	articles, next, _ := community.ListArticle(todo, from, limitInt, searchValue)
+	ctx.json {
+		"code": 	200,
+		"items":    articles,
+		"next": 	next,
+		"value":	searchValue,
 	}
 }
 
@@ -155,47 +233,36 @@ get "/search", ctx => {
 	if searchValue == "" {
 		ctx.json {
 			"code": 400,
-			"err": "value can not be ''.",
+			"err":  "value can not be ''.",
 		}
 	}
 
-	from := ctx.param("page")
-	limit := ctx.param("limit")
-	limitInt, err := strconv.Atoi(limit)
-	if err != nil {
-		limitInt = 10
-	}
-	page, err := strconv.Atoi(from)
-	if err != nil {
-		page = 1
-	}
-	
 	// todo middleware
 	var user *core.User
-	token, err := ctx.Request.Cookie("token")
+	token, err := core.GetToken(ctx)
 	if err == nil {
-		user, err = community.getUser(token.Value)
+		user, err = community.GetUser(token.Value)
 		if err != nil {
 			xLog.Error("get user error:", err)
 		}
 	}
 
-	articles, _ := community.searchArticle(todo, searchValue)
-	articles, total, _ := community.articles(todo, page, limitInt, searchValue)
+	articles, next, _ := community.ListArticle(todo, core.MarkBegin, limitConst, searchValue)
+	articlesJson, _ := json.Marshal(&articles)
 	ctx.yap "home", {
-		"User":  user,
-		"Items": articles,
-		"Total": total,
-		"Value": searchValue,
+		"User":      user,
+		"Items":     strings.Replace(string(articlesJson), `\"`, `"`, -1),
+		"Value":     searchValue,
+		"Next": 	 next,
 	}
 }
 
 get "/edit/:id", ctx => {
-	token, err := ctx.Request.Cookie("token")
+	token, err := core.GetToken(ctx)
 	if err != nil {
 		ctx.json {
 			"code": 500,
-			"err": "no token",
+			"err":  "no token",
 		}
 	}
 
@@ -203,28 +270,28 @@ get "/edit/:id", ctx => {
 	if err != nil {
 		ctx.json {
 			"code": 500,
-			"err": err.Error(),
+			"err":  err.Error(),
 		}
 	}
 	// uid := "70f6a615-c0d5-4315-a5ac-34ca845450ed"
 	id := ctx.param("id")
 	if id != "" {
-		if editable, _ := community.canEditable(todo, uid, id); !editable {
+		if editable, _ := community.CanEditable(todo, uid, id); !editable {
 			xLog.Error("no permissions")
 			http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
 		}
-		article, _ := community.article(todo, id)
+		article, _ := community.Article(todo, id)
 		ctx.yap "edit", article
 	}
 }
 
 get "/getTrans", ctx => {
 	id := ctx.param("id")
-	htmlUrl, err := community.transHtmlUrl(todo, id)
+	htmlUrl, err := community.TransHtmlUrl(todo, id)
 	if err != nil {
 		ctx.json {
 			"code": 500,
-			"err": err.Error(), 
+			"err":  err.Error(),
 		}
 	}
 	ctx.json {
@@ -236,39 +303,40 @@ get "/getTrans", ctx => {
 // click "submit" button
 post "/commit", ctx => {
 	// Whether article has been translated or not
-	trans := ctx.param("trans")   // if trans != ""， add article 
+	trans := ctx.param("trans") // if trans != ""， add article
 	id := ctx.param("id")
 	mdData := ctx.param("content")
 	htmlData := ctx.param("html")
 	// get user id
-	token, err := ctx.Request.Cookie("token")
+	token, err := core.GetToken(ctx)
 	if err != nil {
 		ctx.json {
 			"code": 500,
-			"err": "no token",
+			"err":  "no token",
 		}
 	}
 	uid, err := community.ParseJwtToken(token.Value)
 	if err != nil {
 		ctx.json {
 			"code": 500,
-			"err": err.Error(),
+			"err":  err.Error(),
 		}
 	}
 	// uid := "70f6a615-c0d5-4315-a5ac-34ca845450ed"
-	// add article 
+	// add article
 	article := &core.Article{
 		ArticleEntry: core.ArticleEntry{
-			ID: id,
-			Title: ctx.param("title"),
-			UId:   uid,   
-			Cover: ctx.param("cover"),
-			Tags:  ctx.param("tags"),
+			ID:       id,
+			Title:    ctx.param("title"),
+			UId:      uid,
+			Cover:    ctx.param("cover"),
+			Tags:     ctx.param("tags"),
+			Abstract: ctx.param("abstract"),
 		},
-		Content: mdData,
-		HtmlData:htmlData,
+		Content:  mdData,
+		HtmlData: htmlData,
 	}
-	id, _ = community.putArticle(todo, uid, trans, article)
+	id, _ = community.PutArticle(todo, uid, trans, article)
 	ctx.json {
 		"code": 200,
 		"data": id,
@@ -279,129 +347,66 @@ post "/commit", ctx => {
 //  click "translate button"
 post "/translate", ctx => {
 	// get user id
-	token, err := ctx.Request.Cookie("token")
+	token, err := core.GetToken(ctx)
 	if err != nil {
 		ctx.json {
 			"code": 500,
-			"err": "no token",
+			"err":  "no token",
 		}
 	}
 	uid, err := community.ParseJwtToken(token.Value)
 	if err != nil {
 		ctx.json {
 			"code": 500,
-			"err": err.Error(),
+			"err":  err.Error(),
 		}
 	}
 	// uid := "70f6a615-c0d5-4315-a5ac-34ca845450ed"
-    mdData := ctx.param("content")
+	mdData := ctx.param("content")
 	htmlData := ctx.param("html")
 	id := ctx.param("id")
 	// get translation markdown
-    transData, err := trans.translateMarkdownText(mdData, language.Chinese, language.English)
+	transData, err := trans.translateMarkdownText(mdData, language.Chinese, language.English)
 	if err != nil {
 		ctx.json {
 			"code": 500,
-			"err": err.Error(),
+			"err":  err.Error(),
 		}
 	}
-	id, _ = community.saveHtml(todo, uid, htmlData, mdData, id)
+	id, _ = community.SaveHtml(todo, uid, htmlData, mdData, id)
 	ctx.json {
 		"code": 200,
-		"id": id,  //article id
-		"data": transData,  // translation markdown content
+		"id":   id,        //article id
+		"data": transData, // translation markdown content
 	}
 }
 
 get "/getMedia/:id", ctx => {
 	mediaId := ctx.param("id")
 	// todo the err not empty return 404 for image
-	fileKey, _ := community.GetMediaUrl(context.Background(),mediaId)
+	fileKey, _ := community.GetMediaUrl(context.Background(), mediaId)
 
 	http.Redirect(ctx.ResponseWriter, ctx.Request, domain+fileKey, http.StatusTemporaryRedirect)
 }
 
-get "/getMediaUrl/:id",ctx => {
+get "/getMediaUrl/:id", ctx => {
 	id := ctx.param("id")
 	fileKey, err := community.GetMediaUrl(todo, id)
 	htmlUrl := fmt.Sprintf("%s%s", domain, fileKey)
 	if err != nil {
 		ctx.json {
 			"code": 500,
-			"err": "have no html media",
+			"err":  "have no html media",
 		}
 	}
 	ctx.json {
 		"code": 200,
-		"url": htmlUrl,
+		"url":  htmlUrl,
 	}
 }
 
 post "/upload", ctx => {
-	file, header, err := ctx.FormFile("file")
-	filename := header.Filename
-
-	ctx.ParseMultipartForm(10 << 20)
-
-	if err != nil {
-		xLog.Error("upload file error:", filename)
-		ctx.JSON(500, err.Error())
-		return
-	}
-
-
-	dst, err := os.Create(filename)
-	if err != nil {
-		xLog.Error("create file error:", file)
-		ctx.JSON(500, err.Error())
-		return
-	}
-	defer func() {
-		file.Close()
-		dst.Close()
-		err = os.Remove(filename)
-		if err != nil {
-		xLog.Error("delete file error:", filename)
-		return
-		}
-	}()
-
-
-	_, err = io.Copy(dst, file)
-	if err != nil {
-		xLog.Error("copy file errer:", filename)
-		ctx.JSON(500, err.Error())
-		return
-	}
-	bytes, err := os.ReadFile(filename)
-	if err != nil {
-		xLog.Error("read file errer:", filename)
-		ctx.JSON(500, err.Error())
-		return
-	}
-	token, err := ctx.Request.Cookie("token")
-	if err != nil {
-		ctx.json {
-			"code": 500,
-			"err": "no token",
-		}
-	}
-	uid, err := community.ParseJwtToken(token.Value)
-	if err != nil {
-		ctx.json {
-			"code": 500,
-			"err": err.Error(),
-		}
-	}
-	id,err:=community.SaveMedia(context.Background(), uid, bytes)
-	if err!=nil {
-		xLog.Error("save file",err.Error())
-		ctx.JSON(500, err.Error())
-		return
-	}
-	// todo append current project ip and getMedia
-	// sample: 127.0.0.1:8080/getMedia/ + id
-	ctx.JSON(200,id)
+	core.UploadFile(ctx, community)
 }
 
 get "/login", ctx => {
@@ -415,40 +420,26 @@ get "/login", ctx => {
 	ctx.Redirect loginURL, http.StatusFound
 }
 
+
 get "/logout", ctx => {
-	tokenCookie, err := ctx.Request.Cookie("token")
+	err := core.RemoveToken(ctx)
 	if err != nil {
-		xLog.Error("get token error:", err)
+		xLog.Error("remove token error:", err)
 	}
 
-	// Delete token
-	tokenCookie.MaxAge = -1
-	http.SetCookie(ctx.ResponseWriter, tokenCookie)
-
 	// Redirect to home page
-	http.Redirect(ctx.ResponseWriter, ctx.Request, fmt.Sprintf("http://localhost:8080"), http.StatusFound)
+	http.Redirect(ctx.ResponseWriter, ctx.Request, fmt.Sprintf("/"), http.StatusFound)
 }
 
 get "/callback", ctx => {
-	code :=ctx.URL.Query().Get("code")
-	state :=ctx.URL.Query().Get("state")
-
-	token, error := community.GetAccessToken(code, state)
-	if error != nil {
-		xLog.Error("err",error) // Redirect to login
+	err := core.SetToken(ctx)
+	if err != nil {
+		xLog.Error("set token error:", err)
 	}
-
-	cookie := http.Cookie{
-		Name: "token",
-		Value: token.AccessToken,
-		Path: "/",
-		MaxAge: 3600,
-	}
-	http.SetCookie(ctx.ResponseWriter, &cookie)
 
 	// Redirect to home page
 	// TODO: Get redirect URL from state
-	http.Redirect(ctx.ResponseWriter, ctx.Request, fmt.Sprintf("http://localhost:8080"), http.StatusFound)
+	http.Redirect(ctx.ResponseWriter, ctx.Request, fmt.Sprintf("/"), http.StatusFound)
 }
 
 conf := &core.Config{}

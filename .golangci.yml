@@ -1,3 +1,4 @@
 run:
   skip-files:
-    - _gen.go$
+    - _yap.gox$
+    - _autogen.go$

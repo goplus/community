@@ -51,14 +51,7 @@ func TestCommunity_createVideoTask(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &Community{
-				bucket:        tt.fields.bucket,
-				db:            tt.fields.db,
-				domain:        tt.fields.domain,
-				casdoorConfig: tt.fields.casdoorConfig,
-				xLog:          tt.fields.xLog,
-				taskMap:       tt.fields.taskMap,
-			}
+			c, _ := New(nil, nil)
 			if err := c.createVideoTask(tt.args.ctx, tt.args.resourceId); (err != nil) != tt.wantErr {
 				t.Errorf("Community.createVideoTask() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -90,14 +83,7 @@ func TestCommunity_updateVideoTaskOutput(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &Community{
-				bucket:        tt.fields.bucket,
-				db:            tt.fields.db,
-				domain:        tt.fields.domain,
-				casdoorConfig: tt.fields.casdoorConfig,
-				xLog:          tt.fields.xLog,
-				taskMap:       tt.fields.taskMap,
-			}
+			c, _ := New(nil, nil)
 			if err := c.updateVideoTaskOutput(tt.args.ctx, tt.args.resourceId, tt.args.output); (err != nil) != tt.wantErr {
 				t.Errorf("Community.updateVideoTaskOutput() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -129,14 +115,7 @@ func TestCommunity_updateVideoTaskStatus(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &Community{
-				bucket:        tt.fields.bucket,
-				db:            tt.fields.db,
-				domain:        tt.fields.domain,
-				casdoorConfig: tt.fields.casdoorConfig,
-				xLog:          tt.fields.xLog,
-				taskMap:       tt.fields.taskMap,
-			}
+			c, _ := New(nil, nil)
 			if err := c.updateVideoTaskStatus(tt.args.ctx, tt.args.resourceId, tt.args.status); (err != nil) != tt.wantErr {
 				t.Errorf("Community.updateVideoTaskStatus() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -167,14 +146,7 @@ func TestCommunity_deleteVideoTask(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &Community{
-				bucket:        tt.fields.bucket,
-				db:            tt.fields.db,
-				domain:        tt.fields.domain,
-				casdoorConfig: tt.fields.casdoorConfig,
-				xLog:          tt.fields.xLog,
-				taskMap:       tt.fields.taskMap,
-			}
+			c, _ := New(nil, nil)
 			if err := c.deleteVideoTask(tt.args.ctx, tt.args.resourceId); (err != nil) != tt.wantErr {
 				t.Errorf("Community.deleteVideoTask() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -206,14 +178,7 @@ func TestCommunity_getVideoTask(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &Community{
-				bucket:        tt.fields.bucket,
-				db:            tt.fields.db,
-				domain:        tt.fields.domain,
-				casdoorConfig: tt.fields.casdoorConfig,
-				xLog:          tt.fields.xLog,
-				taskMap:       tt.fields.taskMap,
-			}
+			c, _ := New(nil, nil)
 			got, err := c.getVideoTask(tt.args.ctx, tt.args.resourceId)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Community.getVideoTask() error = %v, wantErr %v", err, tt.wantErr)
@@ -249,14 +214,7 @@ func TestCommunity_NewVideoTask(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &Community{
-				bucket:        tt.fields.bucket,
-				db:            tt.fields.db,
-				domain:        tt.fields.domain,
-				casdoorConfig: tt.fields.casdoorConfig,
-				xLog:          tt.fields.xLog,
-				taskMap:       tt.fields.taskMap,
-			}
+			c, _ := New(nil, nil)
 			if err := c.NewVideoTask(tt.args.ctx, tt.args.resourceId); (err != nil) != tt.wantErr {
 				t.Errorf("Community.NewVideoTask() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -287,14 +245,7 @@ func TestCommunity_SetVideoTaskSuccess(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &Community{
-				bucket:        tt.fields.bucket,
-				db:            tt.fields.db,
-				domain:        tt.fields.domain,
-				casdoorConfig: tt.fields.casdoorConfig,
-				xLog:          tt.fields.xLog,
-				taskMap:       tt.fields.taskMap,
-			}
+			c, _ := New(nil, nil)
 			if err := c.SetVideoTaskSuccess(tt.args.ctx, tt.args.resourceId); (err != nil) != tt.wantErr {
 				t.Errorf("Community.SetVideoTaskSuccess() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -325,14 +276,7 @@ func TestCommunity_SetVideoTaskFailed(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &Community{
-				bucket:        tt.fields.bucket,
-				db:            tt.fields.db,
-				domain:        tt.fields.domain,
-				casdoorConfig: tt.fields.casdoorConfig,
-				xLog:          tt.fields.xLog,
-				taskMap:       tt.fields.taskMap,
-			}
+			c, _ := New(nil, nil)
 			if err := c.SetVideoTaskFailed(tt.args.ctx, tt.args.resourceId); (err != nil) != tt.wantErr {
 				t.Errorf("Community.SetVideoTaskFailed() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -364,14 +308,7 @@ func TestCommunity_SetVideoTaskOutput(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &Community{
-				bucket:        tt.fields.bucket,
-				db:            tt.fields.db,
-				domain:        tt.fields.domain,
-				casdoorConfig: tt.fields.casdoorConfig,
-				xLog:          tt.fields.xLog,
-				taskMap:       tt.fields.taskMap,
-			}
+			c, _ := New(nil, nil)
 			if err := c.SetVideoTaskOutput(tt.args.ctx, tt.args.resourceId, tt.args.output); (err != nil) != tt.wantErr {
 				t.Errorf("Community.SetVideoTaskOutput() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -536,22 +473,8 @@ func TestCommunity_TimedCheckVideoTask(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &Community{
-				bucket:        tt.fields.bucket,
-				db:            tt.fields.db,
-				domain:        tt.fields.domain,
-				casdoorConfig: tt.fields.casdoorConfig,
-				xLog:          tt.fields.xLog,
-				taskMap:       tt.fields.taskMap,
-			}
-			got, err := c.TimedCheckVideoTask(tt.args.ctx, tt.args.resourceId, tt.args.timeout)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Community.TimedCheckVideoTask() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("Community.TimedCheckVideoTask() = %v, want %v", got, tt.want)
-			}
+			c, _ := New(nil, nil)
+			c.TimedCheckVideoTask(tt.args.ctx, tt.args.timeout)
 		})
 	}
 }

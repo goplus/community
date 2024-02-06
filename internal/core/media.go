@@ -2,6 +2,12 @@ package core
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
+	"github.com/goplus/yap"
+	"github.com/qiniu/x/xlog"
+	"io"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -9,6 +15,14 @@ import (
 	"github.com/google/uuid"
 	_ "github.com/qiniu/go-cdk-driver/kodoblob"
 )
+
+// todo
+type VideoSubtitle struct {
+	VideoId    int
+	SubtitleId int
+	UserId     int
+	Language   string
+}
 
 type File struct {
 	Id       int
@@ -33,17 +47,16 @@ func (c *Community) DelMedias(ctx context.Context, userId string, ids []string) 
 }
 
 func (c *Community) DelMedia(ctx context.Context, userId, mediaId string) error {
-
-	uId, err := strconv.Atoi(userId)
+	// del cloud oss media
+	fileKey, err := c.GetMediaUrl(ctx, mediaId)
 	if err != nil {
 		return err
 	}
-	mId, err := strconv.Atoi(mediaId)
-	if err != nil {
+	if err := c.bucket.Delete(context.Background(), fileKey); err != nil {
 		return err
 	}
 	// del db media
-	res, err := c.db.ExecContext(ctx, "delete from file where user_id = ? and id = ?", uId, mId)
+	res, err := c.db.ExecContext(ctx, "delete from file where user_id = ? and id = ?", userId, mediaId)
 	if err != nil {
 		return err
 	}
@@ -54,15 +67,6 @@ func (c *Community) DelMedia(ctx context.Context, userId, mediaId string) error 
 	if aff == 0 {
 		c.xLog.Warn("no need del data")
 		return nil
-	}
-
-	// del cloud oss media
-	fileKey, err := c.GetMediaUrl(ctx, mediaId)
-	if err != nil {
-		return err
-	}
-	if err := c.bucket.Delete(context.Background(), fileKey); err != nil {
-		return err
 	}
 	return nil
 }
@@ -136,6 +140,129 @@ func (c *Community) uploadMedia(fileKey string, data []byte) error {
 	defer w.Close()
 	_, err = w.Write(data)
 	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func UploadFile(ctx *yap.Context, community *Community) {
+	xLog := xlog.New("")
+	file, header, err := ctx.FormFile("file")
+	filename := header.Filename
+	ctx.ParseMultipartForm(10 << 20)
+	if err != nil {
+		xLog.Error("upload file error:", filename)
+		ctx.JSON(500, err.Error())
+		return
+	}
+	dst, err := os.Create(filename)
+	if err != nil {
+		xLog.Error("create file error:", file)
+		ctx.JSON(500, err.Error())
+		return
+	}
+	defer func() {
+		file.Close()
+		dst.Close()
+		err = os.Remove(filename)
+		if err != nil {
+			xLog.Error("delete file error:", filename)
+			return
+		}
+	}()
+	_, err = io.Copy(dst, file)
+	if err != nil {
+		xLog.Error("copy file errer:", filename)
+		ctx.JSON(500, err.Error())
+		return
+	}
+	bytes, err := os.ReadFile(filename)
+	if err != nil {
+		xLog.Error("read file errer:", filename)
+		ctx.JSON(500, err.Error())
+		return
+	}
+	token, err := GetToken(ctx)
+	if err != nil {
+		ctx.JSON(500, err.Error())
+	}
+	uid, err := community.ParseJwtToken(token.Value)
+	if err != nil {
+		ctx.JSON(500, err.Error())
+	}
+	id, err := community.SaveMedia(context.Background(), uid, bytes)
+	if err != nil {
+		xLog.Error("save file", err.Error())
+		ctx.JSON(500, err.Error())
+		return
+	}
+	ctx.JSON(200, id)
+}
+
+func (c *Community) ListMediaByUserId(ctx context.Context, userId string, format string) ([]File, error) {
+	sqlStr := "select * from file where user_id = ?"
+	var args []any
+	args = append(args, userId)
+	var rows *sql.Rows
+	var err error
+	if format != "" {
+		sqlStr += " and format like ?"
+		args = append(args, "%"+format+"%")
+	}
+	rows, err = c.db.Query(sqlStr, args...)
+
+	var files []File
+	if err != nil {
+		return files, err
+	}
+
+	for rows.Next() {
+		var file File
+		if err := rows.Scan(&file.Id, &file.CreateAt, &file.UpdateAt, &file.FileKey, &file.Format, &file.UserId, &file.Size); err != nil {
+			return files, err
+		}
+		file.FileKey = c.domain + file.FileKey
+		files = append(files, file)
+	}
+	return files, nil
+}
+
+func (c *Community) ListSubtitleByVideoId(ctx context.Context, videoId int) ([]VideoSubtitle, error) {
+	sqlStr := "select * from video_subtitle where video_id =? and "
+	rows, err := c.db.Query(sqlStr, videoId)
+	var videoSubtitles []VideoSubtitle
+	if err != nil {
+		return videoSubtitles, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var videoSubtitle VideoSubtitle
+		err = rows.Scan(&videoSubtitle.VideoId, &videoSubtitle.SubtitleId, &videoSubtitle.UserId, &videoSubtitle.Language)
+		if err != nil {
+			fmt.Println("get data fail:", err.Error())
+			return videoSubtitles, err
+		}
+		videoSubtitles = append(videoSubtitles, videoSubtitle)
+	}
+	return videoSubtitles, nil
+}
+
+func (c *Community) AddSubtitle(ctx context.Context, videoId, subtitleId, userId int, language string) error {
+	sqlStr := "INSERT INTO video_subtitle (video_id,user_id,subtitle_id,language) values (?,?,?,?)"
+	_, err := c.db.Exec(sqlStr, videoId, userId, subtitleId, language)
+	if err != nil {
+		c.xLog.Fatalln(err.Error())
+		return err
+	}
+	return nil
+}
+
+func (c *Community) DelSubtitle(ctx context.Context, videoId, subtitleId, userId int) error {
+	sqlStr := "DELETE FROM video_subtitle where video_id = ? and subtitle_id = ? and user_id = ?"
+	_, err := c.db.Exec(sqlStr, videoId, subtitleId, userId)
+	if err != nil {
+		c.xLog.Fatalln(err.Error())
 		return err
 	}
 	return nil

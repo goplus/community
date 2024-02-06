@@ -21,6 +21,8 @@ import (
 	"errors"
 	"sync"
 	"time"
+
+	language "golang.org/x/text/internal/language"
 )
 
 var (
@@ -31,6 +33,7 @@ var (
 type VideoTask struct {
 	Id         int
 	ResourceId string
+	TaskId     string // ASR task id
 	Output     string // Recognition result link
 	Status     int    // 0: progress, -1: failed, 1: ok
 	CreateAt   time.Time
@@ -38,7 +41,7 @@ type VideoTask struct {
 }
 
 func (c *Community) createVideoTask(ctx context.Context, resourceId string) error {
-	_, err := c.db.ExecContext(ctx, "insert into video_task(resource_id) values(?)", resourceId)
+	_, err := c.db.ExecContext(ctx, "insert into video_task(resource_id, status, create_at, update_at) values(?, ?, ?, ?)", resourceId, 0, time.Now(), time.Now())
 	return err
 }
 
@@ -59,7 +62,7 @@ func (c *Community) deleteVideoTask(ctx context.Context, resourceId string) erro
 
 func (c *Community) getVideoTask(ctx context.Context, resourceId string) (*VideoTask, error) {
 	var task VideoTask
-	err := c.db.QueryRow("select id, resource_id, output, status, create_at, update_at from video_task where resource_id = ?", resourceId).Scan(&task.Id, &task.ResourceId, &task.Output, &task.Status, &task.CreateAt, &task.UpdateAt)
+	err := c.db.QueryRow("select id, resource_id, task_id, output, status, create_at, update_at from video_task where resource_id = ?", resourceId).Scan(&task.Id, &task.ResourceId, &task.TaskId, &task.Output, &task.Status, &task.CreateAt, &task.UpdateAt)
 	if err != nil {
 		return nil, err
 	}
@@ -67,22 +70,30 @@ func (c *Community) getVideoTask(ctx context.Context, resourceId string) (*Video
 	return &task, nil
 }
 
+// NewVideoTask create new video task
 func (c *Community) NewVideoTask(ctx context.Context, resourceId string) error {
 	err := c.createVideoTask(ctx, resourceId)
 	if err != nil {
 		return err
 	}
+
+	// Set video task cache
+	c.SetVideoTaskCache(resourceId, VideoTaskTimestamp(time.Now().Unix()))
+
 	return nil
 }
 
+// SetVideoTaskSuccess set video task success
 func (c *Community) SetVideoTaskSuccess(ctx context.Context, resourceId string) error {
 	return c.updateVideoTaskStatus(ctx, resourceId, 1)
 }
 
+// SetVideoTaskFailed set video task failed
 func (c *Community) SetVideoTaskFailed(ctx context.Context, resourceId string) error {
 	return c.updateVideoTaskStatus(ctx, resourceId, -1)
 }
 
+// SetVideoTaskOutput set video task output link
 func (c *Community) SetVideoTaskOutput(ctx context.Context, resourceId string, output string) error {
 	return c.updateVideoTaskOutput(ctx, resourceId, output)
 }
@@ -100,6 +111,7 @@ type VideoTaskCache struct {
 	isActive bool
 }
 
+// NewVideoTaskCache create new video task cache
 func NewVideoTaskCache() *VideoTaskCache {
 	return &VideoTaskCache{
 		videoTaskMap: make(VideoTaskMap),
@@ -107,6 +119,7 @@ func NewVideoTaskCache() *VideoTaskCache {
 	}
 }
 
+// Get get video task timestamp
 func (c *VideoTaskCache) Get(key string) (VideoTaskTimestamp, bool) {
 	c.RLock()
 	defer c.RUnlock()
@@ -114,33 +127,37 @@ func (c *VideoTaskCache) Get(key string) (VideoTaskTimestamp, bool) {
 	return value, ok
 }
 
+// Set set video task timestamp
 func (c *VideoTaskCache) Set(key string, value VideoTaskTimestamp) {
 	c.Lock()
 	defer c.Unlock()
 	c.videoTaskMap[key] = value
 }
 
+// Delete delete video task
 func (c *VideoTaskCache) Delete(key string) {
 	c.Lock()
 	defer c.Unlock()
 	delete(c.videoTaskMap, key)
 }
 
+// Clear clear video task cache
 func (c *VideoTaskCache) Clear() {
 	c.Lock()
 	defer c.Unlock()
 	c.videoTaskMap = make(VideoTaskMap)
 }
 
+// SetVideoTaskCache set video task cache
 func (c *Community) SetVideoTaskCache(key string, value VideoTaskTimestamp) {
-	c.videoTaskCache.Lock()
-	defer c.videoTaskCache.Unlock()
+	c.translation.VideoTaskCache.Lock()
+	defer c.translation.VideoTaskCache.Unlock()
 
-	c.videoTaskCache.Set(key, value)
+	c.translation.VideoTaskCache.Set(key, value)
 
 	// Start check task status
-	if !c.videoTaskCache.isActive {
-		c.videoTaskCache.isActive = true
+	if !c.translation.VideoTaskCache.isActive {
+		c.translation.VideoTaskCache.isActive = true
 		go c.TimedCheckVideoTask(context.Background(), 30*time.Second)
 	}
 }
@@ -156,12 +173,12 @@ func (c *Community) TimedCheckVideoTask(ctx context.Context, timeout time.Durati
 		select {
 		case <-ticker.C:
 			// Iterator video task cache
-			c.videoTaskCache.RLock()
-			defer c.videoTaskCache.RUnlock()
-			for resourceId, timestamp := range c.videoTaskCache.videoTaskMap {
+			c.translation.VideoTaskCache.RLock()
+			defer c.translation.VideoTaskCache.RUnlock()
+			for resourceId, timestamp := range c.translation.VideoTaskCache.videoTaskMap {
 				if time.Now().Unix()-int64(timestamp) > int64(timeout) {
 					// Delete expired video task
-					c.videoTaskCache.Delete(resourceId)
+					c.translation.VideoTaskCache.Delete(resourceId)
 				} else {
 					// Check status of video task
 					task, err := c.getVideoTask(ctx, resourceId)
@@ -171,10 +188,22 @@ func (c *Community) TimedCheckVideoTask(ctx context.Context, timeout time.Durati
 					}
 					if task.Status == 1 {
 						// Set video task success
-						c.videoTaskCache.Delete(resourceId)
+						c.translation.VideoTaskCache.Delete(resourceId)
 					} else if task.Status == -1 {
-						// Set video task failed
-						c.videoTaskCache.Delete(resourceId)
+						// Request for ASR task
+						asrTaskData, err := c.translation.Engine.QueryVideo2TextTask(task.TaskId)
+						if err != nil {
+							c.xLog.Errorf("TimedCheckVideoTask QueryVideo2TextTask failed, resourceId: %s, err: %v", resourceId, err)
+							continue
+						}
+
+						if asrTaskData.Rtn == 0 {
+							// Upload ASR result
+							c.translation.Engine.GenerateWebVTTFileWithTranslation(asrTaskData, language.Chinese, language.English)
+
+							// Set video task success
+							c.translation.VideoTaskCache.Delete(resourceId)
+						}
 					}
 				}
 			}
@@ -183,7 +212,7 @@ func (c *Community) TimedCheckVideoTask(ctx context.Context, timeout time.Durati
 
 			// Update status of video task
 			// c.videoTaskCache.Clear()
-			c.videoTaskCache.isActive = false
+			c.translation.VideoTaskCache.isActive = false
 
 			return
 		}
