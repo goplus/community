@@ -32,7 +32,7 @@ var (
 	mockAccessKey = os.Getenv("QINIU_ACCESS_KEY")
 	mockSecretKey = os.Getenv("QINIU_SECRET_KEY")
 	mockBucket    = os.Getenv("QINIU_TEST_BUCKET")
-	mockPipeline  = os.Getenv("QINIU_TEST_PIPELINE")
+	// mockPipeline  = os.Getenv("QINIU_TEST_PIPELINE")
 )
 
 func TestUploadVideo(t *testing.T) {

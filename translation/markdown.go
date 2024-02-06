@@ -89,7 +89,7 @@ func (e *Engine) TranslateMarkdown(src []byte, from, to language.Tag) (ret []byt
 	translationSeg := make([]text.Segment, 0) // location of text in src
 
 	// Walk through the AST
-	ast.Walk(doc, func(node ast.Node, entering bool) (ast.WalkStatus, error) {
+	err = ast.Walk(doc, func(node ast.Node, entering bool) (ast.WalkStatus, error) {
 		switch n := node.(type) {
 		case *ast.Text:
 			if entering {
@@ -101,6 +101,9 @@ func (e *Engine) TranslateMarkdown(src []byte, from, to language.Tag) (ret []byt
 
 		return ast.WalkContinue, nil
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	// Translate
 	// toBeTranslatedStr := strings.Join(translationVec, fmt.Sprintf("\n%s\n", translationSep))

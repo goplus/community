@@ -79,7 +79,10 @@ func (c *Community) GetMediaUrl(ctx context.Context, mediaId string) (string, er
 	}
 	row := c.db.QueryRow(`select file_key from file where id = ?`, ID)
 	var fileKey string
-	row.Scan(&fileKey)
+	err = row.Scan(&fileKey)
+	if err != nil {
+		return "", err
+	}
 
 	return fileKey, nil
 }
@@ -113,9 +116,11 @@ func (c *Community) SaveMedia(ctx context.Context, userId string, data []byte) (
 
 // for internal use,no need to add ctx
 func (c *Community) getMediaInfo(fileKey string) (*File, error) {
-
 	bucket := c.bucket
 	r, err := bucket.NewReader(context.Background(), fileKey, nil)
+	if err != nil {
+		return nil, err
+	}
 	defer r.Close()
 
 	if err != nil {
@@ -149,9 +154,14 @@ func UploadFile(ctx *yap.Context, community *Community) {
 	xLog := xlog.New("")
 	file, header, err := ctx.FormFile("file")
 	filename := header.Filename
-	ctx.ParseMultipartForm(10 << 20)
 	if err != nil {
 		xLog.Error("upload file error:", filename)
+		ctx.JSON(500, err.Error())
+		return
+	}
+	err = ctx.ParseMultipartForm(10 << 20)
+	if err != nil {
+		xLog.Error("parse request body error:", filename)
 		ctx.JSON(500, err.Error())
 		return
 	}
