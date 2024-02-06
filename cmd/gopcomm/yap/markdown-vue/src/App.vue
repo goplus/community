@@ -1,19 +1,19 @@
 <script setup>
-// import MarkdownViewer, {MarkdownEditor} from './components/Cherry.vue';
+import GoplusMarkdown from './components/MyCom1.vue';
 // import Try from './components/try.vue'
 
 // import communityEditor from '../my_com/try'
 // import communityEditor from '../dist/cherry'
-import { ConsoleSqlOutlined } from '@ant-design/icons-vue';
+// import { ConsoleSqlOutlined } from '@ant-design/icons-vue';
 
-import MarkdownViewer, { MarkdownEditor } from '../dist_new/GoplusMarkdown';
-import '../dist_new/style.css'
+// import MarkdownViewer, { MarkdownEditor } from '../dist_new/GoplusMarkdown';
+// import '../dist_new/style.css'
 </script>
 
 
 
 <template>
-    <MarkdownViewer></MarkdownViewer>
+    <goplus-markdown></goplus-markdown>
     <!-- <Try></Try> -->
     <!-- <my-com /> -->
 
@@ -23,7 +23,7 @@ import '../dist_new/style.css'
 
 <script>
 
-console.log(MarkdownEditor)
+// console.log(MarkdownEditor)
 // console.log(MarkdownEditor.getMarkdown())
     
 </script>

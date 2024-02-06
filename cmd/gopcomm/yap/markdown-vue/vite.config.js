@@ -1,8 +1,6 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
-import Antd from 'ant-design-vue';
-
 
 export default defineConfig({
   plugins: [
@@ -29,9 +27,10 @@ export default defineConfig({
       output: {
         globals: {
           vue: "Vue",
-          Antd: "Antd"
+          // "vue-demi": "VueDemi",
+          // Antd: "Antd"
         },
-        dir: "dist_new",
+        dir: "dist_new_test2",
       },
     },
     // lib: {
@@ -40,7 +39,8 @@ export default defineConfig({
     //   fileName: 'try'
     // },
     lib: {
-      entry: 'src/components/Cherry.vue',
+      // entry: 'src/components/MarkdownEngine.vue',
+      entry: 'lib/lib.js',
       name: 'GoplusMarkdown',
       fileName: 'GoplusMarkdown'
     }

@@ -10,6 +10,6 @@ import 'ant-design-vue/dist/reset.css';
 // import { MyCom } from "../mycom";
  
 // console.log(MyCom1)
-
-createApp(App).use(Antd).mount('#app')
+// .use(Antd)
+createApp(App).mount('#app')
 
