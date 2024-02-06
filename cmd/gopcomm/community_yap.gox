@@ -59,14 +59,14 @@ get "/p/:id", ctx => {
 	var user *core.User
 	token, err := core.GetToken(ctx)
 	if err == nil {
-		user, err = community.getUser(token.Value)
+		user, err = community.GetUser(token.Value)
 		if err != nil {
 			xLog.Error("get user error:", err)
 		}
 	}
 
 	id := ctx.param("id")
-	article, _ := community.article(todo, id)
+	article, _ := community.Article(todo, id)
 	ctx.yap "article", {
 		"User":    user,
 		"ID":      id,
@@ -82,7 +82,7 @@ get "/p/:id", ctx => {
 
 get "/getArticle/:id", ctx => {
 	id := ctx.param("id")
-	article, _ := community.article(todo, id)
+	article, _ := community.Article(todo, id)
 	ctx.json {
 		"code": 200,
 		"data": article,
@@ -92,7 +92,7 @@ get "/getArticle/:id", ctx => {
 get "/user/:id", ctx => {
 	id := ctx.param("id")
 	// Get current User Info by id
-	userClaim, err := community.getUserClaim(id)
+	userClaim, err := community.GetUserClaim(id)
 	if err != nil {
 		xLog.Error("get current user error:", err)
 	}
@@ -101,7 +101,7 @@ get "/user/:id", ctx => {
 	var user *core.User
 	token, err := core.GetToken(ctx)
 	if err == nil {
-		user, err = community.getUser(token.Value)
+		user, err = community.GetUser(token.Value)
 		if err != nil {
 			xLog.Error("get user error:", err)
 		}
@@ -133,7 +133,49 @@ get "/delete", ctx => {
 			"err":  err.Error(),
 		}
 	}
-	err = community.deleteArticle(todo, uid, id)
+	err = community.DeleteArticle(todo, uid, id)
+	if err != nil {
+		ctx.json {
+			"code": 0,
+			"err":  "delete failed",
+		}
+	} else {
+		ctx.json {
+			"code": 200,
+			"msg":  "delete success",
+		}
+	}
+}
+
+get "/medias", ctx => {
+	format := ctx.param("format")
+	uid := ctx.param("uid")
+	files, err :=community.ListMediaByUserId(todo, uid, format)
+	if err != nil {
+		ctx.json {
+			"code": 0,
+			"err":  "get media failed",
+		}
+	} else {
+		ctx.json {
+			"code": 200,
+			"items": files,
+		}
+	}
+}
+
+get "/delMedia", ctx =>{
+	id := ctx.param("id")
+	token, err := core.GetToken(ctx)
+	uid, err := community.ParseJwtToken(token.Value)
+	if err != nil {
+		xLog.Error("token parse error")
+		ctx.json {
+			"code": 0,
+			"err":  err.Error(),
+		}
+	}
+	err = community.DelMedia(todo, uid, id)
 	if err != nil {
 		ctx.json {
 			"code": 0,
@@ -152,13 +194,13 @@ get "/", ctx => {
 	var user *core.User
 	token, err := core.GetToken(ctx)
 	if err == nil {
-		user, err = community.getUser(token.Value)
+		user, err = community.GetUser(token.Value)
 		if err != nil {
 			xLog.Error("get user error:", err)
 		}
 	}
 	// Get Article Info
-	articles, next, _ := community.listArticle(todo, core.MarkBegin, limitConst, "")
+	articles, next, _ := community.ListArticle(todo, core.MarkBegin, limitConst, "")
 	articlesJson, _ := json.Marshal(&articles)
 	ctx.yap "home", {
 		"User":      user,
@@ -177,8 +219,7 @@ get "/get", ctx => {
 		limitInt = limitConst
 	}
 	// Get Article Info
-	articles, next, _ := community.listArticle(todo, from, limitInt, searchValue)
-	// articles, total, _ := community.articles(todo, page, limitInt, "")
+	articles, next, _ := community.ListArticle(todo, from, limitInt, searchValue)
 	ctx.json {
 		"code": 	200,
 		"items":    articles,
@@ -200,13 +241,13 @@ get "/search", ctx => {
 	var user *core.User
 	token, err := core.GetToken(ctx)
 	if err == nil {
-		user, err = community.getUser(token.Value)
+		user, err = community.GetUser(token.Value)
 		if err != nil {
 			xLog.Error("get user error:", err)
 		}
 	}
 
-	articles, next, _ := community.listArticle(todo, core.MarkBegin, limitConst, searchValue)
+	articles, next, _ := community.ListArticle(todo, core.MarkBegin, limitConst, searchValue)
 	articlesJson, _ := json.Marshal(&articles)
 	ctx.yap "home", {
 		"User":      user,
@@ -235,18 +276,18 @@ get "/edit/:id", ctx => {
 	// uid := "70f6a615-c0d5-4315-a5ac-34ca845450ed"
 	id := ctx.param("id")
 	if id != "" {
-		if editable, _ := community.canEditable(todo, uid, id); !editable {
+		if editable, _ := community.CanEditable(todo, uid, id); !editable {
 			xLog.Error("no permissions")
 			http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
 		}
-		article, _ := community.article(todo, id)
+		article, _ := community.Article(todo, id)
 		ctx.yap "edit", article
 	}
 }
 
 get "/getTrans", ctx => {
 	id := ctx.param("id")
-	htmlUrl, err := community.transHtmlUrl(todo, id)
+	htmlUrl, err := community.TransHtmlUrl(todo, id)
 	if err != nil {
 		ctx.json {
 			"code": 500,
@@ -295,7 +336,7 @@ post "/commit", ctx => {
 		Content:  mdData,
 		HtmlData: htmlData,
 	}
-	id, _ = community.putArticle(todo, uid, trans, article)
+	id, _ = community.PutArticle(todo, uid, trans, article)
 	ctx.json {
 		"code": 200,
 		"data": id,
@@ -332,7 +373,7 @@ post "/translate", ctx => {
 			"err":  err.Error(),
 		}
 	}
-	id, _ = community.saveHtml(todo, uid, htmlData, mdData, id)
+	id, _ = community.SaveHtml(todo, uid, htmlData, mdData, id)
 	ctx.json {
 		"code": 200,
 		"id":   id,        //article id

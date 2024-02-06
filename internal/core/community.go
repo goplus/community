@@ -381,7 +381,7 @@ func (p *Community) ListArticle(ctx context.Context, from string, limit int, sea
 	if err != nil {
 		return []*ArticleEntry{}, from, err
 	}
-	
+
 	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover from article where title like ? order by ctime desc limit ? offset ?"
 	rows, err := p.db.Query(sqlStr, "%"+searchValue+"%", limit, fromInt)
 	if err != nil {
