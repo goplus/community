@@ -297,7 +297,7 @@ type SimpleWebVTTContent struct {
 // 1
 // 00:00:09.500 --> 00:00:12.000
 // The ocean floor rises 5 miles to the shores
-func NewSimpleWebVTT(reader io.Reader) SimpleWebVTT {
+func NewSimpleWebVTT(reader io.Reader) (SimpleWebVTT, error) {
 	var simpleWebVTT SimpleWebVTT
 	var scanner = bufio.NewScanner(reader)
 	var line string
@@ -330,7 +330,7 @@ func NewSimpleWebVTT(reader io.Reader) SimpleWebVTT {
 			// Read index
 			index, err := strconv.Atoi(fs[0])
 			if err != nil {
-				continue
+				return simpleWebVTT, err
 			}
 
 			// Read time
@@ -355,7 +355,7 @@ func NewSimpleWebVTT(reader io.Reader) SimpleWebVTT {
 		}
 	}
 
-	return simpleWebVTT
+	return simpleWebVTT, nil
 }
 
 // AddContent add content to SimpleWebVTT
