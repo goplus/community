@@ -1,0 +1,31 @@
+{
+  "name": "vue-cherry",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@ant-design/icons-vue": "^7.0.1",
+    "ant-design-vue": "^4.1.1",
+    "axios": "^1.6.5",
+    "cherry-markdown": "^0.8.35",
+    "http-server": "^14.1.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^5.3.3",
+    "vue": "^3.3.11",
+    "vue-meta": "^2.4.0",
+    "vuera": "^0.2.7"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.5.2",
+    "naive-ui": "^2.37.3",
+    "sass": "^1.69.7",
+    "vfonts": "^0.0.3",
+    "vite": "^5.0.8"
+  }
+}

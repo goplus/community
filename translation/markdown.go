@@ -89,7 +89,7 @@ func (e *Engine) TranslateMarkdown(src []byte, from, to language.Tag) (ret []byt
 	translationSeg := make([]text.Segment, 0) // location of text in src
 
 	// Walk through the AST
-	ast.Walk(doc, func(node ast.Node, entering bool) (ast.WalkStatus, error) {
+	err = ast.Walk(doc, func(node ast.Node, entering bool) (ast.WalkStatus, error) {
 		switch n := node.(type) {
 		case *ast.Text:
 			if entering {
@@ -101,6 +101,9 @@ func (e *Engine) TranslateMarkdown(src []byte, from, to language.Tag) (ret []byt
 
 		return ast.WalkContinue, nil
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	// Translate
 	// toBeTranslatedStr := strings.Join(translationVec, fmt.Sprintf("\n%s\n", translationSep))
@@ -142,21 +145,47 @@ func (e *Engine) TranslateMarkdown(src []byte, from, to language.Tag) (ret []byt
 // TranslateMarkdown translate markdown text
 func (e *Engine) TranslateMarkdownText(src string, from, to language.Tag) (ret string, err error) {
 	retByte, err := e.TranslateMarkdown([]byte(src), from, to)
-
 	return string(retByte), err
 }
 
-// TranslateWebVTT translate WebVTT with bytes
-func (e *Engine) TranslateWebVTT(src []byte, from, to language.Tag) (ret []byte, err error) {
+// TranslateWebVTT translate WebVTT
+func (e *Engine) TranslateWebVTT(src *SimpleWebVTT, from, to language.Tag) (err error) {
+	// Prepare translation
+	translationSep := generateSeparator()
+	var translationVec []string
+	for _, content := range src.Content {
+		translationVec = append(translationVec, content.Sentence)
+	}
 
-	return nil, nil
-}
+	var translatedStr string
+	// Judge whether to use batch translate(over 5000 characters)
+	toBeTranslatedStrList := joinWithMaxLength(translationVec, fmt.Sprintf("\n%s\n", translationSep), maxContentLength)
+	fmt.Printf("toBeTranslatedStrList: %#v\n", toBeTranslatedStrList)
+	if len(toBeTranslatedStrList) == 1 {
+		translatedStr, err = e.TranslatePlainText(toBeTranslatedStrList[0], from, to)
+		if err != nil {
+			return err
+		}
+	} else {
+		translatedStrList, err := e.TranslateBatchPlain(toBeTranslatedStrList, from, to)
+		if err != nil {
+			return err
+		}
 
-// TranslateWebVTTText translate WebVTT text
-func (e *Engine) TranslateWebVTTText(src string, from, to language.Tag) (ret string, err error) {
-	retString, err := e.TranslateWebVTT([]byte(src), from, to)
+		translatedStr = strings.Join(translatedStrList, fmt.Sprintf("\n%s\n", translationSep))
+	}
 
-	return string(retString), err
+	// Replace text
+	resultVec := strings.Split(translatedStr, translationSep)
+	if len(resultVec) != len(translationVec) {
+		return ErrTranslationNotMatch
+	}
+
+	for idx := 0; idx < len(src.Content); idx++ {
+		src.Content[idx].Sentence = strings.TrimSpace(resultVec[idx])
+	}
+
+	return nil
 }
 
 // joinWithMaxLength join []string with sep, and make sure the length of joined string is less than maxLen
@@ -200,10 +229,10 @@ func (e *Engine) TranslatePlainText(src string, from, to language.Tag) (ret stri
 	// Get translate result from api server
 	// Request form data
 	formData := url.Values{
-		"from":              {from.String()},
-		"to":                {to.String()},
-		"translationAPIKey": {e.translationAPIKey},
-		"src_text":          {src},
+		"from":     {from.String()},
+		"to":       {to.String()},
+		"apikey":   {e.translationAPIKey},
+		"src_text": {src},
 	}
 
 	var req *http.Request

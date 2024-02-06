@@ -17,12 +17,15 @@
 package translation
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/qiniu/go-sdk/v7/auth"
 	"github.com/qiniu/go-sdk/v7/client"
@@ -206,14 +209,10 @@ func (e *Engine) Text2Audio(content string) (*TTSResponse, error) {
 func (e *Engine) GenerateWebVTTFile(asrTaskData ASRTaskData, path string) error {
 	var buffer bytes.Buffer
 
-	// Write head
-	buffer.WriteString("WEBVTT FILE\n\n")
-
-	// Write content
-	for i, detail := range asrTaskData.Data.SpeechResult.Detail {
-		startTime := formatTime(detail.StartTime)
-		endTime := formatTime(detail.EndTime)
-		buffer.WriteString(fmt.Sprintf("%d\n%s --> %s\n%s\n\n", i+1, startTime, endTime, detail.Sentences))
+	webVTTBuffer := GenerateSimpleWebVTTFileFromASRTaskData(asrTaskData)
+	_, err := webVTTBuffer.ToBuffer().WriteTo(&buffer)
+	if err != nil {
+		return err
 	}
 
 	// Write buffer to file
@@ -236,21 +235,17 @@ func (e *Engine) GenerateWebVTTFileWithTranslation(asrTaskData ASRTaskData, path
 	var buffer bytes.Buffer
 
 	// Write head
-	buffer.WriteString("WEBVTT\n\n")
-
-	// Write content
-	for i, detail := range asrTaskData.Data.SpeechResult.Detail {
-		startTime := formatTime(detail.StartTime)
-		endTime := formatTime(detail.EndTime)
-		buffer.WriteString(fmt.Sprintf("%d\n%s --> %s\n%s\n\n", i+1, startTime, endTime, detail.Sentences))
-	}
+	webVTTBuffer := GenerateSimpleWebVTTFileFromASRTaskData(asrTaskData)
 
 	// Translate buffer
-	translatedBytes, err := e.TranslateWebVTT(buffer.Bytes(), from, to)
+	err := e.TranslateWebVTT(&webVTTBuffer, from, to)
 	if err != nil {
 		return err
 	}
-	buffer = *bytes.NewBuffer(translatedBytes)
+	_, err = webVTTBuffer.ToBuffer().WriteTo(&buffer)
+	if err != nil {
+		return err
+	}
 
 	// Write buffer to file
 	file, err := os.Create(path)
@@ -265,6 +260,141 @@ func (e *Engine) GenerateWebVTTFileWithTranslation(asrTaskData ASRTaskData, path
 	}
 
 	return nil
+}
+
+const (
+	WebVTTFileHead      = "WEBVTT FILE\n\n"
+	WebVTTContentFormat = "%d\n%s --> %s\n%s\n\n"
+)
+
+// SimpleWebVTT is the simple format of WebVTT
+type SimpleWebVTT struct {
+	// Basic format
+	// WEBVTT FILE
+	//
+	// 1
+	// 00:00:09.500 --> 00:00:12.000
+	// The ocean floor rises 5 miles to the shores
+
+	WebVTTFileHead string
+	Content        []SimpleWebVTTContent
+}
+
+// SimpleWebVTTContent is the content of SimpleWebVTT
+type SimpleWebVTTContent struct {
+	Index     int
+	StartTime string
+	EndTime   string
+	Sentence  string
+}
+
+// NewSimpleWebVTT create a new SimpleWebVTT from io.Reader
+//
+// Example:
+// Basic format
+// WEBVTT FILE
+//
+// 1
+// 00:00:09.500 --> 00:00:12.000
+// The ocean floor rises 5 miles to the shores
+func NewSimpleWebVTT(reader io.Reader) SimpleWebVTT {
+	var simpleWebVTT SimpleWebVTT
+	var scanner = bufio.NewScanner(reader)
+	var line string
+	var lineNum int
+
+	// Skip first line
+	for scanner.Scan() {
+		line = scanner.Text()
+		lineNum++
+
+		// Check head
+		if fs := strings.Fields(line); len(fs) > 0 && fs[0] == "WEBVTT" {
+			simpleWebVTT.WebVTTFileHead = WebVTTFileHead
+			break
+		}
+	}
+
+	// Read content
+	for scanner.Scan() {
+		line = scanner.Text()
+		lineNum++
+
+		// Skip empty line
+		if line == "" {
+			continue
+		}
+
+		// Read batch content
+		if fs := strings.Fields(line); len(fs) > 0 {
+			// Read index
+			index, err := strconv.Atoi(fs[0])
+			if err != nil {
+				continue
+			}
+
+			// Read time
+			scanner.Scan()
+			line = scanner.Text()
+			lineNum++
+			fs = strings.Fields(line)
+			if len(fs) < 3 {
+				continue
+			}
+			startTime := fs[0]
+			endTime := fs[2]
+
+			// Read sentence
+			scanner.Scan()
+			line = scanner.Text()
+			lineNum++
+			sentence := line
+
+			// Add content
+			simpleWebVTT.AddContent(index, startTime, endTime, sentence)
+		}
+	}
+
+	return simpleWebVTT
+}
+
+// AddContent add content to SimpleWebVTT
+func (w *SimpleWebVTT) AddContent(index int, startTime, endTime, sentence string) {
+	w.Content = append(w.Content, SimpleWebVTTContent{
+		Index:     index,
+		StartTime: startTime,
+		EndTime:   endTime,
+		Sentence:  sentence,
+	})
+}
+
+// ToBuffer convert SimpleWebVTT to buffer
+func (w *SimpleWebVTT) ToBuffer() *bytes.Buffer {
+	var buffer bytes.Buffer
+	buffer.WriteString(w.WebVTTFileHead)
+	for _, content := range w.Content {
+		buffer.WriteString(fmt.Sprintf(WebVTTContentFormat, content.Index, content.StartTime, content.EndTime, content.Sentence))
+	}
+	return &buffer
+}
+
+// ToString convert SimpleWebVTT to string
+func (w *SimpleWebVTT) ToString() string {
+	return w.ToBuffer().String()
+}
+
+// GenerateSimpleWebVTTFileFromASRTaskData generate simple WebVTT file from ASRTaskData
+func GenerateSimpleWebVTTFileFromASRTaskData(asrTaskData ASRTaskData) SimpleWebVTT {
+	var simpleWebVTT SimpleWebVTT
+	simpleWebVTT.WebVTTFileHead = WebVTTFileHead
+	for i, detail := range asrTaskData.Data.SpeechResult.Detail {
+		startTime := formatTime(detail.StartTime)
+		endTime := formatTime(detail.EndTime)
+
+		// Add content
+		simpleWebVTT.AddContent(i+1, startTime, endTime, detail.Sentences)
+	}
+	return simpleWebVTT
 }
 
 func formatTime(timeInMs string) string {

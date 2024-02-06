@@ -1,13 +1,490 @@
+<!DOCTYPE html>
 <html>
+
 <head>
-<meta charset="utf-8"/>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Go+ Community</title>
+
+    <!-- Share to Twitter -->
+    <meta charset="UTF-8">
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="GoplusCommunity">
+    <meta name="twitter:description" content="GoplusCommunity">
+    <meta name="twitter:image" content="https://public-cdn.mokahr.com/72f7c42e-b069-4e14-9c29-ee20229cc256.png">
+
+    <!-- Share to Facebook -->
+    <meta name="description" content="GoplusCommunity">
+    <meta property="og:title" content="GoplusCommunity">
+    <meta property="og:description" content="GoplusCommunity">
+    <meta property="og:image" content="https://public-cdn.mokahr.com/72f7c42e-b069-4e14-9c29-ee20229cc256.png">
+    
+    <meta property="og:type" content="website">
+
+    <!-- UI -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://unpkg.com/naive-ui"></script>
+
+    <!-- Icon -->
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/bold/style.css" />
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Font -->
+    <link href="https://fonts.cdnfonts.com/css/inter" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.proxy.ustclug.org">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.proxy.ustclug.org/css2?family=Noto+Sans+SC&display=swap" rel="stylesheet">
+    <style type="text/css" media="screen, print">
+        body {
+            font-family: 'Inter', 'Noto Sans SC'
+        }
+    </style>
 
 </head>
-<body>
-<span>Article {{.ID}}</span>
-<h1>{{.Title}}</h1>
-<pre>
-{{.Content}}
-</pre>
+
+<body style="background-color: #f7fafc;">
+    <input style="display:none" id="usertoken" value="{{.usertoken}}" />
+    <!-- Header -->
+    <header class="bg-cover bg-center" style="
+        height: 11vh;
+        background-image: url('/static/img/home-background.png');
+      ">
+        <nav class="border-gray-200 px-4 lg:px-6 py-2.5 dark:bg-gray-800">
+            <div class="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl">
+                <a href="https://github.com/goplus/gop" class="flex items-center">
+                    <img src="https://github.com/goplus/community/assets/47499836/19900f7d-ddbb-495b-b45b-8fd2397394be"
+                        class="mb-2 mr-3 h-6 sm:h-9" alt="Go+ Community Logo" />
+                </a>
+                {{if .User}}
+                <div class="flex items-center lg:order-2">
+                    <button href="/user/{{ .User.Id }}" type="button" style="margin-right: 1rem;"
+                        class="relative flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
+                        id="user-menu-button" aria-expanded="false" aria-haspopup="true">
+                        <span class="absolute -inset-1.5"></span>
+                        <!-- TODO: Add UserAvatar -->
+                        <a href="/user/{{ .User.Id }}">
+                            <img class="h-8 w-8 rounded-full" src="{{ .User.Avatar }}" alt="">
+                        </a>
+                    </button>
+                    <button type="button"
+                        class="text-white hover:text-white border border-white-700 hover:bg-white-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-500 dark:focus:ring-blue-800">
+                        <a href="/add">
+                            Write
+                        </a>
+                    </button>
+                </div>
+                {{else}}
+                <div class="flex items-center lg:order-2">
+                    <button type="button"
+                        class="text-white hover:text-white border border-white-700 hover:bg-white-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-500 dark:focus:ring-blue-800">
+
+                        <a href="http://localhost:8080/login?redirect_url=http://localhost:8080/callback">
+                            Sign in
+                        </a>
+                    </button>
+                </div>
+                {{end}}
+                <div class="hidden justify-between items-center w-1/2 lg:flex lg:w-auto lg:order-1" id="mobile-menu-2">
+                    <form style="width: 500px" action="/search" method="get">
+                        <label for="default-search"
+                            class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">Search</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                                <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                        stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+                                </svg>
+                            </div>
+                            <input type="search" id="default-search" naem="value"
+                                class="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                placeholder="Search..." required />
+                            <button type="submit"
+                                class="text-white absolute end-2.5 bottom-2.5 bg-blue-500 hover:bg-blue-600 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                                Search
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Content -->
+    <n-config-provider :theme-overrides="themeOverrides">
+        <div id="app" class="h-full w-full" style="padding: 10px 30px;">
+            <n-grid x-gap="16" :cols="4">
+                <!-- Left Content -->
+                <n-gi :span="3">
+                    <!-- Breadcrumb -->
+                    <n-breadcrumb>
+                        <n-breadcrumb-item>
+                            <i class="ph-duotone ph-house" style="font-size: 18px; margin-right: 5px;"></i>
+                            Home
+                        </n-breadcrumb-item>
+                        <n-breadcrumb-item>
+                            <i class="ph ph-article-medium" style="font-size: 18px; margin-right: 5px;"></i>
+                            Article
+                        </n-breadcrumb-item>
+                        <n-breadcrumb-item>
+                            <i class="ph ph-article-medium"
+                                style="font-size: 18px; margin-right: -15px; color: transparent;"></i>
+                            <span style="font-weight: 600;">${ article.Title }</span>
+                        </n-breadcrumb-item>
+                    </n-breadcrumb>
+
+                    <!-- Button Group & Article -->
+                    <n-grid x-gap="4" :cols="11" class="mt-3">
+                        <!-- Button Group -->
+                        <!-- TODO: @Shi 固钉 Affix -->
+                        <n-gi :span="1" class="flex flex-col justify-between items-center" style="height: 37vh;">
+                            <!-- TODO: 点赞事件和点赞数 -->
+                            <!-- <n-badge :value="article.likes"> -->
+                            <n-button type="tertiary" style="--n-text-color-hover: #d7266e;
+                                    --n-text-color-pressed: #d7266e;
+                                    --n-text-color-focus: #d7266e;
+                                    --n-ripple-color: #df7ba3;
+                                    --n-border-hover: 1.5px solid #d7266e;
+                                    --n-border-pressed: 1.5px solid #d7266e;
+                                    --n-border-focus: 1.5px solid #d7266e;
+                                    height: 7vh; width: 7vh;
+                                    --n-padding: 0; --n-border-radius: 5px;">
+                                <i class="ph-duotone ph-thumbs-up" style="font-size: 22px;"></i>
+                            </n-button>
+                            <!-- </n-badge> -->
+
+                            <!-- TODO: 评论事件和评论数 -->
+                            <!-- <n-badge :value="article.comments"> -->
+                            <n-button type="tertiary" style="--n-text-color-hover: #2191ad;
+                                    --n-text-color-pressed: #2191ad;
+                                    --n-text-color-focus: #2191ad;
+                                    --n-ripple-color: #66bdd3;
+                                    --n-border-hover: 1.5px solid #2191ad;
+                                    --n-border-pressed: 1.5px solid #2191ad;
+                                    --n-border-focus: 1.5px solid #2191ad;
+                                    height: 7vh; width: 7vh;
+                                    --n-padding: 0; --n-border-radius: 5px;">
+                                <i class="ph-duotone ph-chat-circle-dots" style="font-size: 22px;"></i>
+                            </n-button>
+                            <!-- </n-badge> -->
+
+                            <!-- TODO: 收藏事件和收藏数 -->
+                            <!-- <n-badge :value="article.stars"> -->
+                            <n-button type="tertiary" style="--n-text-color-hover: #e97257;
+                                    --n-text-color-pressed: #e97257;
+                                    --n-text-color-focus: #e97257;
+                                    --n-ripple-color: #e98a74;
+                                    --n-border-hover: 1.5px solid #e97257;
+                                    --n-border-pressed: 1.5px solid #e97257;
+                                    --n-border-focus: 1.5px solid #e97257;
+                                    height: 7vh; width: 7vh;
+                                    --n-padding: 0; --n-border-radius: 5px;">
+                                <i class="ph-duotone ph-star" style="font-size: 22px;"></i>
+                            </n-button>
+                            <!-- </n-badge> -->
+
+                            <!-- Share Button -->
+                            <n-button type="tertiary" style="--n-text-color-hover: #3182ce;
+                                    --n-text-color-pressed: #3182ce;
+                                    --n-text-color-focus: #3182ce;
+                                    --n-ripple-color: #659fd6;
+                                    --n-border-hover: 1.5px solid #3182ce;
+                                    --n-border-pressed: 1.5px solid #3182ce;
+                                    --n-border-focus: 1.5px solid #3182ce;
+                                    height: 7vh; width: 7vh;
+                                    --n-padding: 0; --n-border-radius: 5px;">
+                                <i class="ph-duotone ph-share-network" style="font-size: 22px;"></i>
+                            </n-button>
+                            <!-- </n-badge> -->
+                        </n-gi>
+
+                        <!-- Article -->
+                        <n-gi :span="10" style="border-radius: 10px; background: rgba(255, 255, 255, 1);
+                        box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05); padding: 20px 30px;">
+                            <!-- Tags & Title & Update Time -->
+                            <header class="mb-4 not-format">
+                                <!-- Tags -->
+                                <!-- TODO: 分割为字符数组 -->
+                                <div class="flex flex-row items-center">
+                                    <span
+                                        class="mr-3 inline-flex items-center bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300">
+                                        <span class="w-2 h-2 me-1 bg-blue-500 rounded-full"></span>
+                                        Tag 1
+                                    </span>
+                                    <span
+                                        class="mr-3 inline-flex items-center bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300">
+                                        <span class="w-2 h-2 me-1 bg-blue-500 rounded-full"></span>
+                                        Tag 2
+                                    </span>
+                                    <span
+                                        class="mr-3 inline-flex items-center bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300">
+                                        <span class="w-2 h-2 me-1 bg-blue-500 rounded-full"></span>
+                                        Tag 3
+                                    </span>
+                                </div>
+
+                                <!-- Title -->
+                                <h1 class="my-4 text-4xl font-extrabold leading-tight text-gray-900">
+                                    ${ article.Title }
+                                </h1>
+
+                                <!-- Update Time -->
+                                <address class="flex items-center mb-1">
+                                    <div class="inline-flex items-center text-sm text-gray-900">
+                                        <p class="text-sm" style="color: #a0aec0;">
+                                            <time pubdate>
+                                                Updated on ${ article.Mtime }
+                                            </time>
+                                        </p>
+                                    </div>
+                                </address>
+
+                                <!-- Description -->
+                                <p class="text-gray-500">
+                                    ${ article.Abstract }
+                                </p>
+
+                                <!-- TODO: Cover -->
+                            </header>
+
+                            <!-- Content -->
+                            <n-divider style="margin: 10px 0 18px 0;"></n-divider>
+                            <iframe style="width: 100%;" src="{{ .Content }}"></iframe>
+                            <n-divider style="margin: 18px 0 10px 0;"></n-divider>
+
+                            <!-- Quick Sharing -->
+                            <div class="flex items-center">
+                                <span class="mr-2" style="color: #a0aec0;">Share to</span>
+
+                                <!-- Facebook Button -->
+                                <n-tooltip trigger="hover" placement="bottom">
+                                    <template #trigger>
+                                        <n-button text class="mr-2" style="--n-text-color-hover: #3182ce;
+                                            --n-text-color-pressed: #3182ce;
+                                            --n-text-color-focus: #3182ce;
+                                            --n-text-color: #a0aec0;" @click="shareToFacebook">
+                                            <i class="ph-fill ph-facebook-logo" style="font-size: 20px;"></i>
+                                        </n-button>
+                                    </template>
+                                    Facebook
+                                </n-tooltip>
+
+                                <!-- Twitter Button -->
+                                <n-tooltip trigger="hover" placement="bottom">
+                                    <template #trigger>
+                                        <n-button text class="mr-2" style="--n-text-color-hover: #3182ce;
+                                            --n-text-color-pressed: #3182ce;
+                                            --n-text-color-focus: #3182ce;
+                                            --n-text-color: #a0aec0;" @click="shareToTwitter">
+                                            <i class="ph-fill ph-twitter-logo" style="font-size: 20px;"></i>
+                                        </n-button>
+                                    </template>
+                                    Twitter / X
+                                </n-tooltip>
+
+                                <!-- WeChat Button -->
+                                <n-tooltip trigger="hover" placement="bottom">
+                                    <template #trigger>
+                                        <n-button text class="mr-2" style="--n-text-color-hover: #3182ce;
+                                            --n-text-color-pressed: #3182ce;
+                                            --n-text-color-focus: #3182ce;
+                                            --n-text-color: #a0aec0;">
+                                            <i class="ph-fill ph-wechat-logo" style="font-size: 20px;"></i>
+                                        </n-button>
+                                    </template>
+                                    <n-space vertical>
+                                        <n-qr-code :value="currentHref" />
+                                    </n-space>
+                                    Scan qrcode to share on WeChat
+                                </n-tooltip>
+                            </div>
+                        </n-gi>
+                    </n-grid>
+                </n-gi>
+
+                <!-- Right Content -->
+                <n-gi :span="1" class="h-full w-full justify-center items-center">
+                    <!-- Creator Profile -->
+                    <div class="creator-info">
+                        <!-- Avatar & Nick Name -->
+                        <div class="flex flex-row items-center">
+                            <!-- Avatar -->
+                            <a href="/user/${ author.Id }">
+                                <img class="w-12 h-12 rounded-full ml-3 mr-2" src="author.Avatar"
+                                    alt="Rounded avatar">
+                            </a>
+
+                            <!-- Nick Name -->
+                            <div>
+                                <span class="creator-name">${ author.Name }<br></span>
+                                <span class="creator-desc">GoPlus Developer</span>
+                            </div>
+                        </div>
+
+                        <!-- Creator Info -->
+                        <div class="m-4 flex flex-row items-center justify-between">
+                            <div class="text-center">
+                                <span class="creator-dataname">Blogs<br></span>
+                                <span class="creator-data">18</span>
+                            </div>
+                            <div class="text-center">
+                                <span class="creator-dataname">Views<br></span>
+                                <span class="creator-data">1.3k</span>
+                            </div>
+                            <div class="text-center">
+                                <span class="creator-dataname">Likes<br></span>
+                                <span class="creator-data">279</span>
+                            </div>
+                            <div class="text-center">
+                                <span class="creator-dataname">Followers<br></span>
+                                <span class="creator-data">161</span>
+                            </div>
+                        </div>
+
+                        <!-- Follow Button -->
+                        <button class="mt-1 relative inline-flex items-center justify-center p-0.5 overflow-hidden 
+                font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-cyan-500 to-blue-500 
+                group-hover:from-cyan-500 group-hover:to-blue-500 hover:text-white dark:text-white 
+                focus:ring-4 focus:outline-none focus:ring-cyan-200 dark:focus:ring-cyan-800 
+                left-1/2 transform -translate-x-1/2" style="width: 70%;">
+                            <span style="width: 100%;"
+                                class="relative px-5 py-1 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
+                                + Follow
+                            </span>
+                        </button>
+                    </div>
+
+                    <!-- Article Catalogue -->
+                    <div class="article-catalogue">
+                        TODO: 文章目录 Anchor
+                    </div>
+
+                    <!-- Article Catalogue -->
+                    <div class="article-catalogue">
+                        TODO: 其他文章
+                    </div>
+                </n-gi>
+            </n-grid>
+
+            <!-- TODO: 回到顶部 Back Top -->
+        </div>
+
+        <script>
+            const { reactive, toRefs, ref, h } = Vue;
+
+            /*======= current article's info =======*/
+            // TODO: @Bai const article = JSON.parse("{{.}}");
+            const article = ref({
+                Title: 'This is default title!',
+                Mtime: '2024-01-01',
+                Abstract: 'This is default abstract! This is default abstract! This is default abstract! This is default abstract!',
+            });
+
+            // TODO: @Bai const author = JSON.parse("{{.}}");
+            const author = ref({
+                Id: 123,
+                Avatar: '',
+                Name: 'Nick_1977',
+            })
+            const currentHref = ref(window.location.href)
+
+            /*======= share related functions =======*/
+            function shareToFacebook() {
+                var w = 900;
+                var h = 600;
+                wLeft = window.screenLeft ? window.screenLeft : window.screenX;
+                wTop = window.screenTop ? window.screenTop : window.screenY;
+                var left = wLeft + (window.innerWidth / 2) - (w / 2);
+                var top = wTop + (window.innerHeight / 2) - (h / 2);
+                var url = window.location.href;
+                var shareUrl = "http://www.facebook.com/sharer/sharer.php?u="+url;
+                var title = 'facebook';
+
+                window.open(shareUrl, title, 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=' + w + ', height=' + h + ', top=' + top + ', left=' + left);
+            };
+
+            function shareToTwitter() {
+                // var url = encodeURIComponent('http://8.130.26.238/animation/fb.html');
+                // var text = encodeURIComponent('Linz');
+                var url = window.location.href;
+                var hashtags = "Test";
+                var intentUrl = "https://twitter.com/intent/tweet?url=" + encodeURIComponent(url)
+                    +"&hashtags=" + encodeURIComponent(hashtags);
+                // var shareUrl = 'https://twitter.com/intent/tweet?text=' + text + '&url=' + url;
+                window.open(intentUrl, "_blank", "width=900, height=600");
+            };
+
+            /*======= register vue component =======*/
+            const app = Vue.createApp({
+                data() {
+                    return {
+                        article,
+                        author,
+                        currentHref
+                    }
+                },
+                methods: {
+                    shareToFacebook,
+                    shareToTwitter,
+                }
+            });
+
+            app.use(naive)
+            app.config.compilerOptions.delimiters = ['${', '}']
+            app.mount('#app')
+        </script>
+    </n-config-provider>
 </body>
+
 </html>
+
+<style>
+    a:hover {
+        color: #3182ce;
+    }
+
+    .n-breadcrumb-item__link {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .creator-info {
+        padding: 20px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 1);
+        box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05);
+    }
+
+    .creator-name {
+        font-size: 17px;
+        margin-left: 10px;
+        font-weight: 600;
+    }
+
+    .creator-desc {
+        font-size: 13px;
+        color: #a0aec0;
+        margin-left: 10px;
+    }
+
+    .creator-dataname {
+        font-size: 13px;
+        color: #a0aec0;
+    }
+
+    .creator-data {
+        font-size: 15px;
+    }
+
+    .article-catalogue {
+        height: 55vh;
+        margin: 15px 0 0 0;
+        padding: 20px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 1);
+        box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05);
+    }
+</style>
