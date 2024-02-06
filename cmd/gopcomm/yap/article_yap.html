@@ -405,11 +405,26 @@
                 window.open(shareUrl, title, 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=' + w + ', height=' + h + ', top=' + top + ', left=' + left);
             };
 
+            editMetaUrl()
+            function editMetaUrl(){
+                // Get the URL of the current page
+                var currentUrl = window.location.href;
+
+                // Find the og: URL attribute in the<meta>tag
+                var ogUrlMeta = document.querySelector('meta[property="og:url"]');
+
+                // If the<meta>tag is found and the og: URL attribute exists
+                if (ogUrlMeta) {
+                    // Set the content of the og: URL attribute to the URL of the current page
+                    ogUrlMeta.setAttribute('content', currentUrl);
+                }
+            }
+
             function shareToTwitter() {
                 // var url = encodeURIComponent('http://8.130.26.238/animation/fb.html');
                 // var text = encodeURIComponent('Linz');
                 var url = window.location.href;
-                var hashtags = "Test";
+                var hashtags = "GoplusComminty";
                 var intentUrl = "https://twitter.com/intent/tweet?url=" + encodeURIComponent(url)
                     +"&hashtags=" + encodeURIComponent(hashtags);
                 // var shareUrl = 'https://twitter.com/intent/tweet?text=' + text + '&url=' + url;
