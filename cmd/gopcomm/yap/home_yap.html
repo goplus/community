@@ -45,19 +45,19 @@
                         </a>
 
                         <!-- Search -->
-                        <form style="width: 30%;" action="/search" method="get">
+                        <div style="width: 30%;">
                             <n-input-group>
-                                <!-- TODO: @Bai 搜索 -->
-                                <n-input v-model="{{.Value}}" round :style="{ width: '80%' }" 
+                                <n-input v-model:value="searchValue" round :style="{ width: '80%' }"
                                     placeholder="Explore Community" clearable size="large"
                                     style="--n-caret-color: #3182ce; --n-border-hover: 1px solid white;
                                     --n-border-focus: 1px solid white; --n-box-shadow-focus: 0 0 0 1px white;"
+                                    @keypress.enter="handleSearch"
                                 >
                                     <template #prefix>
                                         <i class="ph-bold ph-magnifying-glass" style="color: #3182ce; font-size: 15px;"></i>
                                     </template>
                                 </n-input>
-                                <n-button round strong text-color="white" @click="search" size="large"
+                                <n-button round strong text-color="white" @click="handleSearch" size="large"
                                     style="--n-ripple-color: #bfdbf7; --n-border: 1px solid white;
                                     --n-border-hover: 1px solid #dfebf7;
                                     --n-border-pressed: 1px solid #bfdbf7;
@@ -65,7 +65,7 @@
                                     Search
                                 </n-button>
                             </n-input-group>
-                        </form>
+                        </div>
 
                         <!-- Account -->
                         <div style="width: 35%;" class="flex justify-end">
@@ -233,7 +233,7 @@
 
             /*======= user related =======*/
             function signIn() {
-                window.location.href = '/login?redirect_url=/callback';
+                window.location.href = '/login';
             };
 
             function writeArticle() {
@@ -254,12 +254,14 @@
                     key: "exit"
                 }
             ];
-
+            
             function selectDropdown(key) {
                 if (key === 'profile') {
-                    window.location.href = '/user/{{ .User.Id }}';
+                    if ("{{.UserId}}" !== ""){
+                        window.location.href = '/user/{{ .UserId }}';
+                    }
                 } else if (key === 'exit') {
-                    // TODO: 退出登录
+                    window.location.href = '/logout';
                 }
             };
 
@@ -267,10 +269,11 @@
             const isBottom = ref(true);
 
             const articleList = ref(JSON.parse("{{.Items}}"));
-            console.log(articleList)
 
             const next = ref("{{.Next}}"); // the page size
             const haveMoreData = next.value === "eof" ? ref(false) : ref(true);
+
+            const searchValue = ref("{{.Value}}" || "")
 
             function listenBottom() {
                 let scrollTop = window.scrollY;
@@ -318,6 +321,10 @@
                 }
             };
 
+            function handleSearch(){
+                window.location.href = `/search?value=${searchValue.value}`
+            }
+
             /*======= register vue component =======*/
             const app = Vue.createApp({
                 mounted() {
@@ -331,7 +338,8 @@
                         userOptions,
                         articleList,
                         isBottom,
-                        haveMoreData
+                        haveMoreData,
+                        searchValue
                     }
                 },
                 methods: {
@@ -339,7 +347,8 @@
                     writeArticle,
                     selectDropdown,
                     listenBottom,
-                    loadMore
+                    loadMore,
+                    handleSearch
                 }
             });
 
