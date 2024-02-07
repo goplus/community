@@ -429,6 +429,44 @@ get "/getMediaUrl/:id", ctx => {
 	}
 }
 
+get "/getVideoAndSubtitle/:id", ctx => {
+	id := ctx.param("id")
+	fileKey, err := community.GetMediaUrl(todo, id)
+	m:=make(map[string]string,2)
+	format,err:=community.GetMediaType(todo,id)
+	if err!=nil {
+	ctx.json {
+          "code": 500,
+          "err":  err.Error(),
+             }
+	}
+	if format == "video/mp4" {
+	    subtitle,err:=community.GetVideoSubtitle(todo,id)
+	    if err!=nil{
+	        if err != nil {
+            	ctx.json {
+            		"code": 500,
+            		"err":  err.Error(),
+            		}
+            	}
+            return
+	    }
+        m["subtitle"] = domain+subtitle
+	}
+	htmlUrl := fmt.Sprintf("%s%s", domain, fileKey)
+	if err != nil {
+		ctx.json {
+			"code": 500,
+			"err":  "have no html media",
+		}
+	}
+	m["fileKey"] = htmlUrl
+	ctx.json {
+		"code": 200,
+		"url":  m,
+	}
+}
+
 post "/upload", ctx => {
 	community.UploadFile(ctx)
 }

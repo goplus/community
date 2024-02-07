@@ -536,3 +536,17 @@ func (a *Community) GetAccessToken(code, state string) (token *oauth2.Token, err
 
 	return token, nil
 }
+
+// share count
+func (a *Community) Share(ip, platform, userId, articleId string) {
+	go func(ip, platform, userId, articleId string) {
+		sqlStr := "INSERT INTO share (platform,user_Id,ip,index_key,create_at) values (?,?,?,?,?)"
+		index := ip + platform + articleId
+		_, err := a.db.Exec(sqlStr, platform, userId, ip, index, time.Now())
+		if err != nil {
+			a.xLog.Fatalln(err.Error())
+			return
+		}
+		a.xLog.Printf("user: %s, ip: %s, share to platform: %s, articleId: %s", userId, ip, platform, articleId)
+	}(ip, platform, userId, articleId)
+}
