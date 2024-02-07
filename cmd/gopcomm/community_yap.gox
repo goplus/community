@@ -50,6 +50,10 @@ get "/demo", ctx => {
 	ctx.yap "demo", {}
 }
 
+get "/signin", ctx => {
+	ctx.yap "signin", {}
+}
+
 get "/p/:id", ctx => {
 	// todo middleware
 	// Get User Info
