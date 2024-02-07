@@ -162,7 +162,6 @@ func (c *Community) UploadFile(ctx *yap.Context) {
 		ctx.JSON(500, err.Error())
 		return
 	}
-
 	filename := header.Filename
 	err = ctx.ParseMultipartForm(10 << 20)
 	if err != nil {

@@ -33,8 +33,18 @@
 
     <n-config-provider>
         <div id="app" class="h-full w-full">
+            <n-breadcrumb style="margin: 10px 20px;">
+                <n-breadcrumb-item>
+                    <a href="/"><i class="ph-duotone ph-house" style="font-size: 18px; margin-right: 5px;"></i>
+                    Home</a>
+                </n-breadcrumb-item>
+                <n-breadcrumb-item>
+                    <a href="/user/{{.User.Id}}"><i class="ph ph-user" style="font-size: 18px; margin-right: 5px;"></i>
+                    User</a>
+                </n-breadcrumb-item>
+            </n-breadcrumb> 
             <!-- Personal Profile -->
-            <n-grid :x-gap="12" :cols="7" style="height: 20vh; padding: 0 20px;">
+            <n-grid :x-gap="12" :cols="7" style="padding: 0 20px;">
                 <!-- TODO: bug  Avatar -->
                 <n-gi :span="1" class="flex justify-center items-center">
                     <n-avatar round :size="100" :src="CurrentUser.avatar"></n-avatar>
