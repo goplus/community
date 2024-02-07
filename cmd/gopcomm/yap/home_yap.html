@@ -160,11 +160,13 @@
                             </div>
 
                             <!-- Tags -->
-                            <div class="flex flex-row items-center">
-                                <i class="ph-duotone ph-hash" style="color: #3182ce; font-size: 17px;"></i>
-                                <p class="text-sm ml-1 hover:text-blue-600">
-                                    ${ item.Tags }
-                                </p>
+                            <div class="flex flex-row items-center" v-for="(tag, i) in item.Tags.split(';')">
+                                <div>
+                                    <i class="ph-duotone ph-hash" style="color: #3182ce; font-size: 17px;"></i>
+                                    <a class="text-sm ml-1 hover:text-blue-600" :href="'/search?value=' + tag">
+                                        ${ tag }
+                                    </a>
+                                </div>
                             </div>
 
                             <!-- Description -->
@@ -172,23 +174,21 @@
                                 ${ item.Abstract }
                             </p>
 
-                            {{if .User}}
                             <!-- Avatar & Nick Name & Update Time -->
                             <div class="flex items-center absolute bottom-4">
-                                <a class="flex items-center" href="/user/{{.User.Id}}">
+                                <a class="flex items-center" :href="'/user/' + item.User.Id">
                                     <!-- Avatar -->
-                                    <n-avatar class="mr-2" round :size="25" src="{{.User.Avatar}}"></n-avatar>
+                                    <n-avatar class="mr-2" round :size="25" :src="item.User.Avatar"></n-avatar>
 
                                     <!-- Nick Name -->
-                                    <p class="text-sm font-medium mr-1 text-black">{{ .User.Name }}</p>
+                                    <p class="text-sm font-medium mr-1 text-black">${ item.User.Name }</p>
                                 </a>
 
                                 <!-- Update Time -->
                                 <span class="text-xs" style="color: #A0AEC0;">
-                                    · ${ item.Ctime }
+                                    · ${ item.Ctime.slice(0,10) }
                                 </span>
                             </div>
-                            {{end}}
                         </div>
 
                         <!-- right part -->
@@ -322,7 +322,9 @@
             };
 
             function handleSearch(){
-                window.location.href = `/search?value=${searchValue.value}`
+                if( searchValue !== ""){
+                    window.location.href = `/search?value=${searchValue.value}`
+                }
             }
 
             /*======= register vue component =======*/
