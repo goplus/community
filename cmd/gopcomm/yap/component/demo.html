@@ -6,7 +6,8 @@
 </head>
 <body>
     <div id="app">
-        <goplus-markdown></goplus-markdown>
+      <!-- <markdown-editor></markdown-editor> -->
+      <markdown-viewer md="```gop ```"></markdown-viewer>
     </div>
 </body>
 <script src="https://cdn.plyr.io/3.6.8/plyr.js"></script>
@@ -22,9 +23,8 @@
    
 
 <script type="module">
-    import GoplusMarkdown, {MarkdownEditor} from './GoplusMarkdown.js'; // vue组件与编辑组件
-    import {MarkdownViewer} from './MarkdownEngine.js';    //展示组件
-
+    import {MarkdownEditor, MarkdownViewer} from './GoplusMarkdown.js'; // vue组件与编辑组件
+    console.log(MarkdownEditor)
     const { createApp } = Vue
     
     createApp({
@@ -34,7 +34,8 @@
         }
       },
       components: {
-        GoplusMarkdown: GoplusMarkdown
+        MarkdownEditor: MarkdownEditor,
+        MarkdownViewer: MarkdownViewer
       }
     }).mount('#app')
 

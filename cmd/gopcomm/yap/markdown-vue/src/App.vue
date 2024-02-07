@@ -1,31 +1,20 @@
 <script setup>
-import GoplusMarkdown from './components/MyCom1.vue';
-// import Try from './components/try.vue'
+import MarkdownEditor from './components/MarkdownEditor.vue';
+import MarkdownViewer from './components/MarkdownViewer.vue';
 
-// import communityEditor from '../my_com/try'
-// import communityEditor from '../dist/cherry'
-// import { ConsoleSqlOutlined } from '@ant-design/icons-vue';
-
-// import MarkdownViewer, { MarkdownEditor } from '../dist_new/GoplusMarkdown';
-// import '../dist_new/style.css'
 </script>
 
 
 
 <template>
-    <goplus-markdown></goplus-markdown>
-    <!-- <Try></Try> -->
-    <!-- <my-com /> -->
-
-    <!-- <communityEditor /> -->
+    <markdown-editor></markdown-editor>
+    <markdown-viewer md="#Hello"></markdown-viewer>
 </template>
 
 
 <script>
+// console.log(MarkdownViewer.methods.convertMdToHtml("!video[video/mp4](https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4)"))
 
-// console.log(MarkdownEditor)
-// console.log(MarkdownEditor.getMarkdown())
-    
 </script>
 
 <style scoped>

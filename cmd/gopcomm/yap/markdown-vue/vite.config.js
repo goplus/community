@@ -30,7 +30,7 @@ export default defineConfig({
           // "vue-demi": "VueDemi",
           // Antd: "Antd"
         },
-        dir: "dist_new_test2",
+        dir: "dist_part",
       },
     },
     // lib: {
