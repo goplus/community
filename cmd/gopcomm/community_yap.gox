@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"net/url"
 
 	"github.com/goplus/community/internal/core"
 	"github.com/goplus/community/markdown"
@@ -192,17 +193,21 @@ get "/delMedia", ctx =>{
 get "/", ctx => {
 	// Get User Info
 	var user *core.User
+	userId := ""
 	token, err := core.GetToken(ctx)
 	if err == nil {
 		user, err = community.GetUser(token.Value)
 		if err != nil {
 			xLog.Error("get user error:", err)
+		}else{
+			userId = user.Id
 		}
 	}
 	// Get Article Info
 	articles, next, _ := community.ListArticle(todo, core.MarkBegin, limitConst, "")
 	articlesJson, _ := json.Marshal(&articles)
 	ctx.yap "home", {
+		"UserId":	 userId,
 		"User":      user,
 		"Items":     strings.Replace(string(articlesJson), `\"`, `"`, -1),
 		"Next": 	 next,
@@ -239,17 +244,21 @@ get "/search", ctx => {
 
 	// todo middleware
 	var user *core.User
+	userId := ""
 	token, err := core.GetToken(ctx)
 	if err == nil {
 		user, err = community.GetUser(token.Value)
 		if err != nil {
 			xLog.Error("get user error:", err)
+		}else{
+			userId = user.Id
 		}
 	}
 
 	articles, next, _ := community.ListArticle(todo, core.MarkBegin, limitConst, searchValue)
 	articlesJson, _ := json.Marshal(&articles)
 	ctx.yap "home", {
+		"UserId":	 userId,
 		"User":      user,
 		"Items":     strings.Replace(string(articlesJson), `\"`, `"`, -1),
 		"Value":     searchValue,
@@ -414,7 +423,19 @@ get "/login", ctx => {
 	// redirectURL := ctx.URL.Query().Get("redirect_url")
 	// Get current request page URL from 
 	// Concatenate the current request page URL from refer
-	redirectURL := fmt.Sprintf("%s/%s", ctx.Request.Referer(), "callback")
+	xLog.Info("ctx.Request.Referer()",ctx.Request.Referer())
+	refererURL, err := url.Parse(ctx.Request.Referer())
+	if err != nil {
+		xLog.Info("Error parsing Referer: %v", err)
+		return
+	}
+
+	refererPath := refererURL.Path
+	if refererURL.RawQuery != "" {
+		refererPath = fmt.Sprintf("%s?%s",refererURL.Path, refererURL.RawQuery)
+	}
+
+	redirectURL := fmt.Sprintf("%s://%s/%s?origin_path=%s",refererURL.Scheme, refererURL.Host, "callback", url.QueryEscape(refererPath))
 
 	loginURL := community.RedirectToCasdoor(redirectURL)
 	ctx.Redirect loginURL, http.StatusFound
@@ -427,19 +448,37 @@ get "/logout", ctx => {
 		xLog.Error("remove token error:", err)
 	}
 
-	// Redirect to home page
-	http.Redirect(ctx.ResponseWriter, ctx.Request, fmt.Sprintf("/"), http.StatusFound)
+	refererURL, err := url.Parse(ctx.Request.Referer())
+	if err != nil {
+		xLog.Info("Error parsing Referer: %v", err)
+		return
+	}
+
+	refererPath := refererURL.Path
+	if refererURL.RawQuery != "" {
+		refererPath = fmt.Sprintf("%s?%s",refererURL.Path, refererURL.RawQuery)
+	}
+
+	http.Redirect(ctx.ResponseWriter, ctx.Request, refererPath, http.StatusFound)
 }
 
 get "/callback", ctx => {
+	xLog.Info("ctx.URL",ctx.URL)
 	err := core.SetToken(ctx)
 	if err != nil {
 		xLog.Error("set token error:", err)
 	}
+	// TODO can not get origin_path, because of casdoor
+	origin_path := ctx.URL.Query().Get("origin_path")
+	unurl, err := url.QueryUnescape(origin_path)
+	if err != nil {
+		xLog.Info("Unurlerror",err)
+		unurl = "/"
+	}
 
 	// Redirect to home page
 	// TODO: Get redirect URL from state
-	http.Redirect(ctx.ResponseWriter, ctx.Request, fmt.Sprintf("/"), http.StatusFound)
+	http.Redirect(ctx.ResponseWriter, ctx.Request, unurl, http.StatusFound)
 }
 
 conf := &core.Config{}
