@@ -1,21 +1,22 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/goplus/community/internal/core"
+	"github.com/goplus/community/translation"
+	"github.com/goplus/yap"
+	_ "github.com/joho/godotenv/autoload"
+	"github.com/qiniu/x/xlog"
+	"golang.org/x/text/language"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
-	"github.com/goplus/yap"
-	"context"
-	"encoding/json"
-	"net/http"
-	"github.com/goplus/community/internal/core"
-	"github.com/goplus/community/translation"
-	"golang.org/x/text/language"
-	_ "github.com/joho/godotenv/autoload"
-	"github.com/qiniu/x/xlog"
 )
 
+const _ = true
 const (
 	layoutUS   = "January 2, 2006"
 	limitConst = 10
@@ -523,5 +524,6 @@ func (this *community) MainEntry() {
 	})
 }
 func main() {
+//line cmd/gopcomm/community_yap.gox:458:1
 	yap.Gopt_App_Main(new(community))
 }
