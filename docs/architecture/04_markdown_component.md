@@ -4,6 +4,8 @@
 
 The markdown module uses cherry-markdown to implement a markdown online editor, with an editing area on the left and a preview area on the right. Added highlighting for go+ languages.
 
+We export the markdown module with the UMD format, which can be used as a UI component in the browser.
+
 ## Module scope
 
 Module outputs user-edited markdown text, and inputs existing user markdown text.
@@ -14,61 +16,82 @@ None.
 
 ## Module Interface
 
-Provides details of the module's public interface, including function names, parameters, return values and possible errors.
+Provides a markdown editor and a markdown viewer. Use the markdown editor to edit markdown text, and use the markdown viewer to preview the markdown text as HTML.
+
 ```js
-submit_markdown () {
+import {MarkdownEditor, MarkdownViewer} from './GoplusMarkdown.js';
+
+const { createApp } = Vue
+
+createApp({
+  data() {
     return {
-        FormData {
-            title : String,
-            content: String,
-            content: String, trans.
-        }
+      message: 'Hello Goplus Markdown!'
     }
-}
+  },
+  components: {
+    MarkdownEditor: MarkdownEditor,
+    MarkdownViewer: MarkdownViewer
+  }
+}).mount('#app')
 ```
 
 ## Functions
 
-### gop rendering
-
-Example:
-
-```gop
-// go+ code
-println ""
-```
-
-### submit_markdown
+### Markdown editor
 
 - Function: Submits a user-edited markdown document.
-- input: none
+- input: None
 - Returns: None
-- Error: axios request exception
+- Error: None
 
 Example:
 
-```js
-async submit_markdown() {
-    let data = {
-        title: 'Default Title',
-        content: this.getCherryContent(),
-        html_content: this.getCherryHtml()
+```html
+<markdown-editor></markdown-editor>
+
+<script type="module">
+import {MarkdownEditor, MarkdownViewer} from './GoplusMarkdown.js';
+
+createApp({
+  data() {
+    return {
+      message: 'Hello Goplus markdown!'
     }
-    axios({
-        method: 'post',
-        url: '/commit',
-        data: data,
-        headers: {
-        }
-    })
-    .then(response => {
-        console.log('内容发送成功');
-        console.log(response.data);
-        
-    })
-    .catch(error => {
-        console.error('内容发送失败');
-        console.error(error);
-    });
-},
+  },
+  components: {
+    MarkdownEditor: MarkdownEditor,
+  }
+}).mount('#app')
+
+</script>
+```
+
+### Markdown viewer
+
+- Function: Returns the HTML text of the markdown text.
+- input: markdown text
+- Returns: HTML text
+- Error: None
+
+Example:
+
+```html
+<markdown-viewer md="```gop ```"></markdown-viewer>
+
+<script type="module">
+import {MarkdownEditor, MarkdownViewer} from './GoplusMarkdown.js';
+
+createApp({
+  data() {
+    return {
+      message: 'Hello Goplus markdown!'
+    }
+  },
+  components: {
+    MarkdownEditor: MarkdownEditor,
+  }
+}).mount('#app')
+
+</script>
 ```
