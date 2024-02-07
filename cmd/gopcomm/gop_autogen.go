@@ -1,23 +1,22 @@
 package main
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
-	"github.com/goplus/community/internal/core"
-	"github.com/goplus/community/translation"
-	"github.com/goplus/yap"
-	_ "github.com/joho/godotenv/autoload"
-	"github.com/qiniu/x/xlog"
-	"golang.org/x/text/language"
-	"net/http"
-	"net/url"
 	"os"
 	"strconv"
 	"strings"
+	"github.com/goplus/yap"
+	"context"
+	"encoding/json"
+	"net/http"
+	"net/url"
+	"github.com/goplus/community/internal/core"
+	"github.com/goplus/community/translation"
+	_ "github.com/joho/godotenv/autoload"
+	"github.com/qiniu/x/xlog"
+	"golang.org/x/text/language"
 )
 
-const _ = true
 const (
 	layoutUS   = "January 2, 2006"
 	limitConst = 10
@@ -420,9 +419,9 @@ func (this *community) MainEntry() {
 		htmlData := ctx.Param("html")
 //line cmd/gopcomm/community_yap.gox:377:1
 		id := ctx.Param("id")
-//line cmd/gopcomm/community_yap.gox:379:1
-		transData, err := this.trans.TranslateMarkdownText(mdData, language.Chinese, language.English)
-//line cmd/gopcomm/community_yap.gox:380:1
+//line cmd/gopcomm/community_yap.gox:392:1
+		transData, err := this.community.TranslateMarkdownText(todo, mdData, language.Chinese, language.English)
+//line cmd/gopcomm/community_yap.gox:393:1
 		if err != nil {
 //line cmd/gopcomm/community_yap.gox:381:1
 			ctx.Json__1(map[string]interface {
@@ -463,8 +462,8 @@ func (this *community) MainEntry() {
 	})
 //line cmd/gopcomm/community_yap.gox:418:1
 	this.Post("/upload", func(ctx *yap.Context) {
-//line cmd/gopcomm/community_yap.gox:419:1
-		core.UploadFile(ctx, this.community)
+//line cmd/gopcomm/community_yap.gox:432:1
+		this.community.UploadFile(ctx)
 	})
 //line cmd/gopcomm/community_yap.gox:422:1
 	this.Get("/login", func(ctx *yap.Context) {
@@ -546,38 +545,35 @@ func (this *community) MainEntry() {
 	conf := &core.Config{}
 //line cmd/gopcomm/community_yap.gox:481:1
 	this.community, _ = core.New(todo, conf)
-//line cmd/gopcomm/community_yap.gox:482:1
-	this.trans = translation.New(os.Getenv("NIUTRANS_API_KEY"), "", "")
-//line cmd/gopcomm/community_yap.gox:483:1
+//line cmd/gopcomm/community_yap.gox:499:1
 	core.CasdoorConfigInit()
-//line cmd/gopcomm/community_yap.gox:486:1
+//line cmd/gopcomm/community_yap.gox:502:1
 	this.Handle("/", func(ctx *yap.Context) {
-//line cmd/gopcomm/community_yap.gox:487:1
+//line cmd/gopcomm/community_yap.gox:503:1
 		ctx.Yap__1("4xx", map[string]interface {
 		}{})
 	})
-//line cmd/gopcomm/community_yap.gox:490:1
+//line cmd/gopcomm/community_yap.gox:506:1
 	xLog.Info("Started in endpoint: ", endpoint)
-//line cmd/gopcomm/community_yap.gox:493:1
+//line cmd/gopcomm/community_yap.gox:509:1
 	this.Run(endpoint, func(h http.Handler) http.Handler {
-//line cmd/gopcomm/community_yap.gox:495:1
+//line cmd/gopcomm/community_yap.gox:511:1
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//line cmd/gopcomm/community_yap.gox:496:1
+//line cmd/gopcomm/community_yap.gox:512:1
 			defer func() {
-//line cmd/gopcomm/community_yap.gox:497:1
+//line cmd/gopcomm/community_yap.gox:513:1
 				if
-//line cmd/gopcomm/community_yap.gox:497:1
+//line cmd/gopcomm/community_yap.gox:513:1
 				err := recover(); err != nil {
-//line cmd/gopcomm/community_yap.gox:498:1
+//line cmd/gopcomm/community_yap.gox:514:1
 					http.Redirect(w, r, "/failed", http.StatusFound)
 				}
 			}()
-//line cmd/gopcomm/community_yap.gox:502:1
+//line cmd/gopcomm/community_yap.gox:518:1
 			h.ServeHTTP(w, r)
 		})
 	})
 }
 func main() {
-//line cmd/gopcomm/community_yap.gox:510:1
 	yap.Gopt_App_Main(new(community))
 }

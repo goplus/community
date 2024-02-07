@@ -68,12 +68,14 @@ type translateResponse struct {
 
 // New create a new TranslateConfig
 func New(translationAPIKey string, qiniuAccessKey string, qiniuSecretKey string) *Engine {
-	return &Engine{
+	e := &Engine{
 		translationAPIKey: translationAPIKey,
 		qiniuAccessKey:    qiniuAccessKey,
 		qiniuSecretKey:    qiniuSecretKey,
 		qiniuCred:         auth.New(qiniuAccessKey, qiniuSecretKey),
 	}
+
+	return e
 }
 
 // TranslateMarkdown translate markdown with bytes
