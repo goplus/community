@@ -29,155 +29,116 @@
 </head>
 
 <body style="background-color: #f7fafc;">
-    <input style="display:none" id="usertoken" value="{{.usertoken}}"/>
-    <!-- Header -->
-    <header class="bg-cover bg-center" style="
-        height: 30vh;
-        background-image: url('/static/img/home-background.png');
-      ">
-        <nav class="border-gray-200 px-4 lg:px-6 py-2.5 dark:bg-gray-800">
-            <div class="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl">
-                <a href="https://github.com/goplus/gop" class="flex items-center">
-                    <img src="https://github.com/goplus/community/assets/47499836/19900f7d-ddbb-495b-b45b-8fd2397394be"
-                        class="mb-2 mr-3 h-6 sm:h-9" alt="Go+ Community Logo" />
-                </a>
-                <div class="flex items-center lg:order-2">
-                    {{if .User}}
-                    <button href="/user/{{ .User.Id }}" type="button" style="margin-right: 1rem;"
-                        class="relative flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
-                        id="user-menu-button" aria-expanded="false" aria-haspopup="true">
-                        <span class="absolute -inset-1.5"></span>
-                        <!-- TODO: Add UserAvatar -->
-                        <a href="/user/{{ .User.Id }}">
-                            <img class="h-8 w-8 rounded-full" src="{{ .User.Avatar }}" alt="">
-                        </a>
-                    </button>
-                    <button type="button"
-                        class="text-white hover:text-white border border-white-700 hover:bg-white-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-500 dark:focus:ring-blue-800">
-                        <a href="/add">
-                            Write
-                        </a>
-                    </button>
-                    {{else}}
-                    <button type="button"
-                        class="text-white hover:text-white border border-white-700 hover:bg-white-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-500 dark:focus:ring-blue-800">
-                        <a href="http://localhost:8080/login?redirect_url=http://localhost:8080/callback">
-                            Sign in
-                        </a>
-                    </button>
-                    {{end}}
-                    {{if .Value}}
-                    <button type="button"
-                        class="text-white hover:text-white border border-white-700 hover:bg-white-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-500 dark:focus:ring-blue-800">
-                        <a href="/">
-                            Back
-                        </a>
-                    </button>
-                    {{end}}
-                </div>
-                <div class="hidden justify-between items-center w-1/2 lg:flex lg:w-auto lg:order-1" id="mobile-menu-2">
-                    <form style="width: 500px" action="/search" method="get">
-                        <label for="default-search"
-                            class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">Search</label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                                <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true"
-                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                        stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
-                                </svg>
-                            </div>
-                            {{if .Value}}
-                            <input type="search" id="default-search" name="value"
-                                class="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                required placeholder={{.Value}}></input>
-                            {{else}}
-                            <input type="search" id="default-search" name="value"
-                                class="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                placeholder="Search..." required />
-                            {{end}}
-                            <button type="submit"
-                                class="text-white absolute end-2.5 bottom-2.5 bg-blue-500 hover:bg-blue-600 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                                Search
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </nav>
-    </header>
-
-    <!-- NavBar -->
-    <section class="text-gray-600 body-font overflow-hidden" style="margin-top:-150px">
-        <div class="container px-5 py-6 mx-auto w-1/2">
-            <ul class="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400 bg-white"
-                style="padding: auto !important;">
-                <li class="m-1 px-6">
-                    <a href="#"
-                        class="inline-flex items-center justify-center p-4 text-blue-600 border-b-2 border-blue-600 rounded-t-lg dark:text-blue-500 dark:border-blue-500 group">
-                        <svg class="w-4 h-4 me-2 text-blue-600 dark:text-blue-500" aria-hidden="true"
-                            xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 18">
-                            <path
-                                d="M6.143 0H1.857A1.857 1.857 0 0 0 0 1.857v4.286C0 7.169.831 8 1.857 8h4.286A1.857 1.857 0 0 0 8 6.143V1.857A1.857 1.857 0 0 0 6.143 0Zm10 0h-4.286A1.857 1.857 0 0 0 10 1.857v4.286C10 7.169 10.831 8 11.857 8h4.286A1.857 1.857 0 0 0 18 6.143V1.857A1.857 1.857 0 0 0 16.143 0Zm-10 10H1.857A1.857 1.857 0 0 0 0 11.857v4.286C0 17.169.831 18 1.857 18h4.286A1.857 1.857 0 0 0 8 16.143v-4.286A1.857 1.857 0 0 0 6.143 10Zm10 0h-4.286A1.857 1.857 0 0 0 10 11.857v4.286c0 1.026.831 1.857 1.857 1.857h4.286A1.857 1.857 0 0 0 18 16.143v-4.286A1.857 1.857 0 0 0 16.143 10Z" />
-                        </svg>BLOG
-                    </a>
-                </li>
-                <li class="m-1 px-6">
-                    <a href="#"
-                        class="inline-flex items-center justify-center p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group active"
-                        aria-current="page">
-                        <svg class="w-4 h-4 me-2 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300"
-                            aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
-                            viewBox="0 0 20 20">
-                            <path
-                                d="M10 0a10 10 0 1 0 10 10A10.011 10.011 0 0 0 10 0Zm0 5a3 3 0 1 1 0 6 3 3 0 0 1 0-6Zm0 13a8.949 8.949 0 0 1-4.951-1.488A3.987 3.987 0 0 1 9 13h2a3.987 3.987 0 0 1 3.951 3.512A8.949 8.949 0 0 1 10 18Z" />
-                        </svg>VIDEO
-                    </a>
-                </li>
-                <li class="m-1 px-6">
-                    <a href="#"
-                        class="inline-flex items-center justify-center p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group">
-                        <svg class="w-4 h-4 me-2 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300"
-                            aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
-                            viewBox="0 0 20 20">
-                            <path
-                                d="M5 11.424V1a1 1 0 1 0-2 0v10.424a3.228 3.228 0 0 0 0 6.152V19a1 1 0 1 0 2 0v-1.424a3.228 3.228 0 0 0 0-6.152ZM19.25 14.5A3.243 3.243 0 0 0 17 11.424V1a1 1 0 0 0-2 0v10.424a3.227 3.227 0 0 0 0 6.152V19a1 1 0 1 0 2 0v-1.424a3.243 3.243 0 0 0 2.25-3.076Zm-6-9A3.243 3.243 0 0 0 11 2.424V1a1 1 0 0 0-2 0v1.424a3.228 3.228 0 0 0 0 6.152V19a1 1 0 1 0 2 0V8.576A3.243 3.243 0 0 0 13.25 5.5Z" />
-                        </svg>STEM
-                    </a>
-                </li>
-                <li class="m-1 px-6">
-
-                    <a href="#"
-                        class="inline-flex items-center justify-center p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group">
-                        <svg class="w-4 h-4 me-2 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300"
-                            aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
-                            viewBox="0 0 18 20">
-                            <path
-                                d="M16 1h-3.278A1.992 1.992 0 0 0 11 0H7a1.993 1.993 0 0 0-1.722 1H2a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2Zm-3 14H5a1 1 0 0 1 0-2h8a1 1 0 0 1 0 2Zm0-4H5a1 1 0 0 1 0-2h8a1 1 0 1 1 0 2Zm0-5H5a1 1 0 0 1 0-2h2V2h4v2h2a1 1 0 1 1 0 2Z" />
-                        </svg>COMMUNITY
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </section>
-
-    <!-- Content -->
     <n-config-provider :theme-overrides="themeOverrides">
         <div id="app" class="h-full w-full pb-4">
+            <input style="display: none; " id="usertoken" value="{{.usertoken}}" />
+
+            <!-- Header -->
+            <header class="bg-cover bg-center"
+                style="height: 30vh; background-image: url('./static/img/home-background.png');">
+                <nav class="border-gray-200 px-4 lg:px-6 py-2.5 dark:bg-gray-800">
+                    <div class="flex justify-between items-center">
+                        <!-- LOGO -->
+                        <a href="/" style="width: 35%;">
+                            <img src="https://github.com/goplus/community/assets/47499836/19900f7d-ddbb-495b-b45b-8fd2397394be"
+                                class="mb-2 mr-3 h-6 sm:h-9" alt="Go+ Community Logo" />
+                        </a>
+
+                        <!-- Search -->
+                        <div style="width: 30%;">
+                            <n-input-group>
+                                <n-input v-model:value="searchValue" round :style="{ width: '80%' }"
+                                    placeholder="Explore Community" clearable size="large"
+                                    style="--n-caret-color: #3182ce; --n-border-hover: 1px solid white;
+                                    --n-border-focus: 1px solid white; --n-box-shadow-focus: 0 0 0 1px white;"
+                                    @keypress.enter="handleSearch"
+                                >
+                                    <template #prefix>
+                                        <i class="ph-bold ph-magnifying-glass" style="color: #3182ce; font-size: 15px;"></i>
+                                    </template>
+                                </n-input>
+                                <n-button round strong text-color="white" @click="handleSearch" size="large"
+                                    style="--n-ripple-color: #bfdbf7; --n-border: 1px solid white;
+                                    --n-border-hover: 1px solid #dfebf7;
+                                    --n-border-pressed: 1px solid #bfdbf7;
+                                    --n-border-focus: 1px solid #dfebf7;">
+                                    Search
+                                </n-button>
+                            </n-input-group>
+                        </div>
+
+                        <!-- Account -->
+                        <div style="width: 35%;" class="flex justify-end">
+                            {{if .User}}
+                            <n-button class="mr-3" color="#f7fafc" style="--n-text-color: white;
+                                --n-text-color-hover: #3182ce; --n-text-color-pressed: #3182ce;
+                                --n-text-color-focus: #3182ce" @click="writeArticle"
+                            >
+                                <i class="ph ph-pencil-line" style="font-size: 18px; margin-right: 5px;"></i>
+                                Write an Article
+                            </n-button>
+                            <n-dropdown :options="userOptions" trigger="hover" width="150" @select="selectDropdown">
+                                <n-avatar round src="{{ .User.Avatar }}" style="cursor: pointer;"></n-avatar>
+                            </n-dropdown>
+                            {{else}}
+                            <n-button quaternary color="white" @click="signIn">
+                                <template #icon>
+                                    <i class="ph-bold ph-user"></i>
+                                  </template>
+                                Sign In
+                            </n-button>
+                            {{end}}
+                        </div>
+                    </div>
+                </nav>
+            </header>
+
+            <!-- NavBar -->
+            <div class="container px-5 py-6 mx-auto" style="margin-top: -12%; width: 70%;">
+                <n-tabs type="segment" animated style="border: 2px solid white;
+                    --n-tab-border-radius: 7px; --n-tab-font-weight-active: 600; --n-tab-gap: 10px;
+                    --n-color-segment: #dfebf7; --n-tab-padding: 5% 0; --n-tab-font-size: 17px;
+                    --n-tab-text-color-active: #3182ce; --n-tab-text-color-hover: #6ea8de;">
+                    <n-tab name="blog">
+                        <img src="./static/img/logo-blog.svg" width="25" height="25" class="mr-3">
+                        BLOG
+                    </n-tab>
+                    <n-tab name="video">
+                        <img src="./static/img/logo-video.svg" width="25" height="25" class="mr-3">
+                        VIDEO
+                    </n-tab>
+                    <n-tab name="stem">
+                        <img src="./static/img/logo-stem.svg" width="25" height="25" class="mr-3">
+                        STEM
+                    </n-tab>
+                    <n-tab name="community">
+                        <img src="./static/img/logo-activity.svg" width="25" height="25" class="mr-3">
+                        COMMUNITY
+                    </n-tab>
+                </n-tabs>
+            </div>
+
+            <!-- Content -->
             <div class="container px-5 py-3 mx-auto bg-white rounded-lg"
                 style="box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05);">
-                <!-- TODO: 暂时注释Empty Status -->
+                <!-- Empty Status -->
                 <section v-if="articleList === null || articleList.length === 0">
                     <div class="flex w-full flex-col items-center justify-center rounded-lg p-8">
                         <div style="margin-top:200px;">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 fill-current text-gray-500" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M0 3.75A.75.75 0 01.75 3h7.497c1.566 0 2.945.8 3.751 2.014A4.496 4.496 0 0115.75 3h7.5a.75.75 0 01.75.75v15.063a.75.75 0 01-.755.75l-7.682-.052a3 3 0 00-2.142.878l-.89.891a.75.75 0 01-1.061 0l-.902-.901a3 3 0 00-2.121-.879H.75a.75.75 0 01-.75-.75v-15zm11.247 3.747a3 3 0 00-3-2.997H1.5V18h6.947a4.5 4.5 0 012.803.98l-.003-11.483zm1.503 11.485V7.5a3 3 0 013-3h6.75v13.558l-6.927-.047a4.5 4.5 0 00-2.823.971z"></path></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 fill-current text-gray-500"
+                                viewBox="0 0 24 24">
+                                <path fill-rule="evenodd"
+                                    d="M0 3.75A.75.75 0 01.75 3h7.497c1.566 0 2.945.8 3.751 2.014A4.496 4.496 0 0115.75 3h7.5a.75.75 0 01.75.75v15.063a.75.75 0 01-.755.75l-7.682-.052a3 3 0 00-2.142.878l-.89.891a.75.75 0 01-1.061 0l-.902-.901a3 3 0 00-2.121-.879H.75a.75.75 0 01-.75-.75v-15zm11.247 3.747a3 3 0 00-3-2.997H1.5V18h6.947a4.5 4.5 0 012.803.98l-.003-11.483zm1.503 11.485V7.5a3 3 0 013-3h6.75v13.558l-6.927-.047a4.5 4.5 0 00-2.823.971z">
+                                </path>
+                            </svg>
                         </div>
-                    
+
                         <div class="mt-8 text-center">
-                        <h1 class="text-4xl"> Have no data!</h1>
+                            <h1 class="text-4xl"> Have no data!</h1>
                         </div>
-                    
-                        <button class="mt-2 block rounded-lg bg-transparent py-1.5 px-4 font-medium text-blue-600 transition-colors hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50">
+
+                        <button
+                            class="mt-2 block rounded-lg bg-transparent py-1.5 px-4 font-medium text-blue-600 transition-colors hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50">
                             <a href="/">
                                 Return to home
                             </a>
@@ -199,35 +160,35 @@
                             </div>
 
                             <!-- Tags -->
-                            <div class="flex flex-row items-center">
-                                <i class="ph-duotone ph-hash" style="color: #3182ce; font-size: 17px;"></i>
-                                <p class="text-sm ml-1 hover:text-blue-600">
-                                    ${ item.Tags }
-                                </p>
+                            <div class="flex flex-row items-center" v-for="(tag, i) in item.Tags.split(';')">
+                                <div>
+                                    <i class="ph-duotone ph-hash" style="color: #3182ce; font-size: 17px;"></i>
+                                    <a class="text-sm ml-1 hover:text-blue-600" :href="'/search?value=' + tag">
+                                        ${ tag }
+                                    </a>
+                                </div>
                             </div>
 
                             <!-- Description -->
                             <p class="leading-7 mt-1 text-neutral-700">
                                 ${ item.Abstract }
                             </p>
-                            
-                            {{if .User}}
+
                             <!-- Avatar & Nick Name & Update Time -->
                             <div class="flex items-center absolute bottom-4">
-                                <a class="flex items-center" href="/user/{{.User.Id}}">
+                                <a class="flex items-center" :href="'/user/' + item.User.Id">
                                     <!-- Avatar -->
-                                    <n-avatar class="mr-2" round :size="25" src="{{.User.Avatar}}"></n-avatar>
+                                    <n-avatar class="mr-2" round :size="25" :src="item.User.Avatar"></n-avatar>
 
                                     <!-- Nick Name -->
-                                    <p class="text-sm font-medium mr-1 text-black">{{ .User.Name }}</p>
+                                    <p class="text-sm font-medium mr-1 text-black">${ item.User.Name }</p>
                                 </a>
 
                                 <!-- Update Time -->
                                 <span class="text-xs" style="color: #A0AEC0;">
-                                    · ${ item.Ctime }
+                                    · ${ item.Ctime.slice(0,10) }
                                 </span>
                             </div>
-                            {{end}}
                         </div>
 
                         <!-- right part -->
@@ -258,10 +219,11 @@
                 </n-list>
 
                 <!-- Loading Status -->
-                <div class="mt-2 text-center">
-                    <n-spin v-if="!isBottom" size="small" stroke="#3182ce"></n-spin>
-                    <!-- TODO: bug 列表末尾无法显示这行提示语 -->
-                    <span v-else class="text-xs text-gray-400">No more data🙌</span>
+                <div class="mt-2 text-center" v-if="!isBottom" key="span"> 
+                    <n-spin :key="spin" size="small" stroke="#3182ce"></n-spin>
+                </div>
+                <div class="mt-2 text-center" v-if="!haveMoreData" key="span">
+                    <span class="text-xs text-gray-400">No more data🙌</span>
                 </div>
             </div>
         </div>
@@ -269,18 +231,55 @@
         <script>
             const { reactive, toRefs, ref, h } = Vue;
 
+            /*======= user related =======*/
+            function signIn() {
+                window.location.href = '/login';
+            };
+
+            function writeArticle() {
+                window.location.href = '/add';
+            };
+
+            const userOptions = [
+                {
+                    label: "User Profile",
+                    key: "profile"
+                },
+                {
+                    key: "divider",
+                    type: "divider"
+                },
+                {
+                    label: "Sign Out",
+                    key: "exit"
+                }
+            ];
+            
+            function selectDropdown(key) {
+                if (key === 'profile') {
+                    if ("{{.UserId}}" !== ""){
+                        window.location.href = '/user/{{ .UserId }}';
+                    }
+                } else if (key === 'exit') {
+                    window.location.href = '/logout';
+                }
+            };
+
             /*======= load more data after reaching bottom =======*/
             const isBottom = ref(true);
 
             const articleList = ref(JSON.parse("{{.Items}}"));
 
             const next = ref("{{.Next}}"); // the page size
+            const haveMoreData = next.value === "eof" ? ref(false) : ref(true);
+
+            const searchValue = ref("{{.Value}}" || "")
 
             function listenBottom() {
                 let scrollTop = window.scrollY;
                 let clientHeight = document.documentElement.clientHeight;
                 let scrollHeight = document.documentElement.scrollHeight;
-                if (isBottom.value && scrollTop + clientHeight + 10>= scrollHeight) {
+                if (isBottom.value && haveMoreData.value && scrollTop + clientHeight + 10>= scrollHeight) {
                     
                     // reaching bottom detected
                     loadMore();
@@ -309,15 +308,24 @@
                                 console.log("todos.next",todos.next)
                                 articleList.value.push(...todos.items);
                                 next.value = todos.next;
+                                if(todos.next === "eof") {
+                                    haveMoreData.value = false;
+                                }
                                 isBottom.value = true
                             }
                         });
-                    }, 1500)
+                    }, 500)
                 }else{
                     isBottom.value = true
+                    haveMoreData.value = false;
                 }
-                console.log(isBottom)
             };
+
+            function handleSearch(){
+                if( searchValue !== ""){
+                    window.location.href = `/search?value=${searchValue.value}`
+                }
+            }
 
             /*======= register vue component =======*/
             const app = Vue.createApp({
@@ -329,12 +337,20 @@
                 },
                 data() {
                     return {
+                        userOptions,
                         articleList,
+                        isBottom,
+                        haveMoreData,
+                        searchValue
                     }
                 },
                 methods: {
+                    signIn,
+                    writeArticle,
+                    selectDropdown,
                     listenBottom,
-                    loadMore
+                    loadMore,
+                    handleSearch
                 }
             });
 

@@ -1,54 +1,11 @@
-import { defineConfig, loadEnv } from 'vite'
+import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
-// import { fileURLToPath, URL } from 'node:url'
-
-// import {viteSingleFile} from "vite-plugin-singlefile";
-// import AutoImport from 'unplugin-auto-import/vite';
-// import Components from 'unplugin-vue-components/vite';
-// import {ElementPlusResolver} from "unplugin-vue-components/resolvers";
-
-
-
-// https://vitejs.dev/config/
-// export default defineConfig(({mode}) => {
-//   const env = loadEnv(mode, __dirname)
-//   return {
-//     plugins: [
-//       vue(),
-//     ],
-//     // base: env.VITE_MODE === 'production' ? './' : '/',
-//     base: './',
-//     resolve: {
-//       alias: {
-//         //resolve.alias设置别称 解决@绝对路径引入问题
-//         "@": fileURLToPath(new URL('./src', import.meta.url))
-//       },
-//     }
-//   }
-  
-// })
 
 export default defineConfig({
   plugins: [
     vue(),
-    // viteSingleFile(),
-    // AutoImport({
-    //   resolvers: [ElementPlusResolver()],
-    // }),
-    // Components({
-    //   resolvers: [ElementPlusResolver()],
-    // }),
   ],
-  // build: {
-  //   minify: false,
-  // },
-  
-  // resolve: {
-  //   alias: {
-  //     '@': fileURLToPath(new URL('./src', import.meta.url)) 
-  //   }
-  // },
   server: {
     cors: true, // 默认启用并允许任何源
     open: true, // 在服务器启动时自动在浏览器中打开应用程序
@@ -61,5 +18,33 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api/, '') // 将api替换为空
       }
     }
+  },
+  build: {
+    rollupOptions: {
+      //忽略打包vue文件
+      external: ["vue"],
+      //input: ["index.ts"],
+      output: {
+        globals: {
+          vue: "Vue",
+          // "vue-demi": "VueDemi",
+          // Antd: "Antd"
+        },
+        dir: "dist",
+      },
+    },
+    // lib: {
+    //   entry: 'src/components/try.vue',
+    //   name: 'try',
+    //   fileName: 'try'
+    // },
+    base: "./",
+    lib: {
+      // entry: 'src/components/MarkdownEngine.vue',
+      entry: 'lib/lib.js',
+      name: 'GoplusMarkdown',
+      fileName: 'GoplusMarkdown'
+    }
   }
+
 })

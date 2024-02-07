@@ -1,0 +1,45 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.6.8/plyr.css" >
+</head>
+<body>
+    <div id="app">
+      <!-- <markdown-editor></markdown-editor> -->
+      <markdown-viewer md="```gop ```"></markdown-viewer>
+    </div>
+</body>
+<script src="https://cdn.plyr.io/3.6.8/plyr.js"></script>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script data-widgets="code" src="https://goplus.org/widgets/loader.js"></script>
+
+<script type="importmap"> 
+  { "imports": { 
+      "vue":        "https://cdnjs.cloudflare.com/ajax/libs/vue/3.2.41/vue.esm-browser.prod.js", 
+      "vue-router": "https://cdnjs.cloudflare.com/ajax/libs/vue-router/4.1.5/vue-router.esm-browser.min.js" 
+  } } 
+</script>     
+   
+
+<script type="module">
+    import {MarkdownEditor, MarkdownViewer} from './GoplusMarkdown.js'; // vue组件与编辑组件
+    console.log(MarkdownEditor)
+    const { createApp } = Vue
+    
+    createApp({
+      data() {
+        return {
+          message: 'Hello Vue!'
+        }
+      },
+      components: {
+        MarkdownEditor: MarkdownEditor,
+        MarkdownViewer: MarkdownViewer
+      }
+    }).mount('#app')
+
+
+  </script>
+
+</html>

@@ -4,16 +4,17 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/goplus/yap"
-	"github.com/qiniu/x/xlog"
 	"io"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/goplus/yap"
 	_ "github.com/qiniu/go-cdk-driver/kodoblob"
+	"github.com/qiniu/x/xlog"
 )
 
 // todo
@@ -47,17 +48,16 @@ func (c *Community) DelMedias(ctx context.Context, userId string, ids []string) 
 }
 
 func (c *Community) DelMedia(ctx context.Context, userId, mediaId string) error {
-
-	uId, err := strconv.Atoi(userId)
+	// del cloud oss media
+	fileKey, err := c.GetMediaUrl(ctx, mediaId)
 	if err != nil {
 		return err
 	}
-	mId, err := strconv.Atoi(mediaId)
-	if err != nil {
+	if err := c.bucket.Delete(context.Background(), fileKey); err != nil {
 		return err
 	}
 	// del db media
-	res, err := c.db.ExecContext(ctx, "delete from file where user_id = ? and id = ?", uId, mId)
+	res, err := c.db.ExecContext(ctx, "delete from file where user_id = ? and id = ?", userId, mediaId)
 	if err != nil {
 		return err
 	}
@@ -68,15 +68,6 @@ func (c *Community) DelMedia(ctx context.Context, userId, mediaId string) error 
 	if aff == 0 {
 		c.xLog.Warn("no need del data")
 		return nil
-	}
-
-	// del cloud oss media
-	fileKey, err := c.GetMediaUrl(ctx, mediaId)
-	if err != nil {
-		return err
-	}
-	if err := c.bucket.Delete(context.Background(), fileKey); err != nil {
-		return err
 	}
 	return nil
 }
@@ -89,7 +80,39 @@ func (c *Community) GetMediaUrl(ctx context.Context, mediaId string) (string, er
 	}
 	row := c.db.QueryRow(`select file_key from file where id = ?`, ID)
 	var fileKey string
-	row.Scan(&fileKey)
+	err = row.Scan(&fileKey)
+	if err != nil {
+		return "", err
+	}
+
+	return fileKey, nil
+}
+
+func (c *Community) GetMediaType(ctx context.Context, mediaId string) (string, error) {
+	ID, err := strconv.Atoi(mediaId)
+	if err != nil {
+		return "", err
+	}
+	row := c.db.QueryRow(`select format from file where id = ?`, ID)
+	var Format string
+	err = row.Scan(&Format)
+	if err != nil {
+		return "", err
+	}
+	return Format, nil
+
+}
+func (c *Community) GetVideoSubtitle(ctx context.Context, mediaId string) (string, error) {
+	ID, err := strconv.Atoi(mediaId)
+	if err != nil {
+		return "", err
+	}
+	row := c.db.QueryRow(`select output from video_task where resource_id = ?`, ID)
+	var fileKey string
+	err = row.Scan(&fileKey)
+	if err != nil {
+		return "", err
+	}
 
 	return fileKey, nil
 }
@@ -126,7 +149,12 @@ func (c *Community) getMediaInfo(fileKey string) (*File, error) {
 
 	bucket := c.bucket
 	r, err := bucket.NewReader(context.Background(), fileKey, nil)
-	defer r.Close()
+	defer func() {
+		err = r.Close()
+		if err != nil {
+			c.xLog.Error("close file error:", err)
+		}
+	}()
 
 	if err != nil {
 		return nil, err
@@ -155,16 +183,22 @@ func (c *Community) uploadMedia(fileKey string, data []byte) error {
 	return nil
 }
 
-func UploadFile(ctx *yap.Context, community *Community) {
+func (c *Community) UploadFile(ctx *yap.Context) {
 	xLog := xlog.New("")
 	file, header, err := ctx.FormFile("file")
+	if err != nil {
+		xLog.Error("upload file error:", header)
+		ctx.JSON(500, err.Error())
+		return
+	}
 	filename := header.Filename
-	ctx.ParseMultipartForm(10 << 20)
+	err = ctx.ParseMultipartForm(10 << 20)
 	if err != nil {
 		xLog.Error("upload file error:", filename)
 		ctx.JSON(500, err.Error())
 		return
 	}
+
 	dst, err := os.Create(filename)
 	if err != nil {
 		xLog.Error("create file error:", file)
@@ -180,44 +214,60 @@ func UploadFile(ctx *yap.Context, community *Community) {
 			return
 		}
 	}()
+
 	_, err = io.Copy(dst, file)
 	if err != nil {
 		xLog.Error("copy file errer:", filename)
 		ctx.JSON(500, err.Error())
 		return
 	}
+
 	bytes, err := os.ReadFile(filename)
 	if err != nil {
 		xLog.Error("read file errer:", filename)
 		ctx.JSON(500, err.Error())
 		return
 	}
+
 	token, err := GetToken(ctx)
 	if err != nil {
 		ctx.JSON(500, err.Error())
 	}
-	uid, err := community.ParseJwtToken(token.Value)
+
+	uid, err := c.ParseJwtToken(token.Value)
 	if err != nil {
 		ctx.JSON(500, err.Error())
 	}
-	id, err := community.SaveMedia(context.Background(), uid, bytes)
+
+	id, err := c.SaveMedia(context.Background(), uid, bytes)
 	if err != nil {
 		xLog.Error("save file", err.Error())
 		ctx.JSON(500, err.Error())
 		return
 	}
+
+	// Judge the file type and start the corresponding task
+	fileType := http.DetectContentType(bytes)
+	if strings.Contains(fileType, "video") {
+		// Start captioning task
+		err := c.NewVideoTask(context.Background(), uid, strconv.FormatInt(id, 10))
+		if err != nil {
+			xLog.Error("start video task error:", err)
+		}
+	}
+
 	ctx.JSON(200, id)
 }
 
-func (c *Community) ListMediaByUserId(ctx context.Context, userId int, format string) ([]File, error) {
-	sqlStr := "select * from file file where user_id = ?"
+func (c *Community) ListMediaByUserId(ctx context.Context, userId string, format string) ([]File, error) {
+	sqlStr := "select * from file where user_id = ?"
 	var args []any
 	args = append(args, userId)
 	var rows *sql.Rows
 	var err error
 	if format != "" {
-		sqlStr += " and format = ?"
-		args = append(args, format)
+		sqlStr += " and format like ?"
+		args = append(args, "%"+format+"%")
 	}
 	rows, err = c.db.Query(sqlStr, args...)
 
@@ -231,6 +281,7 @@ func (c *Community) ListMediaByUserId(ctx context.Context, userId int, format st
 		if err := rows.Scan(&file.Id, &file.CreateAt, &file.UpdateAt, &file.FileKey, &file.Format, &file.UserId, &file.Size); err != nil {
 			return files, err
 		}
+		file.FileKey = c.domain + file.FileKey
 		files = append(files, file)
 	}
 	return files, nil
