@@ -313,40 +313,41 @@ get "/getTrans", ctx => {
 // click "submit" button
 post "/commit", ctx => {
 	// Whether article has been translated or not
-	trans := ctx.param("trans") // if trans != ""， add article
+	// trans := ctx.param("trans") // if trans != ""， add article
 	id := ctx.param("id")
 	mdData := ctx.param("content")
-	htmlData := ctx.param("html")
+	// htmlData := ctx.param("html")
 	// get user id
 	token, err := core.GetToken(ctx)
 	if err != nil {
+		xLog.Info("token",err)
 		ctx.json {
-			"code": 500,
+			"code": 0,
 			"err":  "no token",
 		}
 	}
 	uid, err := community.ParseJwtToken(token.Value)
 	if err != nil {
+		xLog.Info("uid",err)
 		ctx.json {
-			"code": 500,
+			"code": 0,
 			"err":  err.Error(),
 		}
 	}
-	// uid := "70f6a615-c0d5-4315-a5ac-34ca845450ed"
 	// add article
 	article := &core.Article{
 		ArticleEntry: core.ArticleEntry{
 			ID:       id,
 			Title:    ctx.param("title"),
 			UId:      uid,
-			Cover:    ctx.param("cover"),
+			// TODO  /upload Cover:    ctx.param("cover"),   
 			Tags:     ctx.param("tags"),
 			Abstract: ctx.param("abstract"),
 		},
 		Content:  mdData,
-		HtmlData: htmlData,
+		// HtmlData: htmlData,
 	}
-	id, _ = community.PutArticle(todo, uid, trans, article)
+	id, _ = community.PutArticle(todo, uid, "", article)
 	ctx.json {
 		"code": 200,
 		"data": id,

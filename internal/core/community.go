@@ -224,14 +224,14 @@ func (p *Community) uploadHtml(ctx context.Context, uid, htmlStr string) (htmlId
 
 // PutArticle adds new article (ID == "") or edits an existing article (ID != "").
 func (p *Community) PutArticle(ctx context.Context, uid string, trans string, article *Article) (id string, err error) {
-	htmlId, err := p.uploadHtml(ctx, uid, article.HtmlData)
-	if err != nil {
-		htmlId = 0
-	}
+	// htmlId, err := p.uploadHtml(ctx, uid, article.HtmlData)
+	// if err != nil {
+	// 	htmlId = 0
+	// }
 	// new article
 	if article.ID == "" {
-		sqlStr := "insert into article (title, ctime, mtime, user_id, tags, abstract, cover, content, html_id) values (?, ?, ?, ?, ?, ?, ?, ?,?)"
-		res, err := p.db.Exec(sqlStr, &article.Title, time.Now(), time.Now(), uid, &article.Tags, &article.Abstract, &article.Cover, &article.Content, htmlId)
+		sqlStr := "insert into article (title, ctime, mtime, user_id, tags, abstract, cover, content) values (?, ?, ?, ?, ?, ?, ?, ?)"
+		res, err := p.db.Exec(sqlStr, &article.Title, time.Now(), time.Now(), uid, &article.Tags, &article.Abstract, &article.Cover, &article.Content)
 		if err != nil {
 			return "", err
 		}
@@ -241,16 +241,16 @@ func (p *Community) PutArticle(ctx context.Context, uid string, trans string, ar
 		}
 		return strconv.FormatInt(idInt, 10), nil
 	}
-	if trans != "" {
-		// add article except html_id, content (trans)
-		sqlStr := "update article set title=?, mtime=?, ctime=?, tags=?, abstract=?, cover=?, trans_content=?, trans_html_id=? where id=?"
-		_, err = p.db.Exec(sqlStr, &article.Title, time.Now(), time.Now(), &article.Tags, &article.Abstract, &article.Cover, &article.Content, htmlId, &article.ID)
-		return article.ID, err
-	}
+	// if trans != "" {
+	// 	// add article except html_id, content (trans)
+	// 	sqlStr := "update article set title=?, mtime=?, ctime=?, tags=?, abstract=?, cover=?, trans_content=?, trans_html_id=? where id=?"
+	// 	_, err = p.db.Exec(sqlStr, &article.Title, time.Now(), time.Now(), &article.Tags, &article.Abstract, &article.Cover, &article.Content, htmlId, &article.ID)
+	// 	return article.ID, err
+	// }
 
 	// edit article
-	sqlStr := "update article set title=?, mtime=?, tags=?, abstract=?, cover=?, content=?, html_id=? where id=?"
-	_, err = p.db.Exec(sqlStr, &article.Title, time.Now(), &article.Tags, &article.Abstract, &article.Cover, &article.Content, htmlId, &article.ID)
+	sqlStr := "update article set title=?, mtime=?, tags=?, abstract=?, cover=?, content=? where id=?"
+	_, err = p.db.Exec(sqlStr, &article.Title, time.Now(), &article.Tags, &article.Abstract, &article.Cover, &article.Content, &article.ID)
 	return article.ID, err
 }
 
