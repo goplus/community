@@ -205,12 +205,22 @@ func (e *Engine) Text2Audio(content string) (*TTSResponse, error) {
 	return res, nil
 }
 
-// GenerateWebVTTFile generate caption for speech result
-func (e *Engine) GenerateWebVTTFile(asrTaskData ASRTaskData, path string) error {
+// GenerateWebVTTBytes generate caption for speech result
+func (e *Engine) GenerateWebVTTBytes(asrTaskData ASRTaskData) (bytes.Buffer, error) {
 	var buffer bytes.Buffer
 
 	webVTTBuffer := GenerateSimpleWebVTTFileFromASRTaskData(asrTaskData)
 	_, err := webVTTBuffer.ToBuffer().WriteTo(&buffer)
+	if err != nil {
+		return buffer, err
+	}
+
+	return buffer, nil
+}
+
+// GenerateWebVTTFile generate caption for speech result
+func (e *Engine) GenerateWebVTTFile(asrTaskData ASRTaskData, path string) error {
+	buffer, err := e.GenerateWebVTTBytes(asrTaskData)
 	if err != nil {
 		return err
 	}
@@ -230,8 +240,8 @@ func (e *Engine) GenerateWebVTTFile(asrTaskData ASRTaskData, path string) error 
 	return nil
 }
 
-// GenerateWebVTTFileWithTranslation generate caption for speech result with translation
-func (e *Engine) GenerateWebVTTFileWithTranslation(asrTaskData ASRTaskData, path string, from, to language.Tag) error {
+// GenerateWebVTTBytesWithTranslation generate caption for speech result with translation
+func (e *Engine) GenerateWebVTTBytesWithTranslation(asrTaskData ASRTaskData, from, to language.Tag) (bytes.Buffer, error) {
 	var buffer bytes.Buffer
 
 	// Write head
@@ -240,9 +250,20 @@ func (e *Engine) GenerateWebVTTFileWithTranslation(asrTaskData ASRTaskData, path
 	// Translate buffer
 	err := e.TranslateWebVTT(&webVTTBuffer, from, to)
 	if err != nil {
-		return err
+		return buffer, err
 	}
+
 	_, err = webVTTBuffer.ToBuffer().WriteTo(&buffer)
+	if err != nil {
+		return buffer, err
+	}
+
+	return buffer, nil
+}
+
+// GenerateWebVTTFileWithTranslation generate caption for speech result with translation
+func (e *Engine) GenerateWebVTTFileWithTranslation(asrTaskData ASRTaskData, path string, from, to language.Tag) error {
+	buffer, err := e.GenerateWebVTTBytesWithTranslation(asrTaskData, from, to)
 	if err != nil {
 		return err
 	}

@@ -16,10 +16,10 @@ Go+ Community is a community for Go+ developers. It provides a platform for deve
    - Interfaces: Includes create article interface (input article information, output creation result and article ID), read article interface (input article ID, output article information), update article interface (input article ID and new article information, output update result), delete article interface (input article ID, output deletion result), etc.
    - Behavior: Handles article CRUD requests, maintains article status, provides article search and sorting functions, etc.
 
-3. **Markdown Component**: (/cmd/gopcomm/yap)
+3. **Markdown Component**: (/markdown)
    - Description: Provides Markdown editor functionality.
    - Interfaces: Includes input for Markdown text, output for rendered HTML text, etc.
-   - Behavior: Converts Markdown text into HTML text, provides text editing and preview functions, etc.
+   - Behavior: Converts Markdown text into HTML text, provides text editing and preview functions, etc. Support load as UMD UI module.
 
 4. **Translate Package**: (/translation)
    - Description: Responsible for the translation of Markdown text and videos.
