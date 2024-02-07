@@ -2,21 +2,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
-	"time"
-	"net/url"
 
 	"github.com/goplus/community/internal/core"
-	"github.com/goplus/community/markdown"
 	"github.com/goplus/community/translation"
-	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
-	language "golang.org/x/text/language"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/qiniu/x/xlog"
+	language "golang.org/x/text/language"
 )
 
 var (
@@ -25,7 +21,7 @@ var (
 )
 
 const (
-	layoutUS = "January 2, 2006"
+	layoutUS   = "January 2, 2006"
 	limitConst = 10
 )
 
@@ -120,6 +116,24 @@ get "/user/:id", ctx => {
 	}
 }
 
+get "/userEdit", ctx => {
+	var user *core.User
+	token, err := core.GetToken(ctx)
+	if err == nil {
+		user, err = community.GetUser(token.Value)
+		if err != nil {
+			xLog.Error("get user error:", err)
+		}
+	}
+
+	if err != nil {
+		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
+	}
+	ctx.yap "user_edit", {
+		"User": user,
+	}
+}
+
 get "/add", ctx => {
 	ctx.yap "edit", {}
 }
@@ -152,7 +166,7 @@ get "/delete", ctx => {
 get "/medias", ctx => {
 	format := ctx.param("format")
 	uid := ctx.param("uid")
-	files, err :=community.ListMediaByUserId(todo, uid, format)
+	files, err := community.ListMediaByUserId(todo, uid, format)
 	if err != nil {
 		ctx.json {
 			"code": 0,
@@ -160,13 +174,13 @@ get "/medias", ctx => {
 		}
 	} else {
 		ctx.json {
-			"code": 200,
+			"code":  200,
 			"items": files,
 		}
 	}
 }
 
-get "/delMedia", ctx =>{
+get "/delMedia", ctx => {
 	id := ctx.param("id")
 	token, err := core.GetToken(ctx)
 	uid, err := community.ParseJwtToken(token.Value)
@@ -200,7 +214,7 @@ get "/", ctx => {
 		user, err = community.GetUser(token.Value)
 		if err != nil {
 			xLog.Error("get user error:", err)
-		}else{
+		} else {
 			userId = user.Id
 		}
 	}
@@ -208,10 +222,10 @@ get "/", ctx => {
 	articles, next, _ := community.ListArticle(todo, core.MarkBegin, limitConst, "")
 	articlesJson, _ := json.Marshal(&articles)
 	ctx.yap "home", {
-		"UserId":	 userId,
-		"User":      user,
-		"Items":     strings.Replace(string(articlesJson), `\"`, `"`, -1),
-		"Next": 	 next,
+		"UserId": userId,
+		"User":   user,
+		"Items":  strings.Replace(string(articlesJson), `\"`, `"`, -1),
+		"Next":   next,
 	}
 }
 
@@ -219,7 +233,7 @@ get "/get", ctx => {
 	from := ctx.param("from")
 	limit := ctx.param("limit")
 	searchValue := ctx.param("value")
-	
+
 	limitInt, err := strconv.Atoi(limit)
 	if err != nil {
 		limitInt = limitConst
@@ -227,10 +241,10 @@ get "/get", ctx => {
 	// Get Article Info
 	articles, next, _ := community.ListArticle(todo, from, limitInt, searchValue)
 	ctx.json {
-		"code": 	200,
-		"items":    articles,
-		"next": 	next,
-		"value":	searchValue,
+		"code":  200,
+		"items": articles,
+		"next":  next,
+		"value": searchValue,
 	}
 }
 
@@ -251,7 +265,7 @@ get "/search", ctx => {
 		user, err = community.GetUser(token.Value)
 		if err != nil {
 			xLog.Error("get user error:", err)
-		}else{
+		} else {
 			userId = user.Id
 		}
 	}
@@ -259,11 +273,11 @@ get "/search", ctx => {
 	articles, next, _ := community.ListArticle(todo, core.MarkBegin, limitConst, searchValue)
 	articlesJson, _ := json.Marshal(&articles)
 	ctx.yap "home", {
-		"UserId":	 userId,
-		"User":      user,
-		"Items":     strings.Replace(string(articlesJson), `\"`, `"`, -1),
-		"Value":     searchValue,
-		"Next": 	 next,
+		"UserId": userId,
+		"User":   user,
+		"Items":  strings.Replace(string(articlesJson), `\"`, `"`, -1),
+		"Value":  searchValue,
+		"Next":   next,
 	}
 }
 
@@ -422,7 +436,7 @@ post "/upload", ctx => {
 get "/login", ctx => {
 	// Get URL from query string
 	// redirectURL := ctx.URL.Query().Get("redirect_url")
-	// Get current request page URL from 
+	// Get current request page URL from
 	// Concatenate the current request page URL from refer
 	refererURL, err := url.Parse(ctx.Request.Referer())
 	if err != nil {
@@ -432,15 +446,14 @@ get "/login", ctx => {
 
 	refererPath := refererURL.Path
 	if refererURL.RawQuery != "" {
-		refererPath = fmt.Sprintf("%s?%s",refererURL.Path, refererURL.RawQuery)
+		refererPath = fmt.Sprintf("%s?%s", refererURL.Path, refererURL.RawQuery)
 	}
 
-	redirectURL := fmt.Sprintf("%s://%s/%s?origin_path=%s",refererURL.Scheme, refererURL.Host, "callback", url.QueryEscape(refererPath))
+	redirectURL := fmt.Sprintf("%s://%s/%s?origin_path=%s", refererURL.Scheme, refererURL.Host, "callback", url.QueryEscape(refererPath))
 
 	loginURL := community.RedirectToCasdoor(redirectURL)
 	ctx.Redirect loginURL, http.StatusFound
 }
-
 
 get "/logout", ctx => {
 	err := core.RemoveToken(ctx)
@@ -456,7 +469,7 @@ get "/logout", ctx => {
 
 	refererPath := refererURL.Path
 	if refererURL.RawQuery != "" {
-		refererPath = fmt.Sprintf("%s?%s",refererURL.Path, refererURL.RawQuery)
+		refererPath = fmt.Sprintf("%s?%s", refererURL.Path, refererURL.RawQuery)
 	}
 
 	http.Redirect(ctx.ResponseWriter, ctx.Request, refererPath, http.StatusFound)
@@ -483,7 +496,7 @@ trans = translation.New(os.Getenv("NIUTRANS_API_KEY"), "", "")
 core.CasdoorConfigInit()
 
 // 404
-handle "/",ctx => {
+handle "/", ctx => {
 	ctx.yap "4xx", {}
 }
 
