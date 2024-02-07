@@ -17,7 +17,7 @@ replace github.com/goplus/yap v0.7.2 => github.com/LiusCraft/yap v0.8.2
 require (
 	github.com/casdoor/casdoor-go-sdk v0.35.0
 	github.com/qiniu/go-cdk-driver v0.1.0
-	github.com/qiniu/x v1.13.3-0.20240129201727-4013f184c5c7
+	github.com/qiniu/x v1.13.3
 	golang.org/x/oauth2 v0.16.0
 )
 
