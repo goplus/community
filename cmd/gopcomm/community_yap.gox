@@ -366,7 +366,7 @@ post "/translate", ctx => {
 	htmlData := ctx.param("html")
 	id := ctx.param("id")
 	// get translation markdown
-	transData, err := trans.translateMarkdownText(mdData, language.Chinese, language.English)
+	transData, err := community.TranslateMarkdownText(todo, mdData, language.Chinese, language.English)
 	if err != nil {
 		ctx.json {
 			"code": 500,
@@ -406,7 +406,7 @@ get "/getMediaUrl/:id", ctx => {
 }
 
 post "/upload", ctx => {
-	core.UploadFile(ctx, community)
+	community.UploadFile(ctx)
 }
 
 get "/login", ctx => {
@@ -444,7 +444,6 @@ get "/callback", ctx => {
 
 conf := &core.Config{}
 community, _ = core.New(todo, conf)
-trans = translation.New(os.Getenv("NIUTRANS_API_KEY"), "", "")
 core.CasdoorConfigInit()
 
 // 404

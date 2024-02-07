@@ -33,6 +33,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"gocloud.dev/blob"
 	"golang.org/x/oauth2"
+	language "golang.org/x/text/language"
 )
 
 var (
@@ -85,9 +86,6 @@ type CasdoorConfig struct {
 }
 
 type Account struct {
-	casdoorConfig *CasdoorConfig
-
-	xLog *xlog.Logger
 }
 
 type Translation struct {
@@ -98,16 +96,6 @@ type Translation struct {
 func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 	// Init log
 	xLog := xlog.New("")
-
-	// Init translation engine
-	translationEngine := &Translation{
-		Engine: translation.New(
-			os.Getenv("NIUTRANS_API_KEY"),
-			os.Getenv("QINIU_ACCESS_KEY"),
-			os.Getenv("QINIU_SECRET_KEY"),
-		),
-		VideoTaskCache: NewVideoTaskCache(),
-	}
 
 	if conf == nil {
 		conf = new(Config)
@@ -137,7 +125,22 @@ func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 		xLog.Error(err)
 		return
 	}
+
+	// Init translation engine
+	translationEngine := &Translation{
+		Engine: translation.New(
+			string(os.Getenv("NIUTRANS_API_KEY")),
+			string(os.Getenv("QINIU_ACCESS_KEY")),
+			string(os.Getenv("QINIU_SECRET_KEY")),
+		),
+		VideoTaskCache: NewVideoTaskCache(),
+	}
+
 	return &Community{bucket, db, domain, casdoorConf, xLog, translationEngine}, nil
+}
+
+func (p *Community) TranslateMarkdownText(ctx context.Context, src string, from, to language.Tag) (string, error) {
+	return p.translation.Engine.TranslateMarkdownText(src, from, to)
 }
 
 func (p *Community) getTotal(ctx context.Context, searchValue string) (total int, err error) {
@@ -212,6 +215,9 @@ func (p *Community) CanEditable(ctx context.Context, uid, id string) (editable b
 // SaveHtml upload origin html(string) to media for html id and save id to database
 func (p *Community) SaveHtml(ctx context.Context, uid, htmlStr, mdData, id string) (articleId string, err error) {
 	htmlId, err := p.SaveMedia(ctx, uid, []byte(htmlStr))
+	if err != nil {
+		return "", err
+	}
 	if id == "" {
 		// save to database
 		sqlStr := "insert into article (user_id, html_id, ctime, mtime, content) values (?, ?, ?)"
@@ -220,6 +226,9 @@ func (p *Community) SaveHtml(ctx context.Context, uid, htmlStr, mdData, id strin
 			return "", err
 		}
 		articleId, err := res.LastInsertId()
+		if err != nil {
+			return "", err
+		}
 		return strconv.FormatInt(articleId, 10), nil
 	}
 	sqlStr := "update article set content=?, html_id=?, mtime=? where id=?"
@@ -250,6 +259,9 @@ func (p *Community) PutArticle(ctx context.Context, uid string, trans string, ar
 			return "", err
 		}
 		idInt, err := res.LastInsertId()
+		if err != nil {
+			return "", err
+		}
 		return strconv.FormatInt(idInt, 10), nil
 	}
 	if trans != "" {
@@ -270,10 +282,17 @@ func (p *Community) deleteMedias(ctx context.Context, uid, id string) (err error
 	var htmlIds []string
 	sqlStr := "select html_id from article where id=? and user_id=?"
 	rows, err := p.db.Query(sqlStr, id, uid)
-	defer rows.Close()
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			p.xLog.Error(err)
+		}
+	}()
 	for rows.Next() {
 		var htmlId string
-		rows.Scan(&htmlId)
+		if err := rows.Scan(&htmlId); err != nil {
+			return err
+		}
 		htmlIds = append(htmlIds, htmlId)
 	}
 	err = p.DelMedias(ctx, uid, htmlIds)
@@ -302,7 +321,10 @@ func (p *Community) DeleteArticle(ctx context.Context, uid, id string) (err erro
 	defer func() {
 		if err != nil {
 			// Rollback if there's an error
-			tx.Rollback()
+			err = tx.Rollback()
+			if err != nil {
+				p.xLog.Error(err)
+			}
 		}
 	}()
 

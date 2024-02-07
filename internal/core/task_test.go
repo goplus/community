@@ -17,464 +17,155 @@
 package core
 
 import (
-	"context"
-	"database/sql"
-	"reflect"
-	"sync"
 	"testing"
-	"time"
-
-	"github.com/qiniu/x/xlog"
-	"gocloud.dev/blob"
 )
 
-func TestCommunity_createVideoTask(t *testing.T) {
+func Test_VideoTaskCache_Set(t *testing.T) {
 	type fields struct {
-		bucket        *blob.Bucket
-		db            *sql.DB
-		domain        string
-		casdoorConfig *CasdoorConfig
-		xLog          *xlog.Logger
-		taskMap       *VideoTaskCache
-	}
-	type args struct {
-		ctx        context.Context
-		resourceId string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c, _ := New(nil, nil)
-			if err := c.createVideoTask(tt.args.ctx, tt.args.resourceId); (err != nil) != tt.wantErr {
-				t.Errorf("Community.createVideoTask() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestCommunity_updateVideoTaskOutput(t *testing.T) {
-	type fields struct {
-		bucket        *blob.Bucket
-		db            *sql.DB
-		domain        string
-		casdoorConfig *CasdoorConfig
-		xLog          *xlog.Logger
-		taskMap       *VideoTaskCache
-	}
-	type args struct {
-		ctx        context.Context
-		resourceId string
-		output     string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c, _ := New(nil, nil)
-			if err := c.updateVideoTaskOutput(tt.args.ctx, tt.args.resourceId, tt.args.output); (err != nil) != tt.wantErr {
-				t.Errorf("Community.updateVideoTaskOutput() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestCommunity_updateVideoTaskStatus(t *testing.T) {
-	type fields struct {
-		bucket        *blob.Bucket
-		db            *sql.DB
-		domain        string
-		casdoorConfig *CasdoorConfig
-		xLog          *xlog.Logger
-		taskMap       *VideoTaskCache
-	}
-	type args struct {
-		ctx        context.Context
-		resourceId string
-		status     int
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c, _ := New(nil, nil)
-			if err := c.updateVideoTaskStatus(tt.args.ctx, tt.args.resourceId, tt.args.status); (err != nil) != tt.wantErr {
-				t.Errorf("Community.updateVideoTaskStatus() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestCommunity_deleteVideoTask(t *testing.T) {
-	type fields struct {
-		bucket        *blob.Bucket
-		db            *sql.DB
-		domain        string
-		casdoorConfig *CasdoorConfig
-		xLog          *xlog.Logger
-		taskMap       *VideoTaskCache
-	}
-	type args struct {
-		ctx        context.Context
-		resourceId string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c, _ := New(nil, nil)
-			if err := c.deleteVideoTask(tt.args.ctx, tt.args.resourceId); (err != nil) != tt.wantErr {
-				t.Errorf("Community.deleteVideoTask() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestCommunity_getVideoTask(t *testing.T) {
-	type fields struct {
-		bucket        *blob.Bucket
-		db            *sql.DB
-		domain        string
-		casdoorConfig *CasdoorConfig
-		xLog          *xlog.Logger
-		taskMap       *VideoTaskCache
-	}
-	type args struct {
-		ctx        context.Context
-		resourceId string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *VideoTask
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c, _ := New(nil, nil)
-			got, err := c.getVideoTask(tt.args.ctx, tt.args.resourceId)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Community.getVideoTask() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Community.getVideoTask() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestCommunity_NewVideoTask(t *testing.T) {
-	type fields struct {
-		bucket        *blob.Bucket
-		db            *sql.DB
-		domain        string
-		casdoorConfig *CasdoorConfig
-		xLog          *xlog.Logger
-		taskMap       *VideoTaskCache
-	}
-	type args struct {
-		ctx        context.Context
-		resourceId string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c, _ := New(nil, nil)
-			if err := c.NewVideoTask(tt.args.ctx, tt.args.resourceId); (err != nil) != tt.wantErr {
-				t.Errorf("Community.NewVideoTask() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestCommunity_SetVideoTaskSuccess(t *testing.T) {
-	type fields struct {
-		bucket        *blob.Bucket
-		db            *sql.DB
-		domain        string
-		casdoorConfig *CasdoorConfig
-		xLog          *xlog.Logger
-		taskMap       *VideoTaskCache
-	}
-	type args struct {
-		ctx        context.Context
-		resourceId string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c, _ := New(nil, nil)
-			if err := c.SetVideoTaskSuccess(tt.args.ctx, tt.args.resourceId); (err != nil) != tt.wantErr {
-				t.Errorf("Community.SetVideoTaskSuccess() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestCommunity_SetVideoTaskFailed(t *testing.T) {
-	type fields struct {
-		bucket        *blob.Bucket
-		db            *sql.DB
-		domain        string
-		casdoorConfig *CasdoorConfig
-		xLog          *xlog.Logger
-		taskMap       *VideoTaskCache
-	}
-	type args struct {
-		ctx        context.Context
-		resourceId string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c, _ := New(nil, nil)
-			if err := c.SetVideoTaskFailed(tt.args.ctx, tt.args.resourceId); (err != nil) != tt.wantErr {
-				t.Errorf("Community.SetVideoTaskFailed() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestCommunity_SetVideoTaskOutput(t *testing.T) {
-	type fields struct {
-		bucket        *blob.Bucket
-		db            *sql.DB
-		domain        string
-		casdoorConfig *CasdoorConfig
-		xLog          *xlog.Logger
-		taskMap       *VideoTaskCache
-	}
-	type args struct {
-		ctx        context.Context
-		resourceId string
-		output     string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c, _ := New(nil, nil)
-			if err := c.SetVideoTaskOutput(tt.args.ctx, tt.args.resourceId, tt.args.output); (err != nil) != tt.wantErr {
-				t.Errorf("Community.SetVideoTaskOutput() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestNewVideoTaskCache(t *testing.T) {
-	tests := []struct {
-		name string
-		want *VideoTaskCache
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := NewVideoTaskCache(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewVideoTaskCache() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestVideoTaskCache_Get(t *testing.T) {
-	type fields struct {
-		RWMutex      sync.RWMutex
-		videoTaskMap VideoTaskMap
-	}
-	type args struct {
 		key string
+		val VideoTaskTimestamp
+	}
+	type args struct {
+		id string
 	}
 	tests := []struct {
 		name   string
 		fields fields
 		args   args
 		want   VideoTaskTimestamp
-		want1  bool
 	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c := &VideoTaskCache{
-				RWMutex:      tt.fields.RWMutex,
-				videoTaskMap: tt.fields.videoTaskMap,
-			}
-			got, got1 := c.Get(tt.args.key)
-			if got != tt.want {
-				t.Errorf("VideoTaskCache.Get() got = %v, want %v", got, tt.want)
-			}
-			if got1 != tt.want1 {
-				t.Errorf("VideoTaskCache.Get() got1 = %v, want %v", got1, tt.want1)
-			}
-		})
-	}
-}
-
-func TestVideoTaskCache_Set(t *testing.T) {
-	type fields struct {
-		RWMutex      sync.RWMutex
-		videoTaskMap VideoTaskMap
-	}
-	type args struct {
-		key   string
-		value VideoTaskTimestamp
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c := &VideoTaskCache{
-				RWMutex:      tt.fields.RWMutex,
-				videoTaskMap: tt.fields.videoTaskMap,
-			}
-			c.Set(tt.args.key, tt.args.value)
-		})
-	}
-}
-
-func TestVideoTaskCache_Delete(t *testing.T) {
-	type fields struct {
-		RWMutex      sync.RWMutex
-		videoTaskMap VideoTaskMap
-	}
-	type args struct {
-		key string
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c := &VideoTaskCache{
-				RWMutex:      tt.fields.RWMutex,
-				videoTaskMap: tt.fields.videoTaskMap,
-			}
-			c.Delete(tt.args.key)
-		})
-	}
-}
-
-func TestVideoTaskCache_Clear(t *testing.T) {
-	type fields struct {
-		RWMutex      sync.RWMutex
-		videoTaskMap VideoTaskMap
-	}
-	tests := []struct {
-		name   string
-		fields fields
-	}{
-		// TODO: Add test cases.
 		{
-			name: "test",
+			name: "Test_VideoTaskCache_Set",
 			fields: fields{
-				RWMutex:      sync.RWMutex{},
-				videoTaskMap: VideoTaskMap{},
+				key: "1",
+				val: 111,
 			},
+			args: args{
+				id: "1",
+			},
+			want: 111,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &VideoTaskCache{
-				RWMutex:      tt.fields.RWMutex,
-				videoTaskMap: tt.fields.videoTaskMap,
+			c := NewVideoTaskCache()
+			c.Set(tt.args.id, tt.fields.val)
+			if got, ok := c.Get(tt.args.id); !ok || got != tt.want {
+				t.Errorf("VideoTaskCache.Set() = %v, want %v", got, tt.want)
 			}
-			c.Clear()
 		})
 	}
 }
 
-func TestCommunity_TimedCheckVideoTask(t *testing.T) {
+func Test_VideoTaskCache_Get(t *testing.T) {
 	type fields struct {
-		bucket        *blob.Bucket
-		db            *sql.DB
-		domain        string
-		casdoorConfig *CasdoorConfig
-		xLog          *xlog.Logger
-		taskMap       *VideoTaskCache
+		key string
+		val VideoTaskTimestamp
 	}
 	type args struct {
-		ctx        context.Context
-		resourceId string
-		timeout    time.Duration
+		id string
 	}
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    string
-		wantErr bool
+		name   string
+		fields fields
+		args   args
+		want   VideoTaskTimestamp
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Test_VideoTaskCache_Get",
+			fields: fields{
+				key: "1",
+				val: 111,
+			},
+			args: args{
+				id: "1",
+			},
+			want: 111,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c, _ := New(nil, nil)
-			c.TimedCheckVideoTask(tt.args.ctx, tt.args.timeout)
+			c := NewVideoTaskCache()
+			c.Set(tt.args.id, tt.fields.val)
+			if got, ok := c.Get(tt.args.id); !ok || got != tt.want {
+				t.Errorf("VideoTaskCache.Set() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_VideoTaskCache_Delete(t *testing.T) {
+	type fields struct {
+		key string
+		val VideoTaskTimestamp
+	}
+	type args struct {
+		id string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   VideoTaskTimestamp
+	}{
+		{
+			name: "Test_VideoTaskCache_Delete",
+			fields: fields{
+				key: "1",
+				val: 111,
+			},
+			args: args{
+				id: "1",
+			},
+			want: 111,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := NewVideoTaskCache()
+			c.Set(tt.args.id, tt.fields.val)
+			c.Delete(tt.args.id)
+			if got, ok := c.Get(tt.args.id); ok {
+				t.Errorf("VideoTaskCache.Set() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_VideoTaskCache_Clear(t *testing.T) {
+	type fields struct {
+		key string
+		val VideoTaskTimestamp
+	}
+	type args struct {
+		id string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   VideoTaskTimestamp
+	}{
+		{
+			name: "Test_VideoTaskCache_Clear",
+			fields: fields{
+				key: "1",
+				val: 111,
+			},
+			args: args{
+				id: "1",
+			},
+			want: 111,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := NewVideoTaskCache()
+			c.Set(tt.args.id, tt.fields.val)
+			c.Clear()
+			if got, ok := c.Get(tt.args.id); !ok || got != tt.want {
+				t.Errorf("VideoTaskCache.Set() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }

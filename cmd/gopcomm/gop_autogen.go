@@ -409,7 +409,7 @@ func (this *community) MainEntry() {
 //line cmd/gopcomm/community_yap.gox:367:1
 		id := ctx.Param("id")
 //line cmd/gopcomm/community_yap.gox:369:1
-		transData, err := this.trans.TranslateMarkdownText(mdData, language.Chinese, language.English)
+		transData, err := this.community.TranslateMarkdownText(todo, mdData, language.Chinese, language.English)
 //line cmd/gopcomm/community_yap.gox:370:1
 		if err != nil {
 //line cmd/gopcomm/community_yap.gox:371:1
@@ -452,7 +452,7 @@ func (this *community) MainEntry() {
 //line cmd/gopcomm/community_yap.gox:408:1
 	this.Post("/upload", func(ctx *yap.Context) {
 //line cmd/gopcomm/community_yap.gox:409:1
-		core.UploadFile(ctx, this.community)
+		this.community.UploadFile(ctx)
 	})
 //line cmd/gopcomm/community_yap.gox:412:1
 	this.Get("/login", func(ctx *yap.Context) {
@@ -492,32 +492,30 @@ func (this *community) MainEntry() {
 //line cmd/gopcomm/community_yap.gox:446:1
 	this.community, _ = core.New(todo, conf)
 //line cmd/gopcomm/community_yap.gox:447:1
-	this.trans = translation.New(os.Getenv("NIUTRANS_API_KEY"), "", "")
-//line cmd/gopcomm/community_yap.gox:448:1
 	core.CasdoorConfigInit()
-//line cmd/gopcomm/community_yap.gox:451:1
+//line cmd/gopcomm/community_yap.gox:450:1
 	this.Handle("/", func(ctx *yap.Context) {
-//line cmd/gopcomm/community_yap.gox:452:1
+//line cmd/gopcomm/community_yap.gox:451:1
 		ctx.Yap__1("4xx", map[string]interface {
 		}{})
 	})
-//line cmd/gopcomm/community_yap.gox:455:1
+//line cmd/gopcomm/community_yap.gox:454:1
 	xLog.Info("Started in endpoint: ", endpoint)
-//line cmd/gopcomm/community_yap.gox:458:1
+//line cmd/gopcomm/community_yap.gox:457:1
 	this.Run(endpoint, func(h http.Handler) http.Handler {
-//line cmd/gopcomm/community_yap.gox:460:1
+//line cmd/gopcomm/community_yap.gox:459:1
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//line cmd/gopcomm/community_yap.gox:461:1
+//line cmd/gopcomm/community_yap.gox:460:1
 			defer func() {
-//line cmd/gopcomm/community_yap.gox:462:1
+//line cmd/gopcomm/community_yap.gox:461:1
 				if
-//line cmd/gopcomm/community_yap.gox:462:1
+//line cmd/gopcomm/community_yap.gox:461:1
 				err := recover(); err != nil {
-//line cmd/gopcomm/community_yap.gox:463:1
+//line cmd/gopcomm/community_yap.gox:462:1
 					http.Redirect(w, r, "/failed", http.StatusFound)
 				}
 			}()
-//line cmd/gopcomm/community_yap.gox:467:1
+//line cmd/gopcomm/community_yap.gox:466:1
 			h.ServeHTTP(w, r)
 		})
 	})

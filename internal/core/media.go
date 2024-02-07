@@ -4,16 +4,17 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/goplus/yap"
-	"github.com/qiniu/x/xlog"
 	"io"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/goplus/yap"
 	_ "github.com/qiniu/go-cdk-driver/kodoblob"
+	"github.com/qiniu/x/xlog"
 )
 
 // todo
@@ -79,7 +80,10 @@ func (c *Community) GetMediaUrl(ctx context.Context, mediaId string) (string, er
 	}
 	row := c.db.QueryRow(`select file_key from file where id = ?`, ID)
 	var fileKey string
-	row.Scan(&fileKey)
+	err = row.Scan(&fileKey)
+	if err != nil {
+		return "", err
+	}
 
 	return fileKey, nil
 }
@@ -116,7 +120,12 @@ func (c *Community) getMediaInfo(fileKey string) (*File, error) {
 
 	bucket := c.bucket
 	r, err := bucket.NewReader(context.Background(), fileKey, nil)
-	defer r.Close()
+	defer func() {
+		err = r.Close()
+		if err != nil {
+			c.xLog.Error("close file error:", err)
+		}
+	}()
 
 	if err != nil {
 		return nil, err
@@ -145,16 +154,23 @@ func (c *Community) uploadMedia(fileKey string, data []byte) error {
 	return nil
 }
 
-func UploadFile(ctx *yap.Context, community *Community) {
+func (c *Community) UploadFile(ctx *yap.Context) {
 	xLog := xlog.New("")
 	file, header, err := ctx.FormFile("file")
+	if err != nil {
+		xLog.Error("upload file error:", header)
+		ctx.JSON(500, err.Error())
+		return
+	}
+
 	filename := header.Filename
-	ctx.ParseMultipartForm(10 << 20)
+	err = ctx.ParseMultipartForm(10 << 20)
 	if err != nil {
 		xLog.Error("upload file error:", filename)
 		ctx.JSON(500, err.Error())
 		return
 	}
+
 	dst, err := os.Create(filename)
 	if err != nil {
 		xLog.Error("create file error:", file)
@@ -170,32 +186,48 @@ func UploadFile(ctx *yap.Context, community *Community) {
 			return
 		}
 	}()
+
 	_, err = io.Copy(dst, file)
 	if err != nil {
 		xLog.Error("copy file errer:", filename)
 		ctx.JSON(500, err.Error())
 		return
 	}
+
 	bytes, err := os.ReadFile(filename)
 	if err != nil {
 		xLog.Error("read file errer:", filename)
 		ctx.JSON(500, err.Error())
 		return
 	}
+
 	token, err := GetToken(ctx)
 	if err != nil {
 		ctx.JSON(500, err.Error())
 	}
-	uid, err := community.ParseJwtToken(token.Value)
+
+	uid, err := c.ParseJwtToken(token.Value)
 	if err != nil {
 		ctx.JSON(500, err.Error())
 	}
-	id, err := community.SaveMedia(context.Background(), uid, bytes)
+
+	id, err := c.SaveMedia(context.Background(), uid, bytes)
 	if err != nil {
 		xLog.Error("save file", err.Error())
 		ctx.JSON(500, err.Error())
 		return
 	}
+
+	// Judge the file type and start the corresponding task
+	fileType := http.DetectContentType(bytes)
+	if strings.Contains(fileType, "video") {
+		// Start captioning task
+		err := c.NewVideoTask(context.Background(), uid, strconv.Itoa(int(id)))
+		if err != nil {
+			xLog.Error("start video task error:", err)
+		}
+	}
+
 	ctx.JSON(200, id)
 }
 

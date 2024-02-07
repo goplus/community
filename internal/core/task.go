@@ -19,10 +19,11 @@ package core
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
-	language "golang.org/x/text/internal/language"
+	language "golang.org/x/text/language"
 )
 
 var (
@@ -33,6 +34,7 @@ var (
 type VideoTask struct {
 	Id         int
 	ResourceId string
+	UserId     string // User id
 	TaskId     string // ASR task id
 	Output     string // Recognition result link
 	Status     int    // 0: progress, -1: failed, 1: ok
@@ -40,8 +42,8 @@ type VideoTask struct {
 	UpdateAt   time.Time
 }
 
-func (c *Community) createVideoTask(ctx context.Context, resourceId string) error {
-	_, err := c.db.ExecContext(ctx, "insert into video_task(resource_id, status, create_at, update_at) values(?, ?, ?, ?)", resourceId, 0, time.Now(), time.Now())
+func (c *Community) createVideoTask(ctx context.Context, userId, resourceId, taskId string) error {
+	_, err := c.db.ExecContext(ctx, "insert into video_task (user_id, resource_id, task_id, output, status, create_at, update_at) values (?, ?, ?, ?, ?, ?, ?)", userId, resourceId, taskId, "", 0, time.Now(), time.Now())
 	return err
 }
 
@@ -55,6 +57,7 @@ func (c *Community) updateVideoTaskStatus(ctx context.Context, resourceId string
 	return err
 }
 
+//nolint:unused
 func (c *Community) deleteVideoTask(ctx context.Context, resourceId string) error {
 	_, err := c.db.ExecContext(ctx, "delete from video_task where resource_id = ?", resourceId)
 	return err
@@ -62,7 +65,7 @@ func (c *Community) deleteVideoTask(ctx context.Context, resourceId string) erro
 
 func (c *Community) getVideoTask(ctx context.Context, resourceId string) (*VideoTask, error) {
 	var task VideoTask
-	err := c.db.QueryRow("select id, resource_id, task_id, output, status, create_at, update_at from video_task where resource_id = ?", resourceId).Scan(&task.Id, &task.ResourceId, &task.TaskId, &task.Output, &task.Status, &task.CreateAt, &task.UpdateAt)
+	err := c.db.QueryRow("select id, user_id, resource_id, task_id, output, status, create_at, update_at from video_task where resource_id = ?", resourceId).Scan(&task.Id, &task.UserId, &task.ResourceId, &task.TaskId, &task.Output, &task.Status, &task.CreateAt, &task.UpdateAt)
 	if err != nil {
 		return nil, err
 	}
@@ -71,14 +74,27 @@ func (c *Community) getVideoTask(ctx context.Context, resourceId string) (*Video
 }
 
 // NewVideoTask create new video task
-func (c *Community) NewVideoTask(ctx context.Context, resourceId string) error {
-	err := c.createVideoTask(ctx, resourceId)
+func (c *Community) NewVideoTask(ctx context.Context, userId, resourceId string) error {
+	urlKey, err := c.GetMediaUrl(ctx, resourceId)
+	if err != nil {
+		return err
+	}
+	url := fmt.Sprintf("%s%s", c.domain, urlKey)
+
+	resp, err := c.translation.Engine.Video2Text(url, "")
+	if err != nil {
+		return err
+	}
+
+	err = c.createVideoTask(ctx, userId, resourceId, resp.TaskId)
 	if err != nil {
 		return err
 	}
 
 	// Set video task cache
 	c.SetVideoTaskCache(resourceId, VideoTaskTimestamp(time.Now().Unix()))
+
+	c.xLog.Infof("NewVideoTask success, resourceId: %s, taskId: %s", resourceId, resp.TaskId)
 
 	return nil
 }
@@ -150,9 +166,6 @@ func (c *VideoTaskCache) Clear() {
 
 // SetVideoTaskCache set video task cache
 func (c *Community) SetVideoTaskCache(key string, value VideoTaskTimestamp) {
-	c.translation.VideoTaskCache.Lock()
-	defer c.translation.VideoTaskCache.Unlock()
-
 	c.translation.VideoTaskCache.Set(key, value)
 
 	// Start check task status
@@ -172,6 +185,7 @@ func (c *Community) TimedCheckVideoTask(ctx context.Context, timeout time.Durati
 	for {
 		select {
 		case <-ticker.C:
+			c.xLog.Infof("TimedCheckVideoTask start, timeout: %v", timeout)
 			// Iterator video task cache
 			c.translation.VideoTaskCache.RLock()
 			defer c.translation.VideoTaskCache.RUnlock()
@@ -186,26 +200,72 @@ func (c *Community) TimedCheckVideoTask(ctx context.Context, timeout time.Durati
 						c.xLog.Errorf("TimedCheckVideoTask getVideoTask failed, resourceId: %s, err: %v", resourceId, err)
 						continue
 					}
-					if task.Status == 1 {
-						// Set video task success
+					if task.Status == 1 || task.Status == -1 {
+						// Set video task success or failed
 						c.translation.VideoTaskCache.Delete(resourceId)
-					} else if task.Status == -1 {
+					} else if task.Status == 0 {
 						// Request for ASR task
 						asrTaskData, err := c.translation.Engine.QueryVideo2TextTask(task.TaskId)
 						if err != nil {
 							c.xLog.Errorf("TimedCheckVideoTask QueryVideo2TextTask failed, resourceId: %s, err: %v", resourceId, err)
 							continue
 						}
-
-						if asrTaskData.Rtn == 0 {
+						taskStatus := asrTaskData.Rtn
+						if asrTaskData.Rtn == 0 && asrTaskData.Data.StatusCode == 3 {
 							// Upload ASR result
-							c.translation.Engine.GenerateWebVTTFileWithTranslation(asrTaskData, language.Chinese, language.English)
+							buffer, err := c.translation.Engine.GenerateWebVTTBytesWithTranslation(*asrTaskData, language.Chinese, language.English)
+							if err != nil {
+								taskStatus = -1
+								c.xLog.Errorf("TimedCheckVideoTask GenerateWebVTTBytesWithTranslation failed, resourceId: %s, err: %v", resourceId, err)
+								// Can not parse ASR result
+								// continue
+							}
+
+							// Upload ASR result
+							captionId, err := c.SaveMedia(ctx, task.UserId, buffer.Bytes())
+							if err != nil {
+								taskStatus = -1
+								c.xLog.Errorf("TimedCheckVideoTask SaveMedia failed, resourceId: %s, err: %v", resourceId, err)
+								// Can not save ASR result
+								// continue
+							}
+
+							// Get ASR result id
+							output, err := c.GetMediaUrl(ctx, fmt.Sprintf("%d", captionId))
+							if err != nil {
+								taskStatus = -1
+								c.xLog.Errorf("TimedCheckVideoTask GetMediaURL failed, resourceId: %s, err: %v", resourceId, err)
+								// Can not get ASR result link
+								// continue
+							}
+
+							// Update status of video task
+							if taskStatus == 0 {
+								err = c.SetVideoTaskSuccess(ctx, resourceId)
+							} else {
+								err = c.SetVideoTaskFailed(ctx, resourceId)
+							}
+							if err != nil {
+								c.xLog.Errorf("TimedCheckVideoTask SetVideoTaskStatus failed, resourceId: %s, err: %v", resourceId, err)
+							}
+
+							c.xLog.Infof("TimedCheckVideoTask GetMediaURL success, resourceId: %s, output: %s", resourceId, output)
+							// Update status of video task
+							err = c.SetVideoTaskOutput(ctx, resourceId, output)
+							if err != nil {
+								c.xLog.Errorf("TimedCheckVideoTask SetVideoTaskOutput failed, resourceId: %s, err: %v", resourceId, err)
+							}
 
 							// Set video task success
 							c.translation.VideoTaskCache.Delete(resourceId)
 						}
 					}
 				}
+			}
+
+			if len(c.translation.VideoTaskCache.videoTaskMap) == 0 {
+				c.translation.VideoTaskCache.isActive = false
+				return
 			}
 		case <-timer.C:
 			c.xLog.Errorf("TimedCheckVideoTask timeout, timeout: %v", timeout)
