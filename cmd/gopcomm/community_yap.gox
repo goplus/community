@@ -68,7 +68,8 @@ get "/p/:id", ctx => {
 		"User":    user,
 		"ID":      id,
 		"Title":   article.Title,
-		"Content": article.HtmlUrl,
+		"Content": article.Content,
+		"HtmlUrl": article.HtmlUrl,
 		"Tags":    article.Tags,
 		"Cover":   article.Cover,
 		"Mtime":   article.Mtime.Format(layoutUS),
@@ -437,7 +438,6 @@ get "/login", ctx => {
 	// redirectURL := ctx.URL.Query().Get("redirect_url")
 	// Get current request page URL from
 	// Concatenate the current request page URL from refer
-	xLog.Info("ctx.Request.Referer()", ctx.Request.Referer())
 	refererURL, err := url.Parse(ctx.Request.Referer())
 	if err != nil {
 		xLog.Info("Error parsing Referer: %v", err)
@@ -476,21 +476,17 @@ get "/logout", ctx => {
 }
 
 get "/callback", ctx => {
-	xLog.Info("ctx.URL", ctx.URL)
 	err := core.SetToken(ctx)
 	if err != nil {
 		xLog.Error("set token error:", err)
 	}
-	// TODO can not get origin_path, because of casdoor
 	origin_path := ctx.URL.Query().Get("origin_path")
 	unurl, err := url.QueryUnescape(origin_path)
 	if err != nil {
-		xLog.Info("Unurlerror", err)
+		xLog.Info("Unurl error",err)
 		unurl = "/"
 	}
 
-	// Redirect to home page
-	// TODO: Get redirect URL from state
 	http.Redirect(ctx.ResponseWriter, ctx.Request, unurl, http.StatusFound)
 }
 
