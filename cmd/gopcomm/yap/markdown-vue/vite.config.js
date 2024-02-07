@@ -30,7 +30,7 @@ export default defineConfig({
           // "vue-demi": "VueDemi",
           // Antd: "Antd"
         },
-        dir: "dist_part",
+        dir: "dist",
       },
     },
     // lib: {
@@ -38,6 +38,7 @@ export default defineConfig({
     //   name: 'try',
     //   fileName: 'try'
     // },
+    base: "./",
     lib: {
       // entry: 'src/components/MarkdownEngine.vue',
       entry: 'lib/lib.js',

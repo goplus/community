@@ -38,7 +38,7 @@
     <link href="https://fonts.proxy.ustclug.org/css2?family=Noto+Sans+SC&display=swap" rel="stylesheet">
 
     <!-- markdown -->
-    <link rel="stylesheet" href="./component/style.css">
+    <link rel="stylesheet" href="/static/GoplusMarkdown/style.css">
     <link rel="stylesheet" href="https://cdn.plyr.io/3.6.8/plyr.css" >
 
     <style type="text/css" media="screen, print">
@@ -52,7 +52,7 @@
 <script src="https://cdn.plyr.io/3.6.8/plyr.js"></script>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script data-widgets="code" src="https://goplus.org/widgets/loader.js"></script>
-<!-- <script src="./component/GoplusMarkdown.umd.cjs"></script> -->
+<script src="/static/GoplusMarkdown/GoplusMarkdown.umd.cjs"></script>
 
 <script type="importmap"> 
   { "imports": { 
@@ -192,8 +192,8 @@
 
                             <!-- Content -->
                             <n-divider style="margin: 10px 0 18px 0;"></n-divider>
-                            <!-- <markdown-viewer md="{{ .Content }}"></markdown-viewer> -->
-                            <iframe style="width: 100%;" src="{{ .HtmlUrl }}"></iframe>
+                            <markdown-viewer md="{{ .Content }}"></markdown-viewer>
+                            <!-- <iframe style="width: 100%;" src="{{ .HtmlUrl }}"></iframe> -->
                             <n-divider style="margin: 18px 0 10px 0;"></n-divider>
 
                             <!-- Quick Sharing -->
@@ -318,23 +318,20 @@
 
         <script type="module">
             const { reactive, toRefs, ref, h } = Vue;
-            // import {MarkdownViewer} from './component/GoplusMarkdown.umd.cjs'; // vue组件与编辑组件
-            // console.log("GoplusMarkdown",window.GoplusMarkdown)
 
             /*======= current article's info =======*/
-            // TODO: @Bai const article = JSON.parse("{{.}}");
-            const article = ref({
-                Title: 'This is default title!',
-                Mtime: '2024-01-01',
-                Abstract: 'This is default abstract! This is default abstract! This is default abstract! This is default abstract!',
-            });
+            // const article = ref({
+            //     Title: 'This is default title!',
+            //     Mtime: '2024-01-01',
+            //     Abstract: 'This is default abstract! This is default abstract! This is default abstract! This is default abstract!',
+            // });
 
-            // TODO: @Bai const author = JSON.parse("{{.}}");
-            const author = ref({
-                Id: 123,
-                Avatar: '',
-                Name: 'Nick_1977',
-            })
+            // // TODO: @Bai const author = JSON.parse("{{.}}");
+            // const author = ref({
+            //     Id: 123,
+            //     Avatar: '',
+            //     Name: 'Nick_1977',
+            // })
 
             const tags = ref("{{.Tags}}")
 
@@ -396,7 +393,7 @@
                     shareToTwitter,
                 },
                 components: {
-                    // MarkdownViewer: MarkdownViewer
+                    MarkdownViewer: window.GoplusMarkdown.MarkdownViewer
                 }
             });
 
