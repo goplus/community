@@ -87,6 +87,35 @@ func (c *Community) GetMediaUrl(ctx context.Context, mediaId string) (string, er
 	return fileKey, nil
 }
 
+func (c *Community) GetMediaType(ctx context.Context, mediaId string) (string, error) {
+	ID, err := strconv.Atoi(mediaId)
+	if err != nil {
+		return "", err
+	}
+	row := c.db.QueryRow(`select format from file where id = ?`, ID)
+	var Format string
+	err = row.Scan(&Format)
+	if err != nil {
+		return "", err
+	}
+	return Format, nil
+
+}
+func (c *Community) GetVideoSubtitle(ctx context.Context, mediaId string) (string, error) {
+	ID, err := strconv.Atoi(mediaId)
+	if err != nil {
+		return "", err
+	}
+	row := c.db.QueryRow(`select output from video_task where resource_id = ?`, ID)
+	var fileKey string
+	err = row.Scan(&fileKey)
+	if err != nil {
+		return "", err
+	}
+
+	return fileKey, nil
+}
+
 func (c *Community) SaveMedia(ctx context.Context, userId string, data []byte) (int64, error) {
 
 	// upload cloud oss
