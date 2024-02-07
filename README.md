@@ -42,10 +42,20 @@ gop run .
 
 1. **Fork the repository to your local repo**
 
-2. **Modify your own code**
+2. **Config code linter**
+  
+    ```bash
+    // install pre-commit
+    pip install pre-commit
 
-3. **Commit your code**
+    // config code linter in pre-commit hook
+    pre-commit install
+    ```
 
-4. **Create a pull request**
+3. **Modify your own code**
+
+4. **Commit your code**
+
+5. **Create a pull request**
 
 > **Note:** Please check the PR brach is `mvp-20240119` or not.

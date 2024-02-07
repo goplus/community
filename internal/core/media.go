@@ -222,7 +222,7 @@ func (c *Community) UploadFile(ctx *yap.Context) {
 	fileType := http.DetectContentType(bytes)
 	if strings.Contains(fileType, "video") {
 		// Start captioning task
-		err := c.NewVideoTask(context.Background(), uid, strconv.Itoa(int(id)))
+		err := c.NewVideoTask(context.Background(), uid, strconv.FormatInt(id, 10))
 		if err != nil {
 			xLog.Error("start video task error:", err)
 		}

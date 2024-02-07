@@ -143,16 +143,16 @@ func (p *Community) TranslateMarkdownText(ctx context.Context, src string, from,
 	return p.translation.Engine.TranslateMarkdownText(src, from, to)
 }
 
-func (p *Community) getTotal(ctx context.Context, searchValue string) (total int, err error) {
-	if searchValue != "" {
-		sqlStr := "select count(*) from article where title like ?"
-		err = p.db.QueryRow(sqlStr, "%"+searchValue+"%").Scan(&total)
-	} else {
-		sqlStr := "select count(*) from article"
-		err = p.db.QueryRow(sqlStr).Scan(&total)
-	}
-	return
-}
+// func (p *Community) getTotal(ctx context.Context, searchValue string) (total int, err error) {
+// 	if searchValue != "" {
+// 		sqlStr := "select count(*) from article where title like ?"
+// 		err = p.db.QueryRow(sqlStr, "%"+searchValue+"%").Scan(&total)
+// 	} else {
+// 		sqlStr := "select count(*) from article"
+// 		err = p.db.QueryRow(sqlStr).Scan(&total)
+// 	}
+// 	return
+// }
 
 // Article returns an article.
 func (p *Community) Article(ctx context.Context, id string) (article *Article, err error) {
@@ -374,40 +374,40 @@ const (
 )
 
 // Articles lists articles from a position.
-func (p *Community) Articles(ctx context.Context, page int, limit int, searchValue string) (items []*ArticleEntry, total int, err error) {
-	total, err = p.getTotal(ctx, searchValue)
-	if err != nil || total == 0 {
-		return []*ArticleEntry{}, 0, err
-	}
+// func (p *Community) Articles(ctx context.Context, page int, limit int, searchValue string) (items []*ArticleEntry, total int, err error) {
+// 	total, err = p.getTotal(ctx, searchValue)
+// 	if err != nil || total == 0 {
+// 		return []*ArticleEntry{}, 0, err
+// 	}
 
-	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover from article order by ctime desc limit ? offset ?"
-	rows, err := p.db.Query(sqlStr, limit, (page-1)*limit)
-	if searchValue != "" {
-		sqlStr := "select id, title, ctime, user_id, tags, abstract, cover from article where title like ? order by ctime desc limit ? offset ?"
-		rows, err = p.db.Query(sqlStr, "%"+searchValue+"%", limit, (page-1)*limit)
-	}
-	if err != nil {
-		return []*ArticleEntry{}, 0, err
-	}
-	defer rows.Close()
+// 	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover from article order by ctime desc limit ? offset ?"
+// 	rows, err := p.db.Query(sqlStr, limit, (page-1)*limit)
+// 	if searchValue != "" {
+// 		sqlStr := "select id, title, ctime, user_id, tags, abstract, cover from article where title like ? order by ctime desc limit ? offset ?"
+// 		rows, err = p.db.Query(sqlStr, "%"+searchValue+"%", limit, (page-1)*limit)
+// 	}
+// 	if err != nil {
+// 		return []*ArticleEntry{}, 0, err
+// 	}
+// 	defer rows.Close()
 
-	for rows.Next() {
-		article := &ArticleEntry{}
-		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Abstract, &article.Cover)
-		if err != nil {
-			return []*ArticleEntry{}, 0, err
-		}
-		// add author info
-		user, err := p.GetUserById(article.UId)
-		if err != nil {
-			return []*ArticleEntry{}, 0, err
-		}
-		article.User = *user
+// 	for rows.Next() {
+// 		article := &ArticleEntry{}
+// 		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Abstract, &article.Cover)
+// 		if err != nil {
+// 			return []*ArticleEntry{}, 0, err
+// 		}
+// 		// add author info
+// 		user, err := p.GetUserById(article.UId)
+// 		if err != nil {
+// 			return []*ArticleEntry{}, 0, err
+// 		}
+// 		article.User = *user
 
-		items = append(items, article)
-	}
-	return items, total, nil
-}
+// 		items = append(items, article)
+// 	}
+// 	return items, total, nil
+// }
 
 // ListArticle lists articles from a position.
 func (p *Community) ListArticle(ctx context.Context, from string, limit int, searchValue string) (items []*ArticleEntry, next string, err error) {
@@ -449,6 +449,9 @@ func (p *Community) ListArticle(ctx context.Context, from string, limit int, sea
 	// have no article
 	if rowLen == 0 {
 		return []*ArticleEntry{}, MarkEnd, io.EOF
+	}
+	if rowLen < limit {
+		return items, MarkEnd, io.EOF
 	}
 	next = strconv.Itoa(fromInt + rowLen)
 	return items, next, nil

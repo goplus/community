@@ -187,8 +187,6 @@ func (c *Community) TimedCheckVideoTask(ctx context.Context, timeout time.Durati
 		case <-ticker.C:
 			c.xLog.Infof("TimedCheckVideoTask start, timeout: %v", timeout)
 			// Iterator video task cache
-			c.translation.VideoTaskCache.RLock()
-			defer c.translation.VideoTaskCache.RUnlock()
 			for resourceId, timestamp := range c.translation.VideoTaskCache.videoTaskMap {
 				if time.Now().Unix()-int64(timestamp) > int64(timeout) {
 					// Delete expired video task
