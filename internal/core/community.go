@@ -26,12 +26,14 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/goplus/community/translation"
 	"github.com/qiniu/x/xlog"
 
 	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 	_ "github.com/go-sql-driver/mysql"
 	"gocloud.dev/blob"
 	"golang.org/x/oauth2"
+	language "golang.org/x/text/language"
 )
 
 var (
@@ -72,6 +74,7 @@ type Community struct {
 	domain        string
 	casdoorConfig *CasdoorConfig
 	xLog          *xlog.Logger
+	translation   *Translation
 }
 type CasdoorConfig struct {
 	endPoint         string
@@ -83,6 +86,11 @@ type CasdoorConfig struct {
 }
 
 type Account struct {
+}
+
+type Translation struct {
+	Engine         *translation.Engine
+	VideoTaskCache *VideoTaskCache
 }
 
 func New(ctx context.Context, conf *Config) (ret *Community, err error) {
@@ -117,7 +125,22 @@ func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 		xLog.Error(err)
 		return
 	}
-	return &Community{bucket, db, domain, casdoorConf, xLog}, nil
+
+	// Init translation engine
+	translationEngine := &Translation{
+		Engine: translation.New(
+			string(os.Getenv("NIUTRANS_API_KEY")),
+			string(os.Getenv("QINIU_ACCESS_KEY")),
+			string(os.Getenv("QINIU_SECRET_KEY")),
+		),
+		VideoTaskCache: NewVideoTaskCache(),
+	}
+
+	return &Community{bucket, db, domain, casdoorConf, xLog, translationEngine}, nil
+}
+
+func (p *Community) TranslateMarkdownText(ctx context.Context, src string, from, to language.Tag) (string, error) {
+	return p.translation.Engine.TranslateMarkdownText(src, from, to)
 }
 
 // func (p *Community) getTotal(ctx context.Context, searchValue string) (total int, err error) {
@@ -134,9 +157,9 @@ func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 // Article returns an article.
 func (p *Community) Article(ctx context.Context, id string) (article *Article, err error) {
 	article = &Article{}
-	var htmlId string
-	sqlStr := "select id,title,user_id,cover,tags,abstract,content,html_id,ctime,mtime from article where id=?"
-	err = p.db.QueryRow(sqlStr, id).Scan(&article.ID, &article.Title, &article.UId, &article.Cover, &article.Tags, &article.Abstract, &article.Content, &htmlId, &article.Ctime, &article.Mtime)
+	// var htmlId string
+	sqlStr := "select id,title,user_id,cover,tags,abstract,content,ctime,mtime from article where id=?"
+	err = p.db.QueryRow(sqlStr, id).Scan(&article.ID, &article.Title, &article.UId, &article.Cover, &article.Tags, &article.Abstract, &article.Content, &article.Ctime, &article.Mtime)
 	if err == sql.ErrNoRows {
 		p.xLog.Warn("not found the article")
 		return article, ErrNotExist
@@ -150,12 +173,12 @@ func (p *Community) Article(ctx context.Context, id string) (article *Article, e
 	}
 	article.User = *user
 	// get html url
-	fileKey, err := p.GetMediaUrl(ctx, htmlId)
-	article.HtmlUrl = fmt.Sprintf("%s%s", p.domain, fileKey)
-	if err != nil {
-		p.xLog.Warn("have no html media")
-		article.HtmlUrl = ""
-	}
+	// fileKey, err := p.GetMediaUrl(ctx, htmlId)
+	// article.HtmlUrl = fmt.Sprintf("%s%s", p.domain, fileKey)
+	// if err != nil {
+	// 	p.xLog.Warn("have no html media")
+	// 	article.HtmlUrl = ""
+	// }
 	return
 }
 
@@ -217,10 +240,10 @@ func (p *Community) SaveHtml(ctx context.Context, uid, htmlStr, mdData, id strin
 }
 
 // uploadHtml upload html(string) to media for html id
-func (p *Community) uploadHtml(ctx context.Context, uid, htmlStr string) (htmlId int64, err error) {
-	htmlId, err = p.SaveMedia(ctx, uid, []byte(htmlStr))
-	return
-}
+// func (p *Community) uploadHtml(ctx context.Context, uid, htmlStr string) (htmlId int64, err error) {
+// 	htmlId, err = p.SaveMedia(ctx, uid, []byte(htmlStr))
+// 	return
+// }
 
 // PutArticle adds new article (ID == "") or edits an existing article (ID != "").
 func (p *Community) PutArticle(ctx context.Context, uid string, trans string, article *Article) (id string, err error) {
@@ -512,4 +535,18 @@ func (a *Community) GetAccessToken(code, state string) (token *oauth2.Token, err
 	}
 
 	return token, nil
+}
+
+// share count
+func (a *Community) Share(ip, platform, userId, articleId string) {
+	go func(ip, platform, userId, articleId string) {
+		sqlStr := "INSERT INTO share (platform,user_Id,ip,index_key,create_at) values (?,?,?,?,?)"
+		index := ip + platform + articleId
+		_, err := a.db.Exec(sqlStr, platform, userId, ip, index, time.Now())
+		if err != nil {
+			a.xLog.Fatalln(err.Error())
+			return
+		}
+		a.xLog.Printf("user: %s, ip: %s, share to platform: %s, articleId: %s", userId, ip, platform, articleId)
+	}(ip, platform, userId, articleId)
 }
