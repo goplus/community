@@ -18,7 +18,6 @@
     <meta property="og:title" content="GoplusCommunity">
     <meta property="og:description" content="GoplusCommunity">
     <meta property="og:image" content="https://public-cdn.mokahr.com/72f7c42e-b069-4e14-9c29-ee20229cc256.png">
-
     <meta property="og:type" content="website">
 
     <!-- UI -->
@@ -46,7 +45,6 @@
             font-family: 'Inter', 'Noto Sans SC'
         }
     </style>
-
 </head>    
 
 <script src="https://cdn.plyr.io/3.6.8/plyr.js"></script>
@@ -232,7 +230,7 @@
                                         <n-button text class="mr-2" style="--n-text-color-hover: #3182ce;
                                             --n-text-color-pressed: #3182ce;
                                             --n-text-color-focus: #3182ce;
-                                            --n-text-color: #a0aec0;" @click="shareToWeChat">
+                                            --n-text-color: #a0aec0;">
                                             <i class="ph-fill ph-wechat-logo" style="font-size: 20px;"></i>
                                         </n-button>
                                     </template>
@@ -333,6 +331,12 @@
             //     Name: 'Nick_1977',
             // })
 
+            // TODO: @Bai const author = JSON.parse("{{.}}");
+            const author = ref({
+                Id: 123,
+                Avatar: '',
+                Name: 'Nick_1977',
+            })
             const tags = ref("{{.Tags}}")
 
             /*======= share related functions =======*/

@@ -26,12 +26,14 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/goplus/community/translation"
 	"github.com/qiniu/x/xlog"
 
 	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 	_ "github.com/go-sql-driver/mysql"
 	"gocloud.dev/blob"
 	"golang.org/x/oauth2"
+	language "golang.org/x/text/language"
 )
 
 var (
@@ -72,6 +74,7 @@ type Community struct {
 	domain        string
 	casdoorConfig *CasdoorConfig
 	xLog          *xlog.Logger
+	translation   *Translation
 }
 type CasdoorConfig struct {
 	endPoint         string
@@ -83,6 +86,11 @@ type CasdoorConfig struct {
 }
 
 type Account struct {
+}
+
+type Translation struct {
+	Engine         *translation.Engine
+	VideoTaskCache *VideoTaskCache
 }
 
 func New(ctx context.Context, conf *Config) (ret *Community, err error) {
@@ -117,7 +125,22 @@ func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 		xLog.Error(err)
 		return
 	}
-	return &Community{bucket, db, domain, casdoorConf, xLog}, nil
+
+	// Init translation engine
+	translationEngine := &Translation{
+		Engine: translation.New(
+			string(os.Getenv("NIUTRANS_API_KEY")),
+			string(os.Getenv("QINIU_ACCESS_KEY")),
+			string(os.Getenv("QINIU_SECRET_KEY")),
+		),
+		VideoTaskCache: NewVideoTaskCache(),
+	}
+
+	return &Community{bucket, db, domain, casdoorConf, xLog, translationEngine}, nil
+}
+
+func (p *Community) TranslateMarkdownText(ctx context.Context, src string, from, to language.Tag) (string, error) {
+	return p.translation.Engine.TranslateMarkdownText(src, from, to)
 }
 
 // func (p *Community) getTotal(ctx context.Context, searchValue string) (total int, err error) {
@@ -512,4 +535,18 @@ func (a *Community) GetAccessToken(code, state string) (token *oauth2.Token, err
 	}
 
 	return token, nil
+}
+
+// share count
+func (a *Community) Share(ip, platform, userId, articleId string) {
+	go func(ip, platform, userId, articleId string) {
+		sqlStr := "INSERT INTO share (platform,user_Id,ip,index_key,create_at) values (?,?,?,?,?)"
+		index := ip + platform + articleId
+		_, err := a.db.Exec(sqlStr, platform, userId, ip, index, time.Now())
+		if err != nil {
+			a.xLog.Fatalln(err.Error())
+			return
+		}
+		a.xLog.Printf("user: %s, ip: %s, share to platform: %s, articleId: %s", userId, ip, platform, articleId)
+	}(ip, platform, userId, articleId)
 }
