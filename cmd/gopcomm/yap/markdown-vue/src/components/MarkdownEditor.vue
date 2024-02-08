@@ -586,7 +586,10 @@ export default {
         v_c.setAttribute("href", "stylesheet")
         document.head.appendChild(v_c)
     },
-    methods: {            
+    methods: {    
+         getMarkdown() {
+            return getCherryContent()
+        },         
         // 弹窗关闭事件
         // handleOk(e) {
         //     console.log(e);

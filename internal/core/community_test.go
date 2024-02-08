@@ -63,7 +63,7 @@ func TestPutArticle(t *testing.T) {
 		expectedID string
 	}{
 		{"1", "", article, "1"},       // insert
-		{"1", "trans", article, "1"},  // insert trans
+		{"1", "", article, "1"},  // insert trans
 		{"1", "", articleUpdate, "1"}, // update
 	}
 

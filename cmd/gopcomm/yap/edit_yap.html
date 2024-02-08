@@ -1,15 +1,289 @@
+<!DOCTYPE html>
+<html>
 
-<!doctype html>
-<html lang="en">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Markdown</title>
-    <script type="module" crossorigin src="/static/assets/index-s63-Szuh.js"></script>
-    <link rel="stylesheet" crossorigin href="/static/assets/index-xg-gy6jf.css">
-  </head>
-  <body>
-    {{ template "header" .}}
-    <div id="app"></div>
-  </body>
+    <title>Markdown Editor</title>
+
+    <!-- Vue -->
+    <script src="https://unpkg.com/vue"></script>
+
+    <!-- UI -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+    <script src="https://unpkg.com/naive-ui"></script>
+
+    <!-- Icon -->
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/bold/style.css" />
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Font -->
+    <link href="https://fonts.cdnfonts.com/css/inter" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.proxy.ustclug.org">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.proxy.ustclug.org/css2?family=Noto+Sans+SC&display=swap" rel="stylesheet">
+    <style type="text/css" media="screen, print">
+        body {
+            font-family: 'Inter', 'Noto Sans SC';
+            height: 100vh;
+        }
+    </style>
+
+    <!-- markdown -->
+    <link rel="stylesheet" href="/static/GoplusMarkdown/style.css">
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.6.8/plyr.css" >
+
+    <!-- Resource Import -->
+    <!-- <script type="module" crossorigin src="/static/assets/index-s63-Szuh.js"></script>
+    <link rel="stylesheet" crossorigin href="/static/assets/index-xg-gy6jf.css"> -->
+</head>
+
+<script src="https://cdn.plyr.io/3.6.8/plyr.js"></script>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script data-widgets="code" src="https://goplus.org/widgets/loader.js"></script>
+<script src="/static/GoplusMarkdown/GoplusMarkdown.umd.cjs"></script>
+
+<script type="importmap"> 
+    { "imports": { 
+        "vue":        "https://cdnjs.cloudflare.com/ajax/libs/vue/3.2.41/vue.esm-browser.prod.js", 
+        "vue-router": "https://cdnjs.cloudflare.com/ajax/libs/vue-router/4.1.5/vue-router.esm-browser.min.js" 
+    } } 
+  </script>
+
+<body>
+    <n-config-provider :theme-overrides="themeOverrides">
+        <div id="app" class="h-full w-full px-6 py-4" style="background: url('/static/img/editor-background.svg') top no-repeat;
+            background-size: 100% auto;">
+            <!-- TODO  删掉这个会报错 -->
+            {{ template "header" .}}
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-2">
+                <!-- Back Button -->
+                <n-button quaternary color="#808080" @click="backToLastPage">
+                    <template #icon>
+                        <i class="ph-fill ph-arrow-line-left" style="font-size: 24px;"></i>
+                    </template>
+                </n-button>
+
+                <span style="color: #3182ce; font-weight: 700; font-size: medium; white-space: nowrap;"
+                    class="ml-2">Markdown Editor</span>
+
+                <n-divider vertical style="--n-color: #e0e0e6; margin: 0 0.5rem;"></n-divider>
+
+                <!-- Title Input -->
+                <n-input v-model:value="articleForm.title" placeholder="Input the article title" 
+                    clearable size="large" maxlength="50" show-count style="width: 60%; 
+                    --n-caret-color: #3182ce; --n-border: 1px solid #ecf5fe;
+                    --n-border-hover: 1px solid #ecf5fe; --n-border-focus: 1px solid #2a82e4; 
+                    --n-box-shadow-focus: 0 0 0 2.5px #cee1f5;">
+                </n-input>
+
+                <!-- TODO: Export Button -->
+                <n-button class="ml-2" style="--n-border-radius: 7px; --n-ripple-color: #7ba7d3; 
+                    --n-text-color-hover: #2a82e4; --n-text-color-pressed: #3182ce;
+                    --n-text-color-focus: #2a82e4; --n-border-hover: 1px solid #2a82e4;
+                    --n-border-pressed: 1px solid #3182ce; --n-border-focus: 1px solid #2a82e4;">
+                    <template #icon>
+                        <i class="ph-bold ph-export"></i>
+                    </template>
+                    <span style="font-weight: 600;">Export</span>
+                </n-button>
+
+                <!-- Submit Button -->
+                <n-button @click="showModal = true" class="ml-2" color="#3182ce"
+                    style="--n-border-radius: 7px; background-color: #3182ce;">
+                    <template #icon>
+                        <i class="ph-bold ph-paper-plane-tilt"></i>
+                    </template>
+                    <span style="font-weight: 600;">Submit</span>
+                </n-button>
+                <n-modal v-model:show="showModal" preset="card" size="huge" :bordered="false" :segmented="true"
+                    style="width: 60%; height: 75vh; overflow-y: auto;">
+                    <template #header>
+                        <div style="text-align: center;">
+                            <span style="font-weight: 600; font-size: larger;">📫Post this article</span>
+                        </div>
+                    </template>
+
+                    <n-form show-require-mark require-mark-placement="left" :label-width="200" :model="articleForm">
+                        <!-- Tags -->
+                        <n-form-item label="Tags" path="tags">
+                            <n-dynamic-tags v-model:value="articleForm.tags" :rule="{
+                                required: true,
+                                message: 'Please input at least one tag',
+                                trigger: ['change']
+                            }"></n-dynamic-tags>
+                        </n-form-item>
+
+                        <!-- Abstract -->
+                        <n-form-item label="Abstract" path="abstract">
+                            <n-input v-model:value="articleForm.abstract" type="textarea" show-count :min-length="15"
+                                placeholder="write an abstract for your article" style="--n-caret-color: #3182ce; --n-border: 1px solid #ecf5fe;
+                                --n-border-hover: 1px solid #ecf5fe; --n-border-focus: 1px solid #2a82e4; 
+                                --n-box-shadow-focus: 0 0 0 2px #cee1f5;" :rule="{
+                                required: true,
+                                message: 'Please input abstract',
+                                trigger: ['input', 'blur']
+                            }"></n-input>
+                        </n-form-item>
+
+                        <!-- TODO  Cover -->
+                        <!-- <n-form-item label="Cover" path="cover">
+                            <n-upload :max="1" directory-dnd v-model:file-list="cover"
+                                accept="image/png, image/jpg, image/jpeg" @change="changeCover">
+                                <n-upload-dragger
+                                    style="--n-dragger-border-hover: 1.5px dashed #3182ce; border-radius: 7px;">
+                                    <div class="mb-1">
+                                        <i class="ph-fill ph-folder-notch-plus"
+                                            style="font-size: 70px; color: #808080;"></i>
+                                    </div>
+                                    <n-text>
+                                        click or drag a file here to upload
+                                    </n-text>
+                                </n-upload-dragger>
+                            </n-upload>
+                        </n-form-item> -->
+                    </n-form>
+
+                    <!-- Cancel Button & Submit Button -->
+                    <template #footer>
+                        <div class="w-full flex justify-end">
+                            <!-- Cancel Button -->
+                            <n-button @click="showModal = false" style="--n-border-radius: 5px; --n-ripple-color: #7ba7d3; 
+                            --n-text-color-hover: #2a82e4; --n-text-color-pressed: #3182ce;
+                            --n-text-color-focus: #2a82e4; --n-border-hover: 1px solid #2a82e4;
+                            --n-border-pressed: 1px solid #3182ce; --n-border-focus: 1px solid #2a82e4;">
+                                <span>Cancel</span>
+                            </n-button>
+
+                            <!-- Submit Button -->
+                            <n-button @click="submitArticle" class="ml-2" color="#3182ce"
+                                style="--n-border-radius: 5px; background-color: #3182ce;">
+                                <span>Confirm</span>
+                            </n-button>
+                        </div>
+                    </template>
+                </n-modal>
+            </div>
+
+            <!-- Content -->
+            <markdown-editor></markdown-editor>
+        </div>
+
+        <script>
+            const { reactive, toRefs, ref, h } = Vue;
+
+            /*======= article info =======*/
+            const showModal = ref(false);
+
+            // a form to be filled out by user in frontend
+            const articleForm = ref({
+                title: '',
+                tags: [],
+                abstract: ''
+            });
+            const cover = ref();
+
+            // a form to be submitted to backend
+            const formData = new FormData();
+
+            // step1: user uploads a cover file
+            async function changeCover(f) {
+                console.log("文件列表变化：" + JSON.stringify(f.file));
+
+                // add the cover file into the formData
+                formData.append("cover", f.file.file);
+                console.log('待上传表单数据：', formData);
+
+                // wait for the file to be added successfully
+                await new Promise((resolve) => {
+                    resolve();
+                });
+            }
+
+            // step2: organize the formData in frontend
+            function submitArticle() {
+                if (articleForm.value.title === "" || window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown() === ""){
+                    return
+                }
+                // convert the tags array into a string, separated by "; "
+                let tags = ref();
+                if (Array.isArray(articleForm.value.tags) && articleForm.value.tags.length > 0) {
+                    tags.value = articleForm.value.tags.join(';');
+                } else {
+                    tags.value = null;
+                }
+                console.log('tags字符串：', tags.value);
+
+                // organize the formData
+                formData.append("title", articleForm.value.title);
+                formData.append("tags", tags.value);
+                formData.append("abstract", articleForm.value.abstract);
+                formData.append("content",window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown())
+                console.log("window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown()",window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown())
+                console.log('待上传表单数据：', formData);
+
+                // upload the formData to backend
+                uploadArticle(formData);
+            }
+
+            // step3: upload the formData to backend TODO: @Bai 上传表单的接口方法
+            function uploadArticle(formData) {
+                const options = {
+                    method: 'POST',
+                    body: formData,
+                    // headers: {
+                    //     'Content-Type': 'multipart/formdata'
+                    // },
+                }
+                fetch("/commit",options)
+                .then(res => {
+                    return res.json();
+                })
+                .then(todos => {
+                    if(todos.code === 200){
+                        // success delete  articleList or get articleList
+                        window.location.href = "/p/"+todos.data
+                    }
+                });
+            }
+
+            /*======= register vue component =======*/
+            const app = Vue.createApp({
+                data() {
+                    return {
+                        showModal,
+                        articleForm,
+                        cover
+                    }
+                },
+                methods: {
+                    changeCover,
+                    submitArticle
+                },
+                components: {
+                    MarkdownEditor: window.GoplusMarkdown.MarkdownEditor
+                }
+            });
+
+            app.use(naive)
+            app.config.compilerOptions.delimiters = ['${', '}']
+            app.mount('#app')
+        </script>
+    </n-config-provider>
+</body>
+
 </html>
+
+<style>
+    a:hover {
+        color: #3182ce;
+    }
+
+    body {
+        background-image: url('static/img/md-background.svg');
+        background-size: cover;
+        background-repeat: no-repeat;
+    }
+</style>
