@@ -17,8 +17,8 @@ replace github.com/goplus/yap v0.7.2 => github.com/LiusCraft/yap v0.8.2
 require (
 	github.com/casdoor/casdoor-go-sdk v0.35.1
 	github.com/qiniu/go-cdk-driver v0.1.0
+	golang.org/x/oauth2 v0.17.0
 	github.com/qiniu/x v1.13.5
-	golang.org/x/oauth2 v0.16.0
 )
 
 require (
@@ -28,9 +28,9 @@ require (
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
 	github.com/joho/godotenv v1.5.1
 	go.opencensus.io v0.24.0 // indirect
-	golang.org/x/net v0.20.0 // indirect
+	golang.org/x/net v0.21.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect
-	golang.org/x/sys v0.16.0 // indirect
+	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/tools v0.17.0 // indirect
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 	google.golang.org/api v0.151.0 // indirect
