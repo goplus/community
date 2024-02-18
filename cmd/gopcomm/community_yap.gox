@@ -73,7 +73,7 @@ get "/p/:id", ctx => {
 		"ID":      id,
 		"Title":   article.Title,
 		"Content": article.Content,
-		"HtmlUrl": article.HtmlUrl,
+		// "HtmlUrl": article.HtmlUrl,
 		"Tags":    article.Tags,
 		"Cover":   article.Cover,
 		"Mtime":   article.Mtime.Format(layoutUS),
@@ -139,7 +139,17 @@ get "/userEdit", ctx => {
 }
 
 get "/add", ctx => {
-	ctx.yap "edit", {}
+	var user *core.User
+	token, err := core.GetToken(ctx)
+	if err == nil {
+		user, err = community.GetUser(token.Value)
+		if err != nil {
+			xLog.Error("get user error:", err)
+		}
+	}
+	ctx.yap "edit", {
+		"User":        user,
+	}
 }
 
 get "/delete", ctx => {
@@ -286,22 +296,16 @@ get "/search", ctx => {
 }
 
 get "/edit/:id", ctx => {
+	var user *core.User
 	token, err := core.GetToken(ctx)
-	if err != nil {
-		ctx.json {
-			"code": 500,
-			"err":  "no token",
+	if err == nil {
+		user, err = community.GetUser(token.Value)
+		if err != nil {
+			xLog.Error("get user error:", err)
 		}
 	}
 
-	uid, err := community.ParseJwtToken(token.Value)
-	if err != nil {
-		ctx.json {
-			"code": 500,
-			"err":  err.Error(),
-		}
-	}
-	// uid := "70f6a615-c0d5-4315-a5ac-34ca845450ed"
+	uid := user.Id
 	id := ctx.param("id")
 	if id != "" {
 		if editable, _ := community.CanEditable(todo, uid, id); !editable {
@@ -309,7 +313,11 @@ get "/edit/:id", ctx => {
 			http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
 		}
 		article, _ := community.Article(todo, id)
-		ctx.yap "edit", article
+		articleJson, _ := json.Marshal(&article)
+		ctx.yap "edit", {
+			"User":    user,
+			"Article": strings.Replace(string(articleJson), `\"`, `"`, -1),
+		}
 	}
 }
 
@@ -334,7 +342,7 @@ post "/commit", ctx => {
 	// trans := ctx.param("trans") // if trans != ""， add article
 	id := ctx.param("id")
 	mdData := ctx.param("content")
-	// htmlData := ctx.param("html")
+	transData := ctx.param("trans_data")
 	// get user id
 	token, err := core.GetToken(ctx)
 	if err != nil {
@@ -358,14 +366,14 @@ post "/commit", ctx => {
 			ID:       id,
 			Title:    ctx.param("title"),
 			UId:      uid,
-			// TODO  /upload Cover:    ctx.param("cover"),   
+			Cover:    ctx.param("cover"),   
 			Tags:     ctx.param("tags"),
 			Abstract: ctx.param("abstract"),
 		},
 		Content:  mdData,
-		// HtmlData: htmlData,
+		TransContent: transData,
 	}
-	id, _ = community.PutArticle(todo, uid, "", article)
+	id, _ = community.PutArticle(todo, uid, article)
 	ctx.json {
 		"code": 200,
 		"data": id,
@@ -376,24 +384,24 @@ post "/commit", ctx => {
 //  click "translate button"
 post "/translate", ctx => {
 	// get user id
-	token, err := core.GetToken(ctx)
-	if err != nil {
-		ctx.json {
-			"code": 500,
-			"err":  "no token",
-		}
-	}
-	uid, err := community.ParseJwtToken(token.Value)
-	if err != nil {
-		ctx.json {
-			"code": 500,
-			"err":  err.Error(),
-		}
-	}
+	// token, err := core.GetToken(ctx)
+	// if err != nil {
+	// 	ctx.json {
+	// 		"code": 500,
+	// 		"err":  "no token",
+	// 	}
+	// }
+	// uid, err := community.ParseJwtToken(token.Value)
+	// if err != nil {
+	// 	ctx.json {
+	// 		"code": 500,
+	// 		"err":  err.Error(),
+	// 	}
+	// }
 	// uid := "70f6a615-c0d5-4315-a5ac-34ca845450ed"
 	mdData := ctx.param("content")
-	htmlData := ctx.param("html")
-	id := ctx.param("id")
+	// htmlData := ctx.param("html")
+	// id := ctx.param("id")
 	// get translation markdown
 	transData, err := community.TranslateMarkdownText(todo, mdData, language.Chinese, language.English)
 	if err != nil {
@@ -402,12 +410,16 @@ post "/translate", ctx => {
 			"err":  err.Error(),
 		}
 	}
-	id, _ = community.SaveHtml(todo, uid, htmlData, mdData, id)
 	ctx.json {
 		"code": 200,
-		"id":   id,        //article id
 		"data": transData, // translation markdown content
 	}
+	// id, _ = community.SaveHtml(todo, uid, htmlData, mdData, id)
+	// ctx.json {
+	// 	"code": 200,
+	// 	"id":   id,        //article id
+	// 	"data": transData, // translation markdown content
+	// }
 }
 
 get "/getMedia/:id", ctx => {
