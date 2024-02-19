@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Markdown Editor</title>
+    <title>Markdown</title>
 
     <!-- Vue -->
     <script src="https://unpkg.com/vue"></script>
@@ -55,19 +55,20 @@
     <n-config-provider :theme-overrides="themeOverrides">
         <div id="app" class="h-full w-full px-6 py-4" style="background: url('/static/img/editor-background.svg') top no-repeat;
             background-size: 100% auto;">
-            <!-- TODO  删掉这个会报错 -->
             {{ template "header" .}}
             <!-- Header -->
             <div class="flex items-center justify-between mb-2">
                 <!-- Back Button -->
-                <n-button quaternary color="#808080" @click="backToLastPage">
+                <n-button quaternary color="#808080" @click="goBack">
                     <template #icon>
                         <i class="ph-fill ph-arrow-line-left" style="font-size: 24px;"></i>
                     </template>
                 </n-button>
 
-                <span style="color: #3182ce; font-weight: 700; font-size: medium; white-space: nowrap;"
-                    class="ml-2">Markdown Editor</span>
+                <span v-if="isAdd" style="color: #3182ce; font-weight: 700; font-size: medium; white-space: nowrap;"
+                    class="ml-2">Article Add</span>
+                <span v-else style="color: #3182ce; font-weight: 700; font-size: medium; white-space: nowrap;"
+                    class="ml-2">Article Editor</span>
 
                 <n-divider vertical style="--n-color: #e0e0e6; margin: 0 0.5rem;"></n-divider>
 
@@ -90,8 +91,19 @@
                     <span style="font-weight: 600;">Export</span>
                 </n-button>
 
+                <!-- Translate Button -->
+                <n-button @click="translateMd" class="ml-2" style="--n-border-radius: 7px; --n-ripple-color: #7ba7d3; 
+                    --n-text-color-hover: #2a82e4; --n-text-color-pressed: #3182ce;
+                    --n-text-color-focus: #2a82e4; --n-border-hover: 1px solid #2a82e4;
+                    --n-border-pressed: 1px solid #3182ce; --n-border-focus: 1px solid #2a82e4;">
+                    <template #icon>
+                        <i class="ph-bold ph-translate"></i>
+                    </template>
+                    <span style="font-weight: 600;">Translate</span>
+                </n-button>
+
                 <!-- Submit Button -->
-                <n-button @click="showModal = true" class="ml-2" color="#3182ce"
+                <n-button @click="modalVisible" class="ml-2" color="#3182ce"
                     style="--n-border-radius: 7px; background-color: #3182ce;">
                     <template #icon>
                         <i class="ph-bold ph-paper-plane-tilt"></i>
@@ -129,9 +141,14 @@
                         </n-form-item>
 
                         <!-- TODO  Cover -->
-                        <!-- <n-form-item label="Cover" path="cover">
+                        <n-form-item label="Cover" path="cover">
                             <n-upload :max="1" directory-dnd v-model:file-list="cover"
-                                accept="image/png, image/jpg, image/jpeg" @change="changeCover">
+                                accept="image/png, image/jpg, image/jpeg" @change="changeCover"
+                                list-type="image-card"
+                                max="1"
+                                :custom-request="customRequest"
+                                :default-file-list="fileList"
+                                >
                                 <n-upload-dragger
                                     style="--n-dragger-border-hover: 1.5px dashed #3182ce; border-radius: 7px;">
                                     <div class="mb-1">
@@ -143,7 +160,7 @@
                                     </n-text>
                                 </n-upload-dragger>
                             </n-upload>
-                        </n-form-item> -->
+                        </n-form-item>
                     </n-form>
 
                     <!-- Cancel Button & Submit Button -->
@@ -184,18 +201,21 @@
                 abstract: ''
             });
             const cover = ref();
+            let coverUrl = "";
+            let content = ""
+
+            // edit
+            const editId = ref(0)
+            const isAdd = window.location.href.indexOf("edit") !== -1 ? ref(false) : ref(true)
+            const article = isAdd.value ? {} : JSON.parse("{{.Article}}")
+            const fileList = ref([])
+
 
             // a form to be submitted to backend
             const formData = new FormData();
 
             // step1: user uploads a cover file
             async function changeCover(f) {
-                console.log("文件列表变化：" + JSON.stringify(f.file));
-
-                // add the cover file into the formData
-                formData.append("cover", f.file.file);
-                console.log('待上传表单数据：', formData);
-
                 // wait for the file to be added successfully
                 await new Promise((resolve) => {
                     resolve();
@@ -214,15 +234,19 @@
                 } else {
                     tags.value = null;
                 }
-                console.log('tags字符串：', tags.value);
+                console.log('tags:', tags.value);
+
+                if(isAdd){
+                    formData.append("id",editId.value)
+                }
 
                 // organize the formData
                 formData.append("title", articleForm.value.title);
                 formData.append("tags", tags.value);
                 formData.append("abstract", articleForm.value.abstract);
-                formData.append("content",window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown())
-                console.log("window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown()",window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown())
-                console.log('待上传表单数据：', formData);
+                formData.append("cover", coverUrl);
+                formData.append("content",content || window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown())
+                formData.append("trans_data",content !== "" ? window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown():"")
 
                 // upload the formData to backend
                 uploadArticle(formData);
@@ -234,7 +258,7 @@
                     method: 'POST',
                     body: formData,
                     // headers: {
-                    //     'Content-Type': 'multipart/formdata'
+                    //     'Content-Type': 'multipart/form-data'
                     // },
                 }
                 fetch("/commit",options)
@@ -249,22 +273,107 @@
                 });
             }
 
+            function translateMd(){
+                const md = window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown()
+                const transMd = new FormData();
+                transMd.append("content",md)
+                fetch("/translate",{
+                    method: 'POST',
+                    body: transMd,
+                })
+                .then(res => {
+                    return res.json();
+                })
+                .then(todos => {
+                    if(todos.code === 200){
+                        // save origin content
+                        content = md
+                        window.GoplusMarkdown.MarkdownEditor.methods.setMarkdown(todos.data)
+                    }
+                });
+            }
+
+            function customRequest(option){
+                console.log("option",option)
+                const file = option.file
+                const coverData = new FormData();
+                coverData.append('file', file.file);
+
+                const options = {
+                    method: 'POST',
+                    body: coverData,
+                    // headers: {
+                    //     'Content-Type': 'multipart/form-data'
+                    // },
+                }
+                fetch("/upload",options)
+                .then(res => {
+                    return res.json();
+                })
+                .then(todos => {
+                    console.log("cover",todos)
+                    fetch('/getMediaUrl/'+todos)
+                    .then(resUrl => {
+                        return resUrl.json();
+                    })
+                    .then(todosUrl => {
+                        console.log("url",todosUrl)
+                        if(todosUrl.code === 200){
+                            coverUrl = todosUrl.url
+                        }
+                    });
+                    
+                });
+            }
+
+            function modalVisible(){
+                if (articleForm.value.title === "" || window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown() === ""){
+                    return
+                }
+                showModal.value = true
+            }
+
+            function goBack(){
+                window.location.href = "/"
+            }
+
             /*======= register vue component =======*/
             const app = Vue.createApp({
                 data() {
                     return {
                         showModal,
                         articleForm,
-                        cover
+                        cover,
+                        isAdd,
+                        fileList,
                     }
                 },
                 methods: {
                     changeCover,
-                    submitArticle
+                    submitArticle,
+                    translateMd,
+                    customRequest,
+                    modalVisible,
+                    goBack
                 },
                 components: {
                     MarkdownEditor: window.GoplusMarkdown.MarkdownEditor
-                }
+                },
+                mounted() {
+                    if(!isAdd.value){
+                        articleForm.value.title = article.Title
+                        articleForm.value.tags = article.Tags.split(";")
+                        articleForm.value.abstract = article.Abstract
+                        editId.value = article.ID
+                        coverUrl = article.Cover
+                        fileList.value.push({
+                            id: "c",
+                            status: "finished",
+                            url: article.Cover
+                        })
+                        window.GoplusMarkdown.MarkdownEditor.methods.setMarkdown(article.Content)
+                    }
+                },
             });
 
             app.use(naive)

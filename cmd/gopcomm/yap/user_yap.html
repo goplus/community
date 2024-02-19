@@ -30,7 +30,6 @@
 
 <body style="background-color: #f7fafc;">
     {{ template "header" .}}
-
     <n-config-provider>
         <div id="app" class="h-full w-full">
             <n-breadcrumb style="margin: 10px 20px;">
@@ -47,7 +46,8 @@
             <n-grid :x-gap="12" :cols="7" style="padding: 0 20px;">
                 <!-- TODO: bug  Avatar -->
                 <n-gi :span="1" class="flex justify-center items-center">
-                    <n-avatar round :size="100" :src="CurrentUser.avatar"></n-avatar>
+                    <n-avatar v-if="CurrentUser.avatar" round :size="100" :src="CurrentUser.avatar"></n-avatar>
+                    <n-avatar v-else round :size="100" src="./static/img/qiniu.png"></n-avatar>
                 </n-gi>
 
                 <!-- Name & Description & Contact Info -->
@@ -91,8 +91,7 @@
 
                 <!-- Edit Button & Followers -->
                 <n-gi :span="2" class="flex flex-col justify-center items-end">
-                    <!-- TOOD add href to Edit Button -->
-                    <n-button text color="#3182ce" onclick="window.location.href='/userEdit'">
+                    <n-button v-if="UserId === CurrentUser.id" text color="#3182ce" onclick="window.location.href='/userEdit'">
                         <template #icon>
                             <i class="ph-duotone ph-pencil-line" style="color: #3182ce;"></i>
                         </template>
@@ -168,10 +167,8 @@
                                 <!-- right part -->
                                 <div style="width: 20%;">
 
-                                    {{if .User}}
                                     <!-- Edit Button & Delete Button -->
-                                    <div v-if="{{.User.Id}} === item.User.Id" class="grid grid-flow-row-dense grid-cols-2 grid-rows-1 items-center mb-5"
-                                        style="height: 2vh;">
+                                    <div v-if="UserId === item.UId" class="grid grid-flow-row-dense grid-cols-2 grid-rows-1 items-center mb-5" style="height: 2vh;">
                                         <n-button text class="col-span-1"
                                             style="--n-text-color-hover: #3182ce; --n-text-color-focus: #3182ce;">
                                             <template #icon>
@@ -181,7 +178,6 @@
                                         </n-button>
 
                                         <!-- Delete Button -->
-                                        
                                         <n-popconfirm :show="deleteId === item.ID">
                                             <template #icon>
                                                 <i class="ph-fill ph-siren" style="color: #f25858;"></i>
@@ -204,11 +200,10 @@
                                             </template>
                                         </n-popconfirm>
                                     </div>
-                                    {{end}}
 
                                     <!-- Image -->
                                     <img class="w-full object-cover rounded-lg" style="height: 15vh;"
-                                        src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image.jpg" alt="">
+                                        :src="item.Cover" alt="">
 
                                     <!-- Data -->
                                     <div class="flex justify-center items-center mt-2" style="height: 2vh;">
@@ -371,7 +366,8 @@
             const { reactive, toRefs, ref, h } = Vue;
 
             // User
-            let CurrentUser = JSON.parse("{{.CurrentUser}}")
+            let CurrentUser = ref(JSON.parse("{{.CurrentUser}}"))
+            const UserId = ref("{{.UserId}}")
 
             // Article List
             let articleList = ref(JSON.parse("{{.Items}}"));
@@ -419,7 +415,7 @@
             }
             
             function getMdeias(format){
-                fetch("/medias?uid="+CurrentUser.id+"&format="+format)
+                fetch("/medias?uid="+CurrentUser.value.id+"&format="+format)
                 .then(res => {
                     return res.json();
                 })
@@ -466,7 +462,8 @@
                         deleteId,
                         delImageId,
                         delVideoId,
-                        themeOverrides
+                        themeOverrides,
+                        UserId
                     }
                 },
                 methods: {

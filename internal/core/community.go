@@ -64,8 +64,8 @@ type Article struct {
 	ArticleEntry
 	Content string // in markdown
 	// Status  int    // published or draft
-	HtmlUrl  string // parsed html file url
-	HtmlData string
+	// HtmlUrl  string // parsed html file url
+	TransContent string
 }
 
 type Community struct {
@@ -246,15 +246,15 @@ func (p *Community) SaveHtml(ctx context.Context, uid, htmlStr, mdData, id strin
 // }
 
 // PutArticle adds new article (ID == "") or edits an existing article (ID != "").
-func (p *Community) PutArticle(ctx context.Context, uid string, trans string, article *Article) (id string, err error) {
+func (p *Community) PutArticle(ctx context.Context, uid string, article *Article) (id string, err error) {
 	// htmlId, err := p.uploadHtml(ctx, uid, article.HtmlData)
 	// if err != nil {
 	// 	htmlId = 0
 	// }
 	// new article
 	if article.ID == "" {
-		sqlStr := "insert into article (title, ctime, mtime, user_id, tags, abstract, cover, content) values (?, ?, ?, ?, ?, ?, ?, ?)"
-		res, err := p.db.Exec(sqlStr, &article.Title, time.Now(), time.Now(), uid, &article.Tags, &article.Abstract, &article.Cover, &article.Content)
+		sqlStr := "insert into article (title, ctime, mtime, user_id, tags, abstract, cover, content, trans_content) values (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+		res, err := p.db.Exec(sqlStr, &article.Title, time.Now(), time.Now(), uid, &article.Tags, &article.Abstract, &article.Cover, &article.Content, &article.TransContent)
 		if err != nil {
 			return "", err
 		}
@@ -272,8 +272,8 @@ func (p *Community) PutArticle(ctx context.Context, uid string, trans string, ar
 	// }
 
 	// edit article
-	sqlStr := "update article set title=?, mtime=?, tags=?, abstract=?, cover=?, content=? where id=?"
-	_, err = p.db.Exec(sqlStr, &article.Title, time.Now(), &article.Tags, &article.Abstract, &article.Cover, &article.Content, &article.ID)
+	sqlStr := "update article set title=?, mtime=?, tags=?, abstract=?, cover=?, content=?, trans_content where id=?"
+	_, err = p.db.Exec(sqlStr, &article.Title, time.Now(), &article.Tags, &article.Abstract, &article.Cover, &article.Content, &article.TransContent, &article.ID)
 	return article.ID, err
 }
 
@@ -336,9 +336,13 @@ func (p *Community) DeleteArticle(ctx context.Context, uid, id string) (err erro
 
 	// Delete article
 	sqlStr := "delete from article where id=? and user_id=?"
-	_, err = tx.ExecContext(ctx, sqlStr, id, uid)
+	res, err := tx.ExecContext(ctx, sqlStr, id, uid)
 	if err != nil {
 		return err
+	}
+	rows, err := res.RowsAffected()
+	if rows != 1 {
+		return fmt.Errorf("no need to delete")
 	}
 
 	// Commit the transaction

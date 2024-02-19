@@ -196,7 +196,7 @@
                             <!-- Image -->
                             <!-- TODO: 封面图 -->
                             <img class="w-full object-cover rounded-lg" style="height: 15vh;"
-                                src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image.jpg" alt="">
+                                :src="item.Cover" alt="">
 
                             <!-- Data -->
                             <div class="flex justify-center items-center mt-2" style="height: 2vh;">
@@ -322,7 +322,7 @@
             };
 
             function handleSearch(){
-                if( searchValue !== ""){
+                if( searchValue.value !== ""){
                     window.location.href = `/search?value=${searchValue.value}`
                 }
             }

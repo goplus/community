@@ -58,20 +58,19 @@ func TestPutArticle(t *testing.T) {
 
 	tests := []struct {
 		uid        string
-		trans      string
 		article    *Article
 		expectedID string
 	}{
-		{"1", "", article, "1"},       // insert
-		{"1", "", article, "1"},  // insert trans
-		{"1", "", articleUpdate, "1"}, // update
+		{"1", article, "1"},       // insert
+		{"1", article, "1"},       // insert trans
+		{"1", articleUpdate, "1"}, // update
 	}
 
 	for _, tt := range tests {
-		id, _ := community.PutArticle(todo, tt.uid, tt.trans, tt.article)
+		id, _ := community.PutArticle(todo, tt.uid, tt.article)
 
 		if id != tt.expectedID {
-			t.Errorf("PutArticle(%s, %s, %+v) returned ID %s, expected: %s", tt.uid, tt.trans, tt.article, id, tt.expectedID)
+			t.Errorf("PutArticle(%s, %+v) returned ID %s, expected: %s", tt.uid, tt.article, id, tt.expectedID)
 		}
 	}
 }
