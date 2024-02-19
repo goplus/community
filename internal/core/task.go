@@ -207,6 +207,11 @@ func (c *Community) TimedCheckVideoTask(ctx context.Context, timeout time.Durati
 						if err != nil {
 							c.xLog.Errorf("TimedCheckVideoTask updateASRResult failed, resourceId: %s, err: %v", resourceId, err)
 
+							err = c.SetVideoTaskFailed(ctx, resourceId)
+							if err != nil {
+								c.xLog.Errorf("TimedCheckVideoTask SetVideoTaskStatus failed, resourceId: %s, err: %v", resourceId, err)
+							}
+
 							continue
 						}
 
@@ -241,21 +246,20 @@ func (c *Community) updateASRResult(ctx context.Context, resourceId string, task
 		return err
 	}
 
-	taskStatus := asrTaskData.Rtn
 	if asrTaskData.Rtn == 0 && asrTaskData.Data.StatusCode == 3 {
 		// Upload ASR result
 		buffer, err := c.translation.Engine.GenerateWebVTTBytesWithTranslation(*asrTaskData, language.Chinese, language.English)
 		if err != nil {
-			taskStatus = -1
 			c.xLog.Errorf("TimedCheckVideoTask GenerateWebVTTBytesWithTranslation failed, resourceId: %s, err: %v", resourceId, err)
 			// Can not parse ASR result
 			// continue
+
+			return err
 		}
 
 		// Upload ASR result
 		captionId, err := c.SaveMedia(ctx, task.UserId, buffer.Bytes())
 		if err != nil {
-			taskStatus = -1
 			c.xLog.Errorf("TimedCheckVideoTask SaveMedia failed, resourceId: %s, err: %v", resourceId, err)
 			// Can not save ASR result
 			return err
@@ -264,25 +268,19 @@ func (c *Community) updateASRResult(ctx context.Context, resourceId string, task
 		// Get ASR result id
 		output, err := c.GetMediaUrl(ctx, fmt.Sprintf("%d", captionId))
 		if err != nil {
-			taskStatus = -1
 			c.xLog.Errorf("TimedCheckVideoTask GetMediaURL failed, resourceId: %s, err: %v", resourceId, err)
 			// Can not get ASR result link
 			return err
 		}
 
-		// Update status of video task
-		if taskStatus == 0 {
-			err = c.SetVideoTaskSuccess(ctx, resourceId)
-		} else {
-			err = c.SetVideoTaskFailed(ctx, resourceId)
-		}
+		err = c.SetVideoTaskSuccess(ctx, resourceId)
 		if err != nil {
 			c.xLog.Errorf("TimedCheckVideoTask SetVideoTaskStatus failed, resourceId: %s, err: %v", resourceId, err)
 
 			return err
 		}
-
 		c.xLog.Infof("TimedCheckVideoTask GetMediaURL success, resourceId: %s, output: %s", resourceId, output)
+
 		// Update status of video task
 		err = c.SetVideoTaskOutput(ctx, resourceId, output)
 		if err != nil {
