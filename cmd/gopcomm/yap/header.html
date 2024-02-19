@@ -18,7 +18,11 @@
                     id="user-menu-button" aria-expanded="false" aria-haspopup="true">
                     <span class="absolute -inset-1.5"></span>
                     <a href="/user/{{ .User.Id }}">
+                        {{if .User.Avatar}}
                         <img class="h-8 w-8 rounded-full" src="{{ .User.Avatar }}" alt="">
+                        {{else}}
+                        <img class="h-8 w-8 rounded-full" src="./static/img/qiniu.png" alt="">
+                        {{end}}
                     </a>
                 </button>
                 <button type="button"

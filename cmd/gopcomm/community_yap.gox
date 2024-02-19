@@ -117,6 +117,7 @@ get "/user/:id", ctx => {
 		"CurrentUser": strings.Replace(string(userClaimJson), `\"`, `"`, -1),
 		"User":        user,
 		"Items":       strings.Replace(string(itemsJson), `\"`, `"`, -1),
+		"UserId":      user.Id,
 	}
 }
 
@@ -264,12 +265,12 @@ get "/get", ctx => {
 
 get "/search", ctx => {
 	searchValue := ctx.param("value")
-	if searchValue == "" {
-		ctx.json {
-			"code": 400,
-			"err":  "value can not be ''.",
-		}
-	}
+	// if searchValue == "" {
+	// 	ctx.json {
+	// 		"code": 400,
+	// 		"err":  "value can not be ''.",
+	// 	}
+	// }
 
 	// todo middleware
 	var user *core.User

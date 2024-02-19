@@ -336,9 +336,13 @@ func (p *Community) DeleteArticle(ctx context.Context, uid, id string) (err erro
 
 	// Delete article
 	sqlStr := "delete from article where id=? and user_id=?"
-	_, err = tx.ExecContext(ctx, sqlStr, id, uid)
+	res, err := tx.ExecContext(ctx, sqlStr, id, uid)
 	if err != nil {
 		return err
+	}
+	rows, err := res.RowsAffected()
+	if rows != 1 {
+		return fmt.Errorf("no need to delete")
 	}
 
 	// Commit the transaction
