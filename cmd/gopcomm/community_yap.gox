@@ -489,6 +489,20 @@ post "/upload", ctx => {
 	community.UploadFile(ctx)
 }
 
+get "/retryCaptionGenerate", ctx => {
+	uid := ctx.param("uid")
+	vid := ctx.param("vid")
+
+	if uid == "" || vid == "" {
+		ctx.json {
+			"code": 200,
+			"msg": "Invalid param",
+		}
+	}
+
+	community.RetryCaptionGenerate(todo, uid, vid)
+}
+
 get "/login", ctx => {
 	// Get URL from query string
 	// redirectURL := ctx.URL.Query().Get("redirect_url")
