@@ -66,9 +66,9 @@
                 </n-button>
 
                 <span v-if="isAdd" style="color: #3182ce; font-weight: 700; font-size: medium; white-space: nowrap;"
-                    class="ml-2">Article Add</span>
+                    class="ml-2">New Article</span>
                 <span v-else style="color: #3182ce; font-weight: 700; font-size: medium; white-space: nowrap;"
-                    class="ml-2">Article Editor</span>
+                    class="ml-2">Edit Article</span>
 
                 <n-divider vertical style="--n-color: #e0e0e6; margin: 0 0.5rem;"></n-divider>
 
@@ -140,13 +140,14 @@
                             }"></n-input>
                         </n-form-item>
 
-                        <!-- TODO  Cover -->
+                        <!-- Cover -->
                         <n-form-item label="Cover" path="cover">
+                            <!-- TODO: @Shi 预览封面 -->
                             <n-upload :max="1" directory-dnd
-                                accept="image/png, image/jpg, image/jpeg" @change="changeCover"
+                                accept="image/png, image/jpg, image/jpeg" 
+                                @change="changeCover"
                                 :custom-request="customRequest"
                                 :default-file-list="fileList"
-                                list-type="image-card"
                                 >
                                 <n-upload-dragger
                                     style="--n-dragger-border-hover: 1.5px dashed #3182ce; border-radius: 7px;">
@@ -154,6 +155,9 @@
                                         <i class="ph-fill ph-folder-notch-plus"
                                             style="font-size: 70px; color: #808080;"></i>
                                     </div>
+                                    <span>
+                                        click or drag a file here to upload
+                                    </span>
                                 </n-upload-dragger>
                             </n-upload>
                         </n-form-item>

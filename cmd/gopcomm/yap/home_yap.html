@@ -40,25 +40,23 @@
                     <div class="flex justify-between items-center">
                         <!-- LOGO -->
                         <a href="/" style="width: 35%;">
-                            <img src="https://github.com/goplus/community/assets/47499836/19900f7d-ddbb-495b-b45b-8fd2397394be"
-                                class="mb-2 mr-3 h-6 sm:h-9" alt="Go+ Community Logo" />
+                            <img src="./static/img/logo-community-white.png" style="height: 3vh;"
+                                class="mr-3" alt="Go+ Community Logo" />
                         </a>
 
                         <!-- Search -->
                         <div style="width: 30%;">
                             <n-input-group>
                                 <n-input v-model:value="searchValue" round :style="{ width: '80%' }"
-                                    placeholder="Explore Community" clearable size="large"
-                                    style="--n-caret-color: #3182ce; --n-border-hover: 1px solid white;
+                                    placeholder="Explore Community" clearable size="large" style="--n-caret-color: #3182ce; --n-border-hover: 1px solid white;
                                     --n-border-focus: 1px solid white; --n-box-shadow-focus: 0 0 0 1px white;"
-                                    @keypress.enter="handleSearch"
-                                >
+                                    @keypress.enter="handleSearch">
                                     <template #prefix>
-                                        <i class="ph-bold ph-magnifying-glass" style="color: #3182ce; font-size: 15px;"></i>
+                                        <i class="ph-bold ph-magnifying-glass"
+                                            style="color: #3182ce; font-size: 15px;"></i>
                                     </template>
                                 </n-input>
-                                <n-button round strong text-color="white" @click="handleSearch" size="large"
-                                    style="--n-ripple-color: #bfdbf7; --n-border: 1px solid white;
+                                <n-button round strong text-color="white" @click="handleSearch" size="large" style="--n-ripple-color: #bfdbf7; --n-border: 1px solid white;
                                     --n-border-hover: 1px solid #dfebf7;
                                     --n-border-pressed: 1px solid #bfdbf7;
                                     --n-border-focus: 1px solid #dfebf7;">
@@ -72,8 +70,7 @@
                             {{if .User}}
                             <n-button class="mr-3" color="#f7fafc" style="--n-text-color: white;
                                 --n-text-color-hover: #3182ce; --n-text-color-pressed: #3182ce;
-                                --n-text-color-focus: #3182ce" @click="writeArticle"
-                            >
+                                --n-text-color-focus: #3182ce" @click="writeArticle">
                                 <i class="ph ph-pencil-line" style="font-size: 18px; margin-right: 5px;"></i>
                                 Write an Article
                             </n-button>
@@ -84,7 +81,7 @@
                             <n-button quaternary color="white" @click="signIn">
                                 <template #icon>
                                     <i class="ph-bold ph-user"></i>
-                                  </template>
+                                </template>
                                 Sign In
                             </n-button>
                             {{end}}
@@ -95,7 +92,7 @@
 
             <!-- NavBar -->
             <div class="container px-5 py-6 mx-auto" style="margin-top: -12%; width: 70%;">
-                <n-tabs type="segment" animated style="border: 2px solid white;
+                <n-tabs type="segment" animated style="border: 2px solid white; border-radius: 10px;
                     --n-tab-border-radius: 7px; --n-tab-font-weight-active: 600; --n-tab-gap: 10px;
                     --n-color-segment: #dfebf7; --n-tab-padding: 5% 0; --n-tab-font-size: 17px;
                     --n-tab-text-color-active: #3182ce; --n-tab-text-color-hover: #6ea8de;">
@@ -119,7 +116,7 @@
             </div>
 
             <!-- Content -->
-            <div class="container px-5 py-3 mx-auto bg-white rounded-lg"
+            <div class="container px-5 py-2 mx-auto bg-white rounded-lg"
                 style="box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05);">
                 <!-- Empty Status -->
                 <section v-if="articleList === null || articleList.length === 0">
@@ -153,24 +150,27 @@
                         <!-- left part -->
                         <div style="width: 80%;">
                             <!-- Title -->
-                            <div class="text-xl font-semibold text-gray-900 title-font mb-2">
+                            <div class="text-xl font-semibold text-gray-900 title-font mb-1">
                                 <a :href="'/p/' + item.ID">
                                     <p>${ item.Title }</p>
                                 </a>
                             </div>
 
                             <!-- Tags -->
-                            <div class="flex flex-row items-center" v-for="(tag, i) in item.Tags.split(';')">
-                                <div>
+                            <div class="flex flex-row items-center">
+                                <!-- A Tag -->
+                                <div class="flex flex-row items-center mr-2" v-for="(tag, i) in item.Tags.split(';')">
                                     <i class="ph-duotone ph-hash" style="color: #3182ce; font-size: 17px;"></i>
-                                    <a class="text-sm ml-1 hover:text-blue-600" :href="'/search?value=' + tag">
-                                        ${ tag }
-                                    </a>
+                                    <div>
+                                        <a class="text-sm" :href="'/search?value=' + tag">
+                                            ${ tag }
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- Description -->
-                            <p class="leading-7 mt-1 text-neutral-700">
+                            <p class="leading-7 mt-1 mb-2" style="color: #6b7280; line-height: normal;">
                                 ${ item.Abstract }
                             </p>
 
@@ -195,8 +195,7 @@
                         <div style="width: 20%;">
                             <!-- Image -->
                             <!-- TODO: 封面图 -->
-                            <img class="w-full object-cover rounded-lg" style="height: 15vh;"
-                                :src="item.Cover" alt="">
+                            <img class="w-full object-cover rounded-lg" style="height: 15vh;" :src="item.Cover" alt="">
 
                             <!-- Data -->
                             <div class="flex justify-center items-center mt-2" style="height: 2vh;">
@@ -219,7 +218,7 @@
                 </n-list>
 
                 <!-- Loading Status -->
-                <div class="mt-2 text-center" v-if="!isBottom" key="span"> 
+                <div class="mt-2 text-center" v-if="!isBottom" key="span">
                     <n-spin :key="spin" size="small" stroke="#3182ce"></n-spin>
                 </div>
                 <div class="mt-2 text-center" v-if="!haveMoreData" key="span">
@@ -254,10 +253,10 @@
                     key: "exit"
                 }
             ];
-            
+
             function selectDropdown(key) {
                 if (key === 'profile') {
-                    if ("{{.UserId}}" !== ""){
+                    if ("{{.UserId}}" !== "") {
                         window.location.href = '/user/{{ .UserId }}';
                     }
                 } else if (key === 'exit') {
@@ -279,8 +278,8 @@
                 let scrollTop = window.scrollY;
                 let clientHeight = document.documentElement.clientHeight;
                 let scrollHeight = document.documentElement.scrollHeight;
-                if (isBottom.value && haveMoreData.value && scrollTop + clientHeight + 10>= scrollHeight) {
-                    
+                if (isBottom.value && haveMoreData.value && scrollTop + clientHeight + 10 >= scrollHeight) {
+
                     // reaching bottom detected
                     loadMore();
                 }
@@ -293,36 +292,36 @@
                 if (next.value !== "eof") {
                     isBottom.value = false;
                     window.setTimeout(() => {
-                        let url = "/get?from="+next.value
-                        if("{{.Value}}"){
-                            url = url + "&value="+"{{.Value}}"
+                        let url = "/get?from=" + next.value
+                        if ("{{.Value}}") {
+                            url = url + "&value=" + "{{.Value}}"
                         }
-                        console.log("url",url)
+                        console.log("url", url)
                         // load a new page of articles, and append it to the articleList
                         fetch(url)
-                        .then(res => {
-                            return res.json();
-                        })
-                        .then(todos => {
-                            if(todos.code === 200){
-                                console.log("todos.next",todos.next)
-                                articleList.value.push(...todos.items);
-                                next.value = todos.next;
-                                if(todos.next === "eof") {
-                                    haveMoreData.value = false;
+                            .then(res => {
+                                return res.json();
+                            })
+                            .then(todos => {
+                                if (todos.code === 200) {
+                                    console.log("todos.next", todos.next)
+                                    articleList.value.push(...todos.items);
+                                    next.value = todos.next;
+                                    if (todos.next === "eof") {
+                                        haveMoreData.value = false;
+                                    }
+                                    isBottom.value = true
                                 }
-                                isBottom.value = true
-                            }
-                        });
+                            });
                     }, 500)
-                }else{
+                } else {
                     isBottom.value = true
                     haveMoreData.value = false;
                 }
             };
 
-            function handleSearch(){
-                if( searchValue.value !== ""){
+            function handleSearch() {
+                if (searchValue.value !== "") {
                     window.location.href = `/search?value=${searchValue.value}`
                 }
             }
