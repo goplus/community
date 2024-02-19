@@ -676,10 +676,14 @@ func (this *community) MainEntry() {
 //line cmd/gopcomm/community_yap.gox:589:1
 				err := recover(); err != nil {
 //line cmd/gopcomm/community_yap.gox:590:1
+					fmt.Println("error", err)
+//line cmd/gopcomm/community_yap.gox:591:1
+					panic(err)
+//line cmd/gopcomm/community_yap.gox:592:1
 					http.Redirect(w, r, "/failed", http.StatusFound)
 				}
 			}()
-//line cmd/gopcomm/community_yap.gox:594:1
+//line cmd/gopcomm/community_yap.gox:596:1
 			h.ServeHTTP(w, r)
 		})
 	})
