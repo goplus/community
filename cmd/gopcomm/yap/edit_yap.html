@@ -142,12 +142,11 @@
 
                         <!-- TODO  Cover -->
                         <n-form-item label="Cover" path="cover">
-                            <n-upload :max="1" directory-dnd v-model:file-list="cover"
+                            <n-upload :max="1" directory-dnd
                                 accept="image/png, image/jpg, image/jpeg" @change="changeCover"
-                                list-type="image-card"
-                                max="1"
                                 :custom-request="customRequest"
                                 :default-file-list="fileList"
+                                list-type="image-card"
                                 >
                                 <n-upload-dragger
                                     style="--n-dragger-border-hover: 1.5px dashed #3182ce; border-radius: 7px;">
@@ -155,9 +154,6 @@
                                         <i class="ph-fill ph-folder-notch-plus"
                                             style="font-size: 70px; color: #808080;"></i>
                                     </div>
-                                    <n-text>
-                                        click or drag a file here to upload
-                                    </n-text>
                                 </n-upload-dragger>
                             </n-upload>
                         </n-form-item>
@@ -200,16 +196,17 @@
                 tags: [],
                 abstract: ''
             });
-            const cover = ref();
             let coverUrl = "";
             let content = ""
 
             // edit
-            const editId = ref(0)
             const isAdd = window.location.href.indexOf("edit") !== -1 ? ref(false) : ref(true)
             const article = isAdd.value ? {} : JSON.parse("{{.Article}}")
-            const fileList = ref([])
-
+            const fileList = isAdd.value ? ref([]) : ref([{
+                id: "cover",
+                status: "finished",
+                url: article.Cover,
+            }])
 
             // a form to be submitted to backend
             const formData = new FormData();
@@ -236,8 +233,8 @@
                 }
                 console.log('tags:', tags.value);
 
-                if(isAdd){
-                    formData.append("id",editId.value)
+                if(!isAdd.value){
+                    formData.append("id",article.ID)
                 }
 
                 // organize the formData
@@ -317,7 +314,6 @@
                         return resUrl.json();
                     })
                     .then(todosUrl => {
-                        console.log("url",todosUrl)
                         if(todosUrl.code === 200){
                             coverUrl = todosUrl.url
                         }
@@ -343,7 +339,6 @@
                     return {
                         showModal,
                         articleForm,
-                        cover,
                         isAdd,
                         fileList,
                     }
@@ -364,13 +359,7 @@
                         articleForm.value.title = article.Title
                         articleForm.value.tags = article.Tags.split(";")
                         articleForm.value.abstract = article.Abstract
-                        editId.value = article.ID
                         coverUrl = article.Cover
-                        fileList.value.push({
-                            id: "c",
-                            status: "finished",
-                            url: article.Cover
-                        })
                         window.GoplusMarkdown.MarkdownEditor.methods.setMarkdown(article.Content)
                     }
                 },

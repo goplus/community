@@ -264,15 +264,8 @@ func (p *Community) PutArticle(ctx context.Context, uid string, article *Article
 		}
 		return strconv.FormatInt(idInt, 10), nil
 	}
-	// if trans != "" {
-	// 	// add article except html_id, content (trans)
-	// 	sqlStr := "update article set title=?, mtime=?, ctime=?, tags=?, abstract=?, cover=?, trans_content=?, trans_html_id=? where id=?"
-	// 	_, err = p.db.Exec(sqlStr, &article.Title, time.Now(), time.Now(), &article.Tags, &article.Abstract, &article.Cover, &article.Content, htmlId, &article.ID)
-	// 	return article.ID, err
-	// }
-
 	// edit article
-	sqlStr := "update article set title=?, mtime=?, tags=?, abstract=?, cover=?, content=?, trans_content where id=?"
+	sqlStr := "update article set title=?, mtime=?, tags=?, abstract=?, cover=?, content=?, trans_content=? where id=?"
 	_, err = p.db.Exec(sqlStr, &article.Title, time.Now(), &article.Tags, &article.Abstract, &article.Cover, &article.Content, &article.TransContent, &article.ID)
 	return article.ID, err
 }
