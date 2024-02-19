@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>user info editsefsf</title>
+    <title>user info edit</title>
   </head>
   <body>
     {{ template "header" .}}
@@ -102,6 +102,7 @@
                 >
                   <a
                   :href="accountItem.url"
+                  v-if="!accountItem.bind"
                     type="button"
                     class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-2.5 py-1.5 text-center inline-flex items-center me-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
                   >
@@ -127,6 +128,15 @@
                     </svg>
                     Bind
                   </a>
+                  <a
+                  :href="`/userUnlink?pv=${accountItem.platform}`"
+                  v-else
+                    type="button"
+                    class="text-white bg-gray-800 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-2.5 py-1.5 text-center inline-flex items-center me-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                  ><svg  class="w-3.5 h-3.5 me-2 text-white-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                    <path fill-rule="evenodd" d="M15 7a2 2 0 1 1 4 0v4a1 1 0 1 0 2 0V7a4 4 0 0 0-8 0v3H5a2 2 0 0 0-2 2v7c0 1.1.9 2 2 2h10a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2V7Zm-5 6c.6 0 1 .4 1 1v3a1 1 0 1 1-2 0v-3c0-.6.4-1 1-1Z" clip-rule="evenodd"/>
+                  </svg>
+                  unLink</a>
                 </div>
               </div>
             </li>
@@ -134,6 +144,10 @@
         </div>
       </div>
     </div>
+    <script >
+      const application = JSON.parse("{{ .Application }}")
+      const accountBinds = {{ .Binds }}
+    </script>
     <script src="static/js/user_edit.js"></script>
   </body>
 </html>
