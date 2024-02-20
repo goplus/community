@@ -151,55 +151,55 @@ func (this *community) MainEntry() {
 //line cmd/gopcomm/community_yap.gox:125:1
 		pv := ctx.Param("pv")
 //line cmd/gopcomm/community_yap.gox:126:1
-		switch pv {
-//line cmd/gopcomm/community_yap.gox:127:1
-		case "Twitter":
-//line cmd/gopcomm/community_yap.gox:128:1
-		case "Facebook":
-//line cmd/gopcomm/community_yap.gox:129:1
-		case "Github":
-//line cmd/gopcomm/community_yap.gox:130:1
-		case "WeChat":
-//line cmd/gopcomm/community_yap.gox:131:1
-		default:
-//line cmd/gopcomm/community_yap.gox:132:1
-			http.Redirect(ctx.ResponseWriter, ctx.Request, "/userEdit", http.StatusTemporaryRedirect)
-		}
-//line cmd/gopcomm/community_yap.gox:134:1
 		token, err := core.GetToken(ctx)
-//line cmd/gopcomm/community_yap.gox:135:1
-		if err == nil {
-//line cmd/gopcomm/community_yap.gox:136:1
-			http.Redirect(ctx.ResponseWriter, ctx.Request, "/userEdit", http.StatusTemporaryRedirect)
+//line cmd/gopcomm/community_yap.gox:127:1
+		if err != nil {
+//line cmd/gopcomm/community_yap.gox:128:1
+			http.Redirect(ctx.ResponseWriter, ctx.Request, "/login", http.StatusTemporaryRedirect)
+//line cmd/gopcomm/community_yap.gox:129:1
+			return
 		}
-//line cmd/gopcomm/community_yap.gox:138:1
-		gac, err := gopaccountsdk.GetClient(token.Value)
+//line cmd/gopcomm/community_yap.gox:131:1
+		switch pv {
+//line cmd/gopcomm/community_yap.gox:132:1
+		case "Twitter":
+//line cmd/gopcomm/community_yap.gox:133:1
+		case "Facebook":
+//line cmd/gopcomm/community_yap.gox:134:1
+		case "Github":
+//line cmd/gopcomm/community_yap.gox:135:1
+		case "WeChat":
+//line cmd/gopcomm/community_yap.gox:136:1
+		default:
+//line cmd/gopcomm/community_yap.gox:137:1
+			pv = ""
+		}
 //line cmd/gopcomm/community_yap.gox:139:1
-		if err == nil {
+		gac, err := gopaccountsdk.GetClient(token.Value)
 //line cmd/gopcomm/community_yap.gox:140:1
+		if err == nil {
+//line cmd/gopcomm/community_yap.gox:141:1
 			gac.UnLink(pv)
 		}
-//line cmd/gopcomm/community_yap.gox:142:1
+//line cmd/gopcomm/community_yap.gox:143:1
 		http.Redirect(ctx.ResponseWriter, ctx.Request, "/userEdit", http.StatusTemporaryRedirect)
 	})
-//line cmd/gopcomm/community_yap.gox:144:1
-	this.Get("/userEdit", func(ctx *yap.Context) {
 //line cmd/gopcomm/community_yap.gox:145:1
-		token, err := core.GetToken(ctx)
+	this.Get("/userEdit", func(ctx *yap.Context) {
 //line cmd/gopcomm/community_yap.gox:146:1
-		if err != nil {
+		token, err := core.GetToken(ctx)
 //line cmd/gopcomm/community_yap.gox:147:1
-			http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
-		}
-//line cmd/gopcomm/community_yap.gox:149:1
-		gac, err := gopaccountsdk.GetClient(token.Value)
-//line cmd/gopcomm/community_yap.gox:150:1
 		if err != nil {
-//line cmd/gopcomm/community_yap.gox:151:1
+//line cmd/gopcomm/community_yap.gox:148:1
 			http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
 		}
-//line cmd/gopcomm/community_yap.gox:153:1
-		fmt.Println(gac)
+//line cmd/gopcomm/community_yap.gox:150:1
+		gac, err := gopaccountsdk.GetClient(token.Value)
+//line cmd/gopcomm/community_yap.gox:151:1
+		if err != nil {
+//line cmd/gopcomm/community_yap.gox:152:1
+			http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
+		}
 //line cmd/gopcomm/community_yap.gox:154:1
 		appInfo, _ := this.community.GetApplicationInfo()
 //line cmd/gopcomm/community_yap.gox:155:1

@@ -123,17 +123,18 @@ get "/user/:id", ctx => {
 }
 get "/userUnlink", ctx => {
 	pv := ctx.param("pv")
+	token, err := core.GetToken(ctx)
+	if err != nil {
+		http.Redirect(ctx.ResponseWriter, ctx.Request, "/login", http.StatusTemporaryRedirect)
+		return
+	}
 	switch pv {
 	case "Twitter":
 	case "Facebook":
 	case "Github":
 	case "WeChat":
 	default:
-		http.Redirect(ctx.ResponseWriter, ctx.Request, "/userEdit", http.StatusTemporaryRedirect)
-	}
-	token, err := core.GetToken(ctx)
-	if err == nil {
-		http.Redirect(ctx.ResponseWriter, ctx.Request, "/userEdit", http.StatusTemporaryRedirect)
+		pv = ""
 	}
 	gac, err := gopaccountsdk.GetClient(token.Value)
 	if err == nil {
@@ -150,7 +151,6 @@ get "/userEdit", ctx => {
 	if err != nil {
 		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
 	}
-	println gac
 	appInfo, _ := community.GetApplicationInfo()
 	appInfoStr, _ := json.Marshal(*appInfo)
 	binds, _ := json.Marshal(gac.GetProviderBindStatus())
