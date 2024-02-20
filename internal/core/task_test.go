@@ -17,7 +17,10 @@
 package core
 
 import (
+	"fmt"
+	"math/rand"
 	"testing"
+	"time"
 )
 
 func Test_VideoTaskCache_Set(t *testing.T) {
@@ -57,6 +60,13 @@ func Test_VideoTaskCache_Set(t *testing.T) {
 	}
 }
 
+func Benchmark_VideoTaskCache_Set(b *testing.B) {
+	c := NewVideoTaskCache()
+	for i := 0; i < b.N; i++ {
+		c.Set(fmt.Sprint(i), 111)
+	}
+}
+
 func Test_VideoTaskCache_Get(t *testing.T) {
 	type fields struct {
 		key string
@@ -91,6 +101,19 @@ func Test_VideoTaskCache_Get(t *testing.T) {
 				t.Errorf("VideoTaskCache.Set() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func Benchmark_VideoTaskCache_Get(b *testing.B) {
+	c := NewVideoTaskCache()
+	// Add b.N items to the cache
+	for i := 0; i < b.N; i++ {
+		c.Set(fmt.Sprint(i), 111)
+	}
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		c.Get(fmt.Sprint(i))
 	}
 }
 
@@ -132,6 +155,19 @@ func Test_VideoTaskCache_Delete(t *testing.T) {
 	}
 }
 
+func Benchmark_VideoTaskCache_Delete(b *testing.B) {
+	c := NewVideoTaskCache()
+	// Add b.N items to the cache
+	for i := 0; i < b.N; i++ {
+		c.Set(fmt.Sprint(i), 111)
+	}
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		c.Delete(fmt.Sprint(i))
+	}
+}
+
 func Test_VideoTaskCache_Clear(t *testing.T) {
 	type fields struct {
 		key string
@@ -163,9 +199,39 @@ func Test_VideoTaskCache_Clear(t *testing.T) {
 			c := NewVideoTaskCache()
 			c.Set(tt.args.id, tt.fields.val)
 			c.Clear()
-			if got, ok := c.Get(tt.args.id); !ok || got != tt.want {
+			if got, ok := c.Get(tt.args.id); ok {
 				t.Errorf("VideoTaskCache.Set() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func Benchmark_VideoTaskCache_Clear(b *testing.B) {
+	c := NewVideoTaskCache()
+	// Add b.N items to the cache
+	for i := 0; i < b.N; i++ {
+		c.Clear()
+	}
+}
+
+func Benchmark_VideoTaskCache_CheckVideoTask(b *testing.B) {
+	c := NewVideoTaskCache()
+	// Add b.N items to the cache
+	for i := 0; i < b.N; i++ {
+		c.Set(fmt.Sprint(i), VideoTaskTimestamp(rand.Intn(9999)))
+	}
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		// Iterate over the cache
+		for k, v := range c.videoTaskMap {
+			// Mock some work
+			time.Sleep(100 * time.Microsecond)
+
+			// Delete the item from the cache with a 20% probability
+			if v%5 == 0 {
+				c.Delete(k)
+			}
+		}
 	}
 }
