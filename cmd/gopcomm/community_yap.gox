@@ -489,7 +489,7 @@ post "/upload", ctx => {
 	community.UploadFile(ctx)
 }
 
-get "/retryCaptionGenerate", ctx => {
+post "/caption/task", ctx => {
 	uid := ctx.param("uid")
 	vid := ctx.param("vid")
 
@@ -500,7 +500,17 @@ get "/retryCaptionGenerate", ctx => {
 		}
 	}
 
-	community.RetryCaptionGenerate(todo, uid, vid)
+	if err := community.RetryCaptionGenerate(todo, uid, vid); err != nil {
+		ctx.json {
+			"code": 200,
+			"msg": "Request task error",
+		}
+	}
+
+	ctx.json {
+		"code": 200,
+		"msg": "Ok",
+	}
 }
 
 get "/login", ctx => {
