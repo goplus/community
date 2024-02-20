@@ -606,7 +606,7 @@ const app = Vue.createApp({
           img: "static/img/social_github.png",
           platform: "Github",
           desc: "website: https://github.com",
-          bind: accountBinds.github,
+          bind: accountBinds.Github,
           provider: authInfo.GitHub,
           url: getAuthUrl(providers[0], "link")
         },
@@ -614,7 +614,7 @@ const app = Vue.createApp({
           img: "static/img/social_twitter.png",
           platform: "Twitter",
           desc: "Twitter / X, website: https://twitter.com",
-          bind: accountBinds.twitter,
+          bind: accountBinds.Twitter,
           provider: authInfo.Twitter,
           url: getAuthUrl(providers[1], "link")
         },
@@ -622,7 +622,7 @@ const app = Vue.createApp({
           img: "static/img/social_facebook.png",
           platform: "Facebook",
           desc: "website: https://facebook.com",
-          bind: accountBinds.facebook,
+          bind: accountBinds.Facebook,
           provider: authInfo.Facebook,
           url: getAuthUrl(providers[2], "link")
         },
@@ -630,7 +630,7 @@ const app = Vue.createApp({
           img: "static/img/social_wechat.png",
           platform: "Wechat",
           desc: "website: https://weixin.qq.com",
-          bind: accountBinds.wechat,
+          bind: accountBinds.WeChat,
           provider: authInfo.WeChat,
           url: getAuthUrl(providers[3], "link")
         }

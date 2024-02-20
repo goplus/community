@@ -11,6 +11,7 @@ import (
 	"github.com/goplus/community/internal/core"
 	"github.com/goplus/community/translation"
 	_ "github.com/joho/godotenv/autoload"
+	gopaccountsdk "github.com/liuscraft/gop-casdoor-account-sdk"
 	"github.com/qiniu/x/xlog"
 	language "golang.org/x/text/language"
 )
@@ -134,32 +135,29 @@ get "/userUnlink", ctx => {
 	if err == nil {
 		http.Redirect(ctx.ResponseWriter, ctx.Request, "/userEdit", http.StatusTemporaryRedirect)
 	}
-
-	community.UnLink(token.Value, pv)
+	gac, err := gopaccountsdk.GetClient(token.Value)
+	if err == nil {
+		gac.UnLink(pv)
+	}
 	http.Redirect(ctx.ResponseWriter, ctx.Request, "/userEdit", http.StatusTemporaryRedirect)
 }
 get "/userEdit", ctx => {
-	var user *core.User
 	token, err := core.GetToken(ctx)
-	if err == nil {
-		user, err = community.GetUser(token.Value)
-		if err != nil {
-			xLog.Error("get user error:", err)
-		}
-	}
-
 	if err != nil {
 		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
 	}
-	appInfo, err := community.GetApplicationInfo()
+	gac, err := gopaccountsdk.GetClient(token.Value)
 	if err != nil {
 		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
 	}
+	println gac
+	appInfo, _ := community.GetApplicationInfo()
 	appInfoStr, _ := json.Marshal(*appInfo)
+	binds, _ := json.Marshal(gac.GetProviderBindStatus())
 	ctx.yap "user_edit", {
-		"User":        user,
+		"User":        gac.GetUserSimple(),
 		"Application": string(appInfoStr),
-		"Binds":       community.GetAccountBinds(token.Value),
+		"Binds":       string(binds),
 	}
 }
 

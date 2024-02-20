@@ -126,7 +126,7 @@
                         p-id="1451"
                       ></path>
                     </svg>
-                    Bind
+                    Bind 
                   </a>
                   <a
                   :href="`/userUnlink?pv=${accountItem.platform}`"
@@ -146,7 +146,7 @@
     </div>
     <script >
       const application = JSON.parse("{{ .Application }}")
-      const accountBinds = {{ .Binds }}
+      const accountBinds = JSON.parse("{{ .Binds }}")
     </script>
     <script src="static/js/user_edit.js"></script>
   </body>
