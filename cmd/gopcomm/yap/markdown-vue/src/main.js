@@ -11,5 +11,14 @@ import App from './App.vue'
  
 // console.log(MyCom1)
 // .use(Antd)
+
+// import VuePlyr from 'vue-plyr'
+// import 'vue-plyr/dist/vue-plyr.css'
+// .use(VuePlyr, {
+//   plyr: {}
+// })
+
 createApp(App).mount('#app')
+
+
 

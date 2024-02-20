@@ -29,12 +29,13 @@ export default {
             // markdown语法以 <code>gop 开头</code>结尾
             // video <video>开头 </video>结尾 
             // <code>gop println&quot;&quot;</code>
+            // var md = this.replaceGoplus(this.md)
             var htmlContent = cherryEngineInstance.makeHtml(this.md);
-            htmlContent = this.replaceGoplus(htmlContent)
+            console.log("html content", htmlContent)
             htmlContent = this.replaceVideo(htmlContent)
-            // htmlContent = this.replaceGoplus(htmlContent)
+            htmlContent = this.replaceGoplus(htmlContent)
             this.content = htmlContent
-            console.log(htmlContent)
+            console.log("result", htmlContent)
             
         },
         methods: {  
@@ -60,23 +61,45 @@ export default {
                 return htmlContent
             },
             replaceGoplus(htmlContent) {
-
-                var regex = /<code>(.*?)<\/code>/g
-                var matches = htmlContent.match(regex); // 使用match()函数获取匹配结果
-                if(matches) {
-                    for(let i=0; i<matches.length; i++) {
-                        console.log("match", matches[i])
-                        // htmlContent = htmlContent.replace(matches[i], "video replace" )
-                        htmlContent = htmlContent.replace(matches[i], function(h) { 
-                            var regex1 = /<code>(.*?)<\/code>/
-                            let src = matches[i].match(regex1)[1]
-                            console.log("src", src)
-                            return `<goplus-code half-code language="gop" style="width: 85vw">${src}</goplus-code>`
-                        })
+                // 获取 data-lang 如果是gop 就进行匹配
+                var regex_l = /data-lang="(.*?)"/
+                var m_lan = htmlContent.match(regex_l)
+                console.log("language", m_lan)
+                if(m_lan) {
+                    // 如果有gop 才替换
+                    if(m_lan[1] == 'gop') {
+                        var regex = /<code(.*?)<\/code>/g
+                        var matches = htmlContent.match(regex); // 使用match()函数获取匹配结果
+                        console.log("goplus")
+                        if(matches) {
+                            for(let i=0; i<matches.length; i++) {
+                                console.log("match", matches[i])
+                                htmlContent = htmlContent.replace(matches[i], function(h) { 
+                                    // var regex1 = /<code(.*?)<\/code>/
+                                    var regex1 = /<code class="language-javascript wrap">(.*?)<\/code>/
+                                    let src = matches[i].match(regex1)[1]
+                                    console.log("src", src)
+                                    var regex2 = /<span class="code-line">(.*?)<\/span>/g
+                                    let s_match = src.match(regex2)
+                                    var iner_src = ""
+                                    if(s_match) {
+                                        for(let i = 0; i<s_match.length; i++) {
+                                            var regex3 = /<span class="code-line">(.*?)<\/span>/
+                                            let temp_s = s_match[i].match(regex3)[1]
+                                            iner_src += temp_s
+                                            iner_src += '\n'
+                                        }
+                                    }
+                                    console.log("iner", iner_src)
+                                    return `<goplus-code half-code language="gop" style="width: 85vw">${iner_src}</goplus-code>`
+                                })
+                            }
+                            console.log(htmlContent)
+                        } 
+                        htmlContent = htmlContent.replace(/<pre(.*?)>/, "")
+                        htmlContent = htmlContent.replace(/<\/pre>/, "")
                     }
-                    console.log(htmlContent)
-                } 
-                
+                }
                 return htmlContent
             }          
             
