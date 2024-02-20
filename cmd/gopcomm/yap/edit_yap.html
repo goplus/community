@@ -140,6 +140,11 @@
                             }"></n-input>
                         </n-form-item>
 
+                        <!-- Translate to en -->
+                        <n-form-item label="Translate" path="translate">
+                            <n-switch v-model:value="articleForm.trans" @update:value="changeTrans"/>
+                        </n-form-item>
+
                         <!-- Cover -->
                         <n-form-item label="Cover" path="cover">
                             <!-- TODO: @Shi 预览封面 -->
@@ -198,10 +203,10 @@
             const articleForm = ref({
                 title: '',
                 tags: [],
-                abstract: ''
+                abstract: '',
+                trans:false
             });
             let coverUrl = "";
-            let content = ""
 
             // edit
             const isAdd = window.location.href.indexOf("edit") !== -1 ? ref(false) : ref(true)
@@ -246,9 +251,8 @@
                 formData.append("tags", tags.value);
                 formData.append("abstract", articleForm.value.abstract);
                 formData.append("cover", coverUrl);
-                formData.append("content",content || window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown())
-                formData.append("trans_data",content !== "" ? window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown():"")
-
+                formData.append("content", window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown())
+                formData.append("trans", articleForm.value.trans)
                 // upload the formData to backend
                 uploadArticle(formData);
             }
@@ -267,6 +271,7 @@
                     return res.json();
                 })
                 .then(todos => {
+                    console.log("data",todos)
                     if(todos.code === 200){
                         // success delete  articleList or get articleList
                         window.location.href = "/p/"+todos.data
@@ -287,7 +292,6 @@
                 })
                 .then(todos => {
                     if(todos.code === 200){
-                        // save origin content
                         content = md
                         window.GoplusMarkdown.MarkdownEditor.methods.setMarkdown(todos.data)
                     }
@@ -337,6 +341,10 @@
                 window.location.href = "/"
             }
 
+            function changeTrans(value){
+                articleForm.value.trans = value
+            }
+
             /*======= register vue component =======*/
             const app = Vue.createApp({
                 data() {
@@ -353,7 +361,8 @@
                     translateMd,
                     customRequest,
                     modalVisible,
-                    goBack
+                    goBack,
+                    changeTrans
                 },
                 components: {
                     MarkdownEditor: window.GoplusMarkdown.MarkdownEditor
@@ -363,6 +372,7 @@
                         articleForm.value.title = article.Title
                         articleForm.value.tags = article.Tags.split(";")
                         articleForm.value.abstract = article.Abstract
+                        articleForm.value.trans = article.Trans
                         coverUrl = article.Cover
                         window.GoplusMarkdown.MarkdownEditor.methods.setMarkdown(article.Content)
                     }
