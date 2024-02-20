@@ -9,6 +9,11 @@ import Cherry from 'cherry-markdown'
 import axios from 'axios'
 
 
+// import Plyr from 'plyr';
+// const player = new Plyr('#player');
+// const p = new Plyr('video', {captions: {active: true}});
+
+
 // let v_s = "https://cdn.plyr.io/3.6.8/plyr.js"
 //             let v_css = "https://cdn.plyr.io/3.6.8/plyr.css"
 // import {  UploadOutlined, SendOutlined } from '@ant-design/icons-vue';
@@ -19,6 +24,8 @@ axios.defaults.baseURL = 'http://localhost:8080/';
 var cherrInstance = null
 
 var cherryEngine = null
+
+var vtt_src = ""
 
 function fileUpload(file) {
     // 提交的时候代码
@@ -36,22 +43,35 @@ function fileUpload(file) {
         }
     })
         .then(response => {
-            console.log('文件上传成功！');
-            console.log(response.data); // 输出服务器返回的数据（可选） 获取 返回的ID
-            axios({
-                method: 'get',
-                url: '/getMediaUrl/'+response.data,
-                // params: {
-                //     id: media_id
-                // }
-            }).then(response => {
-                console.log("请求media成功")
-                console.log()
-                let url = response.data.url
-                console.log(url)
-                // 返回文件地址的话需要
-                onloadCallback(type, url)                        
-            })
+            console.log('文件上传成功！', type);
+            console.log(response.data); // 输出服务器返回的数据（可选） 获取 返回的ID  
+            // 根据类型执行不同的请求
+            if(type.includes("video")) {
+                axios({
+                    method: 'get',
+                    url: '/getVideoAndSubtitle/'+response.data,
+                }).then(response => {
+                    console.log("请求视频")
+                    let url = response.data.url.fileKey
+                    let stitle = response.data.url.subtitle
+                    vtt_src = stitle
+                    console.log("视频URL", url)
+                    // 返回文件地址的话需要
+                    onloadCallback(type, url)                        
+                })
+            } else {
+                axios({
+                    method: 'get',
+                    url: '/getMediaUrl/'+response.data,
+                }).then(response => {
+                    console.log("请求media成功")
+                    let url = response.data.url
+                    console.log("图片", url)
+                    // 返回文件地址的话需要
+                    onloadCallback(type, url)                        
+                })
+            }
+           
         })
         .catch(error => {
             console.error('文件上传失败！');
@@ -61,8 +81,8 @@ function fileUpload(file) {
     // // 本地测试代码
     // console.log("type", file.type)
     // let type = file.type
-    // let url = 'https://img.mp.itc.cn/upload/20161030/0bf4745fadf046b3a68ece0763fc3010_th.jpeg'
-    // this.onloadCallback(type, url)                        
+    // let url = 'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4'
+    // onloadCallback(type, url)                        
 
 }
 function onloadCallback(type, url) {
@@ -78,14 +98,13 @@ function onloadCallback(type, url) {
     } else {
         imgMdStr = `[${type}](${url})`
     } 
-    cherrInstance.insert(imgMdStr)
-    
+    cherrInstance.insert(imgMdStr) 
     // test 代码 成功
     // console.log("call back")
     // let imgMdStr = ''
     // imgMdStr = `![${'image/jpg'}](https://up.deskcity.org/pic_source/d6/6a/c5/d66ac5159da4a416a910061f3df99add.jpg)`;
     
-    // this.cherrInstance.insert(imgMdStr)
+    // cherrInstance.insert(imgMdStr)
 }
             // 全局的URL处理器
 function urlProcessor(url, srcType) {
@@ -215,15 +234,19 @@ function initCherryMD(value, config) {
         makeHtml(str) {
             return str.replace(this.RULE.reg, function(whole, m1) {
                 // 匹配whole括号中的内容
+                console.log("提取video内容", whole)
                 const regex = /\((.*?)\)/; // 定义正则表达式，其中 \() 表示左括号，(.*?) 表示非贪婪模式匹配任意字符，\)) 表示右括号
                 const matchResult = whole.match(regex); // 使用 match 函数进行匹配
                 let video_src = ""
                 if (matchResult && matchResult[1]) {
                     console.log("提取到的结果为：" + matchResult[1]);
-                    const player = new Plyr('#player');
-
+                    // console.log("player", player)
                     video_src = matchResult[1]
-                    return `<div><video controls crossorigin playsinline data-poster="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg" id="player"><source src=${video_src} type="video/mp4" size="576"/><track kind="captions" label="English" srclang="en" src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt" default/><track kind="captions" label="Français" srclang="fr" src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.fr.vtt"/><a href=${video_src} download>Download</a></video></div>`
+                    console.log("video src 已经替换了", video_src)
+                    return `<div><video controls="" crossorigin="" playsinline="" poster="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg"><source src=${video_src} type="video/mp4" size="576"/><track kind="captions" label="English" srclang="en" src=${vtt_src} default/><track kind="captions" label="Français" srclang="fr" src=${vtt_src} /><a href=${video_src} download>Download</a></video></div>`
+                    // return `<vue-plyr ref="plyr"><video ref="plyr" class="plyr" :autoplay="autoplay" :crossorigin="crossorigin" :poster="poster" :playsinline="playsinline"><source :src="source" type="video/mp4"></video></vue-plyr>`
+                    // return `<div class="plyr plyr--full-ui plyr--video plyr--html5 plyr--fullscreen-enabled plyr--paused plyr--stopped plyr--pip-supported plyr--captions-enabled plyr__poster-enabled"><video controls crossorigin playsinline poster="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg"><source src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4" type="video/mp4" size="576"><source src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-720p.mp4" type="video/mp4" size="720"><source src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-1080p.mp4" type="video/mp4" size="1080"><!-- Caption files --><track kind="captions" label="English" srclang="en" src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt"default><track kind="captions" label="Français" srclang="fr" src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.fr.vtt"><!-- Fallback for browsers that don't support the <video> element --><a href="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4" download>Download</a></video>`
+                    // return `<div class="plyr plyr--full-ui plyr--video plyr--html5 plyr--fullscreen-enabled plyr--paused plyr--stopped plyr--pip-supported plyr--captions-enabled plyr__poster-enabled"><div class="plyr__controls"><button class="plyr__controls__item plyr__control" type="button" data-plyr="play" aria-pressed="false" aria-label="Play"><svg class="icon--pressed" aria-hidden="true" focusable="false"><use xlink:href="#plyr-pause"></use></svg><svg class="icon--not-pressed" aria-hidden="true" focusable="false"><use xlink:href="#plyr-play"></use></svg><span class="label--pressed plyr__sr-only">Pause</span><span class="label--not-pressed plyr__sr-only">Play</span></button><div class="plyr__controls__item plyr__progress__container"><div class="plyr__progress"><input data-plyr="seek" type="range" min="0" max="100" step="0.01" value="0" autocomplete="off" role="slider" aria-label="Seek" aria-valuemin="0" aria-valuemax="183.125333" aria-valuenow="0" id="plyr-seek-8215" aria-valuetext="00:00 of 03:03" style="--value: 0%;"><progress class="plyr__progress__buffer" min="0" max="100" value="0" role="progressbar" aria-hidden="true">% buffered</progress><span class="plyr__tooltip">00:00</span></div></div><div class="plyr__controls__item plyr__time--current plyr__time" aria-label="Current time" role="timer">-03:03</div><div class="plyr__controls__item plyr__volume"><button type="button" class="plyr__control" data-plyr="mute" aria-pressed="false"><svg class="icon--pressed" aria-hidden="true" focusable="false"><use xlink:href="#plyr-muted"></use></svg><svg class="icon--not-pressed" aria-hidden="true" focusable="false"><use xlink:href="#plyr-volume"></use></svg><span class="label--pressed plyr__sr-only">Unmute</span><span class="label--not-pressed plyr__sr-only">Mute</span></button><input data-plyr="volume" type="range" min="0" max="1" step="0.05" value="1" autocomplete="off" role="slider" aria-label="Volume" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" id="plyr-volume-8215" aria-valuetext="100.0%" style="--value: 100%;"></div><button class="plyr__controls__item plyr__control" type="button" data-plyr="captions" aria-pressed="false"><svg class="icon--pressed" aria-hidden="true" focusable="false"><use xlink:href="#plyr-captions-on"></use></svg><svg class="icon--not-pressed" aria-hidden="true" focusable="false"><use xlink:href="#plyr-captions-off"></use></svg><span class="label--pressed plyr__sr-only">Disable captions</span><span class="label--not-pressed plyr__sr-only">Enable captions</span></button><div class="plyr__controls__item plyr__menu"><button aria-haspopup="true" aria-controls="plyr-settings-8215" aria-expanded="false" type="button" class="plyr__control" data-plyr="settings" aria-pressed="false"><svg aria-hidden="true" focusable="false"><use xlink:href="#plyr-settings"></use></svg><span class="plyr__sr-only">Settings</span></button><div class="plyr__menu__container" id="plyr-settings-8215" hidden=""><div><div id="plyr-settings-8215-home"><div role="menu"><button data-plyr="settings" type="button" class="plyr__control plyr__control--forward" role="menuitem" aria-haspopup="true"><span>Captions<span class="plyr__menu__value">Disabled</span></span></button><button data-plyr="settings" type="button" class="plyr__control plyr__control--forward" role="menuitem" aria-haspopup="true"><span>Quality<span class="plyr__menu__value">576p</span></span></button><button data-plyr="settings" type="button" class="plyr__control plyr__control--forward" role="menuitem" aria-haspopup="true"><span>Speed<span class="plyr__menu__value">Normal</span></span></button></div></div><div id="plyr-settings-8215-captions" hidden=""><button type="button" class="plyr__control plyr__control--back"><span aria-hidden="true">Captions</span><span class="plyr__sr-only">Go back to previous menu</span></button><div role="menu"><button data-plyr="language" type="button" role="menuitemradio" class="plyr__control" aria-checked="true" value="-1"><span>Disabled</span></button><button data-plyr="language" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="0"><span>English<span class="plyr__menu__value"><span class="plyr__badge">EN</span></span></span></button><button data-plyr="language" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="1"><span>Français<span class="plyr__menu__value"><span class="plyr__badge">FR</span></span></span></button></div></div><div id="plyr-settings-8215-quality" hidden=""><button type="button" class="plyr__control plyr__control--back"><span aria-hidden="true">Quality</span><span class="plyr__sr-only">Go back to previous menu</span></button><div role="menu"><button data-plyr="quality" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="1080"><span>1080p<span class="plyr__menu__value"><span class="plyr__badge">HD</span></span></span></button><button data-plyr="quality" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="720"><span>720p<span class="plyr__menu__value"><span class="plyr__badge">HD</span></span></span></button><button data-plyr="quality" type="button" role="menuitemradio" class="plyr__control" aria-checked="true" value="576"><span>576p<span class="plyr__menu__value"><span class="plyr__badge">SD</span></span></span></button></div></div><div id="plyr-settings-8215-speed" hidden=""><button type="button" class="plyr__control plyr__control--back"><span aria-hidden="true">Speed</span><span class="plyr__sr-only">Go back to previous menu</span></button><div role="menu"><button data-plyr="speed" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="0.5"><span>0.5×</span></button><button data-plyr="speed" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="0.75"><span>0.75×</span></button><button data-plyr="speed" type="button" role="menuitemradio" class="plyr__control" aria-checked="true" value="1"><span>Normal</span></button><button data-plyr="speed" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="1.25"><span>1.25×</span></button><button data-plyr="speed" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="1.5"><span>1.5×</span></button><button data-plyr="speed" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="1.75"><span>1.75×</span></button><button data-plyr="speed" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="2"><span>2×</span></button><button data-plyr="speed" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="4"><span>4×</span></button></div></div></div></div></div><button class="plyr__controls__item plyr__control" type="button" data-plyr="pip" aria-pressed="false"><svg aria-hidden="true" focusable="false"><use xlink:href="#plyr-pip"></use></svg><span class="plyr__sr-only">PIP</span></button><button class="plyr__controls__item plyr__control" type="button" data-plyr="fullscreen" aria-pressed="false"><svg class="icon--pressed" aria-hidden="true" focusable="false"><use xlink:href="#plyr-exit-fullscreen"></use></svg><svg class="icon--not-pressed" aria-hidden="true" focusable="false"><use xlink:href="#plyr-enter-fullscreen"></use></svg><span class="label--pressed plyr__sr-only">Exit fullscreen</span><span class="label--not-pressed plyr__sr-only">Enter fullscreen</span></button></div><div class="plyr__video-wrapper"><video crossorigin="" playsinline="" poster="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg" src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4" data-poster="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg"><source src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4" type="video/mp4" size="576"><source src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-720p.mp4" type="video/mp4" size="720"><source src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-1080p.mp4" type="video/mp4" size="1080"><!-- Caption files --><track kind="captions" label="English" srclang="en" src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt" default=""><track kind="captions" label="Français" srclang="fr" src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.fr.vtt"><!-- Fallback for browsers that don't support the <video> element --><a href="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4" download="">Download</a></video><div class="plyr__poster" style="background-image: url(&quot;https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg&quot;);"></div></div><div class="plyr__captions" dir="auto"></div><button type="button" class="plyr__control plyr__control--overlaid" data-plyr="play" aria-pressed="false" aria-label="Play"><svg aria-hidden="true" focusable="false"><use xlink:href="#plyr-play"></use></svg><span class="plyr__sr-only">Play</span></button></div>`
                 } else {
                     console.log("未能提取到小括号中的内容");
                     let r = "未能提取到小括号中的内容"
@@ -233,9 +256,9 @@ function initCherryMD(value, config) {
             });
         },
         rule(str) {
-            // return { reg: /\n\+\+(\n[\s\S]+?\n)\+\+\n/g };
             return {
-                reg: /^!video.*.mp4\)/
+                // reg: /^!video.*.mp4\)/
+                reg: /^!video.*\)/
             }
         },
     });
@@ -569,6 +592,8 @@ export default {
     mounted() {
         initCherryMD()
         this.init_req()
+        // const p = new Plyr('video', {captions: {active: true}});
+
         // 不需要
         // let t = "https://goplus.org/_next/static/widgets/code.85827e18ab6a0fa63bdc.js"
         // let e = "https://goplus.org/_next/static/widgets/code.f81abac15122c88e65d7.css"
@@ -576,15 +601,15 @@ export default {
         // o.src=t,null!=e&&o.setAttribute("data-style-url",e),document.body.appendChild(o)
 
 
-        let v_s = "https://cdn.plyr.io/3.6.8/plyr.js"
-        let v_css = "https://cdn.plyr.io/3.6.8/plyr.css"
-        var v=document.createElement("script");
-        v.src=v_s,null!=v_css&&v.setAttribute("data-style-url",v_css),document.body.appendChild(v)
+        // let v_s = "https://cdn.plyr.io/3.6.8/plyr.js"
+        // let v_css = "https://cdn.plyr.io/3.6.8/plyr.css"
+        // var v=document.createElement("script");
+        // v.src=v_s,null!=v_css&&v.setAttribute("data-style-url",v_css),document.body.appendChild(v)
 
-        let v_c = document.createElement("link")
-        v_c.href = v_css
-        v_c.setAttribute("href", "stylesheet")
-        document.head.appendChild(v_c)
+        // let v_c = document.createElement("link")
+        // v_c.href = v_css
+        // v_c.setAttribute("href", "stylesheet")
+        // document.head.appendChild(v_c)
     },
     methods: {    
          getMarkdown() {
@@ -731,6 +756,14 @@ export default {
         },
         setTrans(tran) {
             tran()
+        },
+        insertMarkdown(content) {
+            setMarkdown(content)
+        },  
+        setMarkdown(content) {
+            // setMarkdown(content)
+            cherrInstance.setMarkdown(content)
+            cherrInstance.editor.editor.setCursor(cherrInstance.getMarkdown().length)
         }
 
         //获取cookie
