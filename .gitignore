@@ -28,3 +28,4 @@ go.work
 # gop_autogen.go
 dist/
 node_modules/
+.vscode/
