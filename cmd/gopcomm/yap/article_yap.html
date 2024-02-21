@@ -39,6 +39,7 @@
     <!-- markdown -->
     <link rel="stylesheet" href="/static/GoplusMarkdown/style.css">
     <link rel="stylesheet" href="https://cdn.plyr.io/3.6.8/plyr.css" >
+    <script data-widgets="code" src="https://goplus.org/widgets/loader.js"></script>
 
     <style type="text/css" media="screen, print">
         body {
@@ -92,7 +93,8 @@
                         <!-- TODO: @Shi 固钉 Affix -->
                         <n-gi :span="1" class="flex flex-col justify-between items-center" style="height: 37vh;">
                             <!-- translate -->
-                            <n-button @click="translateArticle" type="tertiary" style="--n-text-color-hover: #2a82e4;
+                            <!-- <n-dropdown :options="transOptions" trigger="click" width="150" @select="selectDropdown">
+                                <n-button  type="tertiary" style="--n-text-color-hover: #2a82e4;
                                     --n-text-color-pressed: #2a82e4;
                                     --n-text-color-focus: #2a82e4;
                                     --n-ripple-color: #3182ce;
@@ -101,8 +103,9 @@
                                     --n-border-focus: 1.5px solid #2a82e4;
                                     height: 7vh; width: 7vh;
                                     --n-padding: 0; --n-border-radius: 5px;">
-                                <i class="ph-duotone ph-translate" style="font-size: 22px;"></i>
-                            </n-button>
+                                    <i class="ph-duotone ph-translate" style="font-size: 22px;"></i>
+                                </n-button>
+                            </n-dropdown> -->
 
                             <!-- TODO: 点赞事件和点赞数 -->
                             <!-- <n-badge :value="article.likes"> -->
@@ -168,14 +171,29 @@
                         box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05); padding: 20px 30px;">
                             <!-- Tags & Title & Update Time -->
                             <header class="mb-4 not-format">
-                                <!-- Tags -->
-                                <div class="flex flex-row items-center">
-                                    <span v-for="(item, index) in article.Tags.split(';')"
-                                        class="mr-3 inline-flex items-center bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300">
-                                        <span class="w-2 h-2 me-1 bg-blue-500 rounded-full"></span>
-                                        ${ item }
-                                    </span>
+                                <div class="flex flex-row" style="justify-content: space-between">
+                                     <!-- Tags -->
+                                    <div class="flex flex-row items-center">
+                                        <span v-for="(item, index) in article.Tags.split(';')"
+                                            class="mr-3 inline-flex items-center bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300">
+                                            <span class="w-2 h-2 me-1 bg-blue-500 rounded-full"></span>
+                                            ${ item }
+                                        </span>
+                                    </div>
+
+                                    <n-dropdown :options="transOptions" trigger="click" width="150" @select="selectDropdown" style="margin-left: auto">
+                                        <n-button @click="translateMd" class="ml-2" style="--n-border-radius: 7px; --n-ripple-color: #7ba7d3; 
+                                            --n-text-color-hover: #2a82e4; --n-text-color-pressed: #3182ce;
+                                            --n-text-color-focus: #2a82e4; --n-border-hover: 1px solid #2a82e4;
+                                            --n-border-pressed: 1px solid #3182ce; --n-border-focus: 1px solid #2a82e4;">
+                                            <template #icon>
+                                                <i class="ph-bold ph-translate" style="color: #2a82e4;"></i>
+                                            </template>
+                                            <span style="font-weight: 600; color: #2a82e4;">Translate</span>
+                                        </n-button>
+                                    </n-dropdown>
                                 </div>
+                               
 
                                 <!-- Title -->
                                 <h1 class="my-4 text-4xl font-extrabold leading-tight text-gray-900">
@@ -337,6 +355,22 @@
             /*======= share related functions =======*/
             const currentHref = ref(window.location.href);
 
+            const transOptions = [
+                {
+                    label: "Original",
+                    key: "original"
+                },
+                {
+                    key: "divider",
+                    type: "divider"
+                },
+                {
+                    label: "English",
+                    key: "english"
+                }
+            ];
+
+
             function shareToFacebook() {
                 var w = 900;
                 var h = 600;
@@ -377,10 +411,13 @@
                 window.open(intentUrl, "_blank", "width=900, height=600");
             };
 
-            function translateArticle(){
-                // if trans
-                if(isOrigin.value){
-                    console.log("trans")
+            function selectDropdown(key) {
+                if (key === 'original' && !isOrigin.value) {
+                    console.log("origin")
+                    article.value = originArticle
+                    isOrigin.value = true
+                } else if (key === 'english' && isOrigin.value) {
+                    console.log("english")
                     // translate
                     if (transArticle.Content){
                         article.value = transArticle
@@ -395,29 +432,27 @@
                                 article.value.Content = todos.content
                                 article.value.Tags = todos.tags
                                 transArticle = article.value
-                                console.log("stransArticle",transArticle)
                             }
                         });
                     } 
-                } else {
-                    console.log("origin")
-                    article.value = originArticle
-                }  
-                isOrigin.value = !isOrigin.value
-            }
+                    isOrigin.value = false
+                }
+            };
+
             /*======= register vue component =======*/
             const app = Vue.createApp({
                 data() {
                     return {
                         currentHref,
                         article,
-                        isOrigin
+                        isOrigin,
+                        transOptions
                     }
                 },
                 methods: {
                     shareToFacebook,
                     shareToTwitter,
-                    translateArticle,
+                    selectDropdown
                 },
                 components: {
                     MarkdownViewer: window.GoplusMarkdown.MarkdownViewer

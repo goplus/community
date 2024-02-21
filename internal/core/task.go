@@ -202,61 +202,21 @@ func (c *Community) TimedCheckVideoTask(ctx context.Context, timeout time.Durati
 						// Set video task success or failed
 						c.translation.VideoTaskCache.Delete(resourceId)
 					} else if task.Status == 0 {
-						// Request for ASR task
-						asrTaskData, err := c.translation.Engine.QueryVideo2TextTask(task.TaskId)
+						// Update ASR result
+						err = c.updateASRResult(ctx, resourceId, task)
 						if err != nil {
-							c.xLog.Errorf("TimedCheckVideoTask QueryVideo2TextTask failed, resourceId: %s, err: %v", resourceId, err)
-							continue
-						}
-						taskStatus := asrTaskData.Rtn
-						if asrTaskData.Rtn == 0 && asrTaskData.Data.StatusCode == 3 {
-							// Upload ASR result
-							buffer, err := c.translation.Engine.GenerateWebVTTBytesWithTranslation(*asrTaskData, language.Chinese, language.English)
-							if err != nil {
-								taskStatus = -1
-								c.xLog.Errorf("TimedCheckVideoTask GenerateWebVTTBytesWithTranslation failed, resourceId: %s, err: %v", resourceId, err)
-								// Can not parse ASR result
-								// continue
-							}
+							c.xLog.Errorf("TimedCheckVideoTask updateASRResult failed, resourceId: %s, err: %v", resourceId, err)
 
-							// Upload ASR result
-							captionId, err := c.SaveMedia(ctx, task.UserId, buffer.Bytes())
-							if err != nil {
-								taskStatus = -1
-								c.xLog.Errorf("TimedCheckVideoTask SaveMedia failed, resourceId: %s, err: %v", resourceId, err)
-								// Can not save ASR result
-								// continue
-							}
-
-							// Get ASR result id
-							output, err := c.GetMediaUrl(ctx, fmt.Sprintf("%d", captionId))
-							if err != nil {
-								taskStatus = -1
-								c.xLog.Errorf("TimedCheckVideoTask GetMediaURL failed, resourceId: %s, err: %v", resourceId, err)
-								// Can not get ASR result link
-								// continue
-							}
-
-							// Update status of video task
-							if taskStatus == 0 {
-								err = c.SetVideoTaskSuccess(ctx, resourceId)
-							} else {
-								err = c.SetVideoTaskFailed(ctx, resourceId)
-							}
+							err = c.SetVideoTaskFailed(ctx, resourceId)
 							if err != nil {
 								c.xLog.Errorf("TimedCheckVideoTask SetVideoTaskStatus failed, resourceId: %s, err: %v", resourceId, err)
 							}
 
-							c.xLog.Infof("TimedCheckVideoTask GetMediaURL success, resourceId: %s, output: %s", resourceId, output)
-							// Update status of video task
-							err = c.SetVideoTaskOutput(ctx, resourceId, output)
-							if err != nil {
-								c.xLog.Errorf("TimedCheckVideoTask SetVideoTaskOutput failed, resourceId: %s, err: %v", resourceId, err)
-							}
-
-							// Set video task success
-							c.translation.VideoTaskCache.Delete(resourceId)
+							continue
 						}
+
+						// Set video task success
+						c.translation.VideoTaskCache.Delete(resourceId)
 					}
 				}
 			}
@@ -275,4 +235,68 @@ func (c *Community) TimedCheckVideoTask(ctx context.Context, timeout time.Durati
 			return
 		}
 	}
+}
+
+func (c *Community) updateASRResult(ctx context.Context, resourceId string, task *VideoTask) error {
+	// Request for ASR task
+	asrTaskData, err := c.translation.Engine.QueryVideo2TextTask(task.TaskId)
+	if err != nil {
+		c.xLog.Errorf("TimedCheckVideoTask QueryVideo2TextTask failed, resourceId: %s, err: %v", resourceId, err)
+
+		return err
+	}
+
+	if asrTaskData.Rtn == 0 && asrTaskData.Data.StatusCode == 3 {
+		// Upload ASR result
+		buffer, err := c.translation.Engine.GenerateWebVTTBytesWithTranslation(*asrTaskData, language.Chinese, language.English)
+		if err != nil {
+			c.xLog.Errorf("TimedCheckVideoTask GenerateWebVTTBytesWithTranslation failed, resourceId: %s, err: %v", resourceId, err)
+			// Can not parse ASR result
+			// continue
+
+			return err
+		}
+
+		// Upload ASR result
+		captionId, err := c.SaveMedia(ctx, task.UserId, buffer.Bytes())
+		if err != nil {
+			c.xLog.Errorf("TimedCheckVideoTask SaveMedia failed, resourceId: %s, err: %v", resourceId, err)
+			// Can not save ASR result
+			return err
+		}
+
+		// Get ASR result id
+		output, err := c.GetMediaUrl(ctx, fmt.Sprintf("%d", captionId))
+		if err != nil {
+			c.xLog.Errorf("TimedCheckVideoTask GetMediaURL failed, resourceId: %s, err: %v", resourceId, err)
+			// Can not get ASR result link
+			return err
+		}
+
+		err = c.SetVideoTaskSuccess(ctx, resourceId)
+		if err != nil {
+			c.xLog.Errorf("TimedCheckVideoTask SetVideoTaskStatus failed, resourceId: %s, err: %v", resourceId, err)
+
+			return err
+		}
+		c.xLog.Infof("TimedCheckVideoTask GetMediaURL success, resourceId: %s, output: %s", resourceId, output)
+
+		// Update status of video task
+		err = c.SetVideoTaskOutput(ctx, resourceId, output)
+		if err != nil {
+			c.xLog.Errorf("TimedCheckVideoTask SetVideoTaskOutput failed, resourceId: %s, err: %v", resourceId, err)
+
+			return err
+		}
+	} else {
+		// Update status of video task
+		err = c.SetVideoTaskFailed(ctx, resourceId)
+		if err != nil {
+			c.xLog.Errorf("TimedCheckVideoTask SetVideoTaskFailed failed, resourceId: %s, err: %v", resourceId, err)
+
+			return err
+		}
+	}
+
+	return nil
 }
