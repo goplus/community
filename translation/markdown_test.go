@@ -36,11 +36,11 @@ func TestTranslatePlainText(t *testing.T) {
 
 	tests := []struct {
 		src  string
-		from language.Tag
+		from string
 		to   language.Tag
 	}{
-		{"你好", language.Chinese, language.English},
-		{"hello", language.English, language.Chinese},
+		{"你好", "auto", language.English},
+		{"hello", "auto", language.Chinese},
 	}
 
 	trans := New(mockKey, "", "")
@@ -60,7 +60,7 @@ func TestTranslateMarkdown(t *testing.T) {
 
 	tests := []struct {
 		src  string
-		from language.Tag
+		from string
 		to   language.Tag
 	}{
 		// {`# Hello`, "en", "zh"},
@@ -370,7 +370,7 @@ cl 模块则需要测试是否正确将 Go+ 的代码转成期望的 Go 代码�
 这是一段[链接](https://www.example.com)
 
 这是一段![图像](https://www.example.com/image.jpg)
-`, language.Chinese, language.English},
+`, "auto", language.English},
 	}
 
 	trans := New(mockKey, "", "")
@@ -390,11 +390,11 @@ func TestTranslateBatch(t *testing.T) {
 
 	tests := []struct {
 		src  []string
-		from language.Tag
+		from string
 		to   language.Tag
 	}{
-		{[]string{"你好", "好的", "非常棒"}, language.Chinese, language.English},
-		{[]string{"What 's your name", "nice job"}, language.English, language.Chinese},
+		{[]string{"你好", "好的", "非常棒"}, "auto", language.English},
+		{[]string{"What 's your name", "nice job"}, "auto", language.Chinese},
 	}
 
 	trans := New(mockKey, "", "")

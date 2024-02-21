@@ -11,6 +11,7 @@ import (
 	"github.com/goplus/community/internal/core"
 	"github.com/goplus/community/translation"
 	_ "github.com/joho/godotenv/autoload"
+	gopaccountsdk "github.com/liuscraft/gop-casdoor-account-sdk"
 	"github.com/qiniu/x/xlog"
 	language "golang.org/x/text/language"
 	"time"
@@ -93,17 +94,10 @@ get "/page/p/:id", ctx => {
 
 	id := ctx.param("id")
 	article, _ := community.Article(todo, id)
+	articleJson, _ := json.Marshal(&article)
 	ctx.yap "article", {
 		"User":    user,
-		"ID":      id,
-		"Title":   article.Title,
-		"Content": article.Content,
-		// "HtmlUrl": article.HtmlUrl,
-		"Tags":    article.Tags,
-		"Cover":   article.Cover,
-		"Mtime":   article.Mtime.Format(layoutUS),
-		"Author":  article.User,
-		// "User": article.User,
+		"Article": strings.Replace(string(articleJson), `\"`, `"`, -1),
 	}
 }
 
@@ -123,12 +117,10 @@ get "/page/add", ctx => {
 
 get "/page/edit/:id", ctx => {
 	var user *core.User
-	token, err := core.GetToken(ctx)
-	if err == nil {
-		user, err = community.GetUser(token.Value)
-		if err != nil {
-			xLog.Error("get user error:", err)
-		}
+	// token, err := core.GetToken(ctx)
+	_, err := core.GetToken(ctx)
+	if err != nil {
+		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
 	}
 
 	uid := user.Id
@@ -234,12 +226,15 @@ post "/api/commit", ctx => {
 	// Whether article has been translated or not
 	// trans := ctx.param("trans") // if trans != ""， add article
 	id := ctx.param("id")
-	mdData := ctx.param("content")
-	transData := ctx.param("trans_data")
+	content := ctx.param("content")
+	title := ctx.param("title")
+	tags := ctx.param("tags")
+	abstract := ctx.param("abstract")
+	trans, _ := strconv.ParseBool(ctx.param("trans"))
 	// get user id
 	token, err := core.GetToken(ctx)
 	if err != nil {
-		xLog.Info("token",err)
+		xLog.Info("token", err)
 		ctx.json {
 			"code": 0,
 			"err":  "no token",
@@ -247,26 +242,37 @@ post "/api/commit", ctx => {
 	}
 	uid, err := community.ParseJwtToken(token.Value)
 	if err != nil {
-		xLog.Info("uid",err)
+		xLog.Info("uid", err)
 		ctx.json {
 			"code": 0,
 			"err":  err.Error(),
 		}
 	}
-	// add article
 	article := &core.Article{
 		ArticleEntry: core.ArticleEntry{
 			ID:       id,
-			Title:    ctx.param("title"),
+			Title:    title,
 			UId:      uid,
 			Cover:    ctx.param("cover"),   
-			Tags:     ctx.param("tags"),
-			Abstract: ctx.param("abstract"),
+			Tags:     tags,
+			Abstract: abstract,
 		},
-		Content:  mdData,
-		TransContent: transData,
+		Content:  content,
+		Trans: trans,
 	}
-	id, _ = community.PutArticle(todo, uid, article)
+
+	// if trans == true translate the article
+	if trans {
+		article, _ = community.TranslateArticle(todo, article)
+	}
+
+	id, err = community.PutArticle(todo, uid, article)
+	if err != nil {
+		ctx.json {
+			"code": 0,
+			"err": "add failed",
+		}
+	}
 	ctx.json {
 		"code": 200,
 		"data": id,
@@ -333,20 +339,20 @@ get "/page/user/:id", ctx => {
 //
 // Media apis
 get "/api/medias", ctx => {
-	format := ctx.param("format")
-	uid := ctx.param("uid")
-	files, err := community.ListMediaByUserId(todo, uid, format)
-	if err != nil {
-		ctx.json {
-			"code": 0,
-			"err":  "get media failed",
-		}
-	} else {
-		ctx.json {
-			"code":  200,
-			"items": files,
-		}
-	}
+	//format := ctx.param("format")
+	//uid := ctx.param("uid")
+	// files, next, err := community.ListMediaByUserId(todo, uid, format)
+	// if err != nil {
+	// 	ctx.json {
+	// 		"code": 0,
+	// 		"err":  "get media failed",
+	// 	}
+	// } else {
+	// 	ctx.json {
+	// 		"code":  200,
+	// 		"items": files,
+	// 	}
+	// }
 }
 
 delete "/api/medias/:id", ctx => {
@@ -408,10 +414,7 @@ post "/api/translations", ctx => {
 	// }
 	// uid := "70f6a615-c0d5-4315-a5ac-34ca845450ed"
 	mdData := ctx.param("content")
-	// htmlData := ctx.param("html")
-	// id := ctx.param("id")
-	// get translation markdown
-	transData, err := community.TranslateMarkdownText(todo, mdData, language.Chinese, language.English)
+	transData, err := community.TranslateMarkdownText(todo, mdData, "auto", language.English)
 	if err != nil {
 		ctx.json {
 			"code": 500,
@@ -422,12 +425,7 @@ post "/api/translations", ctx => {
 		"code": 200,
 		"data": transData, // translation markdown content
 	}
-	// id, _ = community.SaveHtml(todo, uid, htmlData, mdData, id)
-	// ctx.json {
-	// 	"code": 200,
-	// 	"id":   id,        //article id
-	// 	"data": transData, // translation markdown content
-	// }
+
 }
 
 get "/api/medias/url/:id", ctx => {
@@ -460,17 +458,17 @@ get "/api/video-with-caption/:id", ctx => {
 		}
 	}
 	if format == "video/mp4" {
-	    subtitle,err:=community.GetVideoSubtitle(todo,id)
-	    if err!=nil{
-	        if err != nil {
-            	ctx.json {
-            		"code": 500,
-            		"err":  err.Error(),
-            		}
-            	}
-            return
-	    }
-        m["subtitle"] = domain+subtitle
+		subtitle, err := community.GetVideoSubtitle(todo, id)
+		if err != nil {
+			if err != nil {
+				ctx.json {
+					"code": 500,
+					"err":  err.Error(),
+				}
+			}
+			return
+		}
+		m["subtitle"] = domain + subtitle
 	}
 	htmlUrl := fmt.Sprintf("%s%s", domain, fileKey)
 	if err != nil {
@@ -543,7 +541,7 @@ get "/api/callback", ctx => {
 	origin_path := ctx.URL.Query().Get("origin_path")
 	unurl, err := url.QueryUnescape(origin_path)
 	if err != nil {
-		xLog.Info("Unurl error",err)
+		xLog.Info("Unurl error", err)
 		unurl = "/"
 	}
 
@@ -566,6 +564,7 @@ run(endpoint, func(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
+				xLog.Error(err)
 				http.Redirect(w, r, "/failed", http.StatusFound)
 			}
 		}()
