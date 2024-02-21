@@ -64,6 +64,7 @@ func (p *Community) GetUserClaim(uid string) (claim *casdoorsdk.User, err error)
 		p.xLog.Error(err)
 		return &casdoorsdk.User{}, ErrNotExist
 	}
+	claim.Properties["oauth_Wechat_extra"] = ""
 	return
 }
 
