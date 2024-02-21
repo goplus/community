@@ -57,10 +57,11 @@
 </script>
 
 <body>
+    {{ template "header" .}}
     <n-config-provider :theme-overrides="themeOverrides">
         <div id="app" class="h-full w-full" style="background: url('/static/img/editor-background.svg') top no-repeat;
             background-size: 100% auto;">
-            {{ template "header" .}}
+            
             <!-- Header -->
             <div class="flex items-center justify-between mb-2">
                 <!-- Back Button -->
