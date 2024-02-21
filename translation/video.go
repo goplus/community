@@ -248,7 +248,7 @@ func (e *Engine) GenerateWebVTTBytesWithTranslation(asrTaskData ASRTaskData, fro
 	webVTTBuffer := GenerateSimpleWebVTTFileFromASRTaskData(asrTaskData)
 
 	// Translate buffer
-	err := e.TranslateWebVTT(&webVTTBuffer, from, to)
+	err := e.TranslateWebVTT(&webVTTBuffer, from.String(), to)
 	if err != nil {
 		return buffer, err
 	}
