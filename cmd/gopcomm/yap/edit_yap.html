@@ -34,8 +34,9 @@
     </style>
 
     <!-- markdown -->
-    <link rel="stylesheet" href="/static/GoplusMarkdown/style7.css">
-    <!-- <link rel="stylesheet" href="https://cdn.plyr.io/3.6.8/plyr.css" > -->
+
+    <link rel="stylesheet" href="/static/GoplusMarkdown/style.css">
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.6.8/plyr.css">
 
     <!-- Resource Import -->
     <!-- <script type="module" crossorigin src="/static/assets/index-s63-Szuh.js"></script>
@@ -48,7 +49,7 @@
 <script src="/static/GoplusMarkdown/GoplusMarkdown11.umd.cjs"></script>
 <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
 
-<script type="importmap"> 
+<script type="importmap">
     { "imports": { 
         "vue":        "https://cdnjs.cloudflare.com/ajax/libs/vue/3.2.41/vue.esm-browser.prod.js", 
         "vue-router": "https://cdnjs.cloudflare.com/ajax/libs/vue-router/4.1.5/vue-router.esm-browser.min.js" 
@@ -77,8 +78,8 @@
                 <n-divider vertical style="--n-color: #e0e0e6; margin: 0 0.5rem;"></n-divider>
 
                 <!-- Title Input -->
-                <n-input v-model:value="articleForm.title" placeholder="Input the article title" 
-                    clearable size="large" maxlength="50" show-count style="width: 60%; 
+                <n-input v-model:value="articleForm.title" placeholder="Input the article title" clearable size="large"
+                    maxlength="50" show-count style="width: 60%; 
                     --n-caret-color: #3182ce; --n-border: 1px solid #ecf5fe;
                     --n-border-hover: 1px solid #ecf5fe; --n-border-focus: 1px solid #2a82e4; 
                     --n-box-shadow-focus: 0 0 0 2.5px #cee1f5;">
@@ -146,12 +147,10 @@
 
                         <!-- TODO  Cover -->
                         <n-form-item label="Cover" path="cover">
-                            <n-upload :max="1" directory-dnd
-                                accept="image/png, image/jpg, image/jpeg" @change="changeCover"
-                                :custom-request="customRequest"
-                                :default-file-list="fileList"
-                                list-type="image-card"
-                                >
+
+                            <!-- TODO: @Shi 预览封面 -->
+                            <n-upload :max="1" directory-dnd accept="image/png, image/jpg, image/jpeg"
+                                @change="changeCover" :custom-request="customRequest" :default-file-list="fileList">
                                 <n-upload-dragger
                                     style="--n-dragger-border-hover: 1.5px dashed #3182ce; border-radius: 7px;">
                                     <div class="mb-1">
@@ -182,6 +181,70 @@
                         </div>
                     </template>
                 </n-modal>
+                <transition enter-active-class="ease-out duration-300 transform"
+                    leave-active-class="ease-in duration-300 transform" enter-class="scale-50 opacity-0"
+                    enter-to-class="scale-100 opacity-100" leave-class="scale-100 opacity-100"
+                    leave-to-class="scale-50 opacity-0">
+                    <div v-if="showBothNotice" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-10">
+                        <div class="bg-white shadow-xl rounded-lg p-4 right-0 mr-4 mt-4 border border-gray-300">
+                            <div class="flex items-start justify-between">
+                                <div class="flex items-center">
+                                    <div class="text-red-500 mr-1">
+                                        <i class="ph-duotone ph-warning" style="font-size: 27px;"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-lg font-semibold text-red-500">Please fill in the article title
+                                            and content!
+                                        </p>
+                                        <p class="text-sm text-gray-500">Your article information is incomplete.</p>
+                                    </div>
+                                </div>
+                                <n-button quaternary size="tiny" class="ml-3" @click="showBothNotice=false">
+                                    <i class="ph-bold ph-x" style="font-size: 15px;"></i>
+                                </n-button>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-if="showTitleNotice" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-10">
+                        <div class="bg-white shadow-xl rounded-lg p-4 right-0 mr-4 mt-4 border border-gray-300">
+                            <div class="flex items-start justify-between">
+                                <div class="flex items-center">
+                                    <div class="text-red-500 mr-1">
+                                        <i class="ph-duotone ph-warning" style="font-size: 27px;"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-lg font-semibold text-red-500">Please fill in the article title!
+                                        </p>
+                                        <p class="text-sm text-gray-500">Your article information is incomplete.</p>
+                                    </div>
+                                </div>
+                                <n-button quaternary size="tiny" class="ml-3" @click="showTitleNotice=false">
+                                    <i class="ph-bold ph-x" style="font-size: 15px;"></i>
+                                </n-button>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-if="showContentNotice" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-10">
+                        <div class="bg-white shadow-xl rounded-lg p-4 right-0 mr-4 mt-4 border border-gray-300">
+                            <div class="flex items-start justify-between">
+                                <div class="flex items-center">
+                                    <div class="text-red-500 mr-1">
+                                        <i class="ph-duotone ph-warning" style="font-size: 27px;"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-lg font-semibold text-red-500">Please fill in the article
+                                            content!
+                                        </p>
+                                        <p class="text-sm text-gray-500">Your article information is incomplete.</p>
+                                    </div>
+                                </div>
+                                <n-button quaternary size="tiny" class="ml-3" @click="showContentNotice=false">
+                                    <i class="ph-bold ph-x" style="font-size: 15px;"></i>
+                                </n-button>
+                            </div>
+                        </div>
+                    </div>
+                </transition>
             </div>
 
             <!-- Content -->
@@ -207,6 +270,9 @@
             const { reactive, toRefs, ref, h } = Vue;
 
             /*======= article info =======*/
+            const showBothNotice = ref(false);
+            const showTitleNotice = ref(false);
+            const showContentNotice = ref(false);
             const showModal = ref(false);
 
             // a form to be filled out by user in frontend
@@ -253,8 +319,8 @@
                 }
                 console.log('tags:', tags.value);
 
-                if(!isAdd.value){
-                    formData.append("id",article.ID)
+                if (!isAdd.value) {
+                    formData.append("id", article.ID)
                 }
 
                 // organize the formData
@@ -262,14 +328,14 @@
                 formData.append("tags", tags.value);
                 formData.append("abstract", articleForm.value.abstract);
                 formData.append("cover", coverUrl);
-                formData.append("content",content || window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown())
-                formData.append("trans_data",content !== "" ? window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown():"")
+                formData.append("content", content || window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown())
+                formData.append("trans_data", content !== "" ? window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown() : "")
 
                 // upload the formData to backend
                 uploadArticle(formData);
             }
 
-            // step3: upload the formData to backend TODO: @Bai 上传表单的接口方法
+            // step3: upload the formData to backend 
             function uploadArticle(formData) {
                 const options = {
                     method: 'POST',
@@ -278,40 +344,40 @@
                     //     'Content-Type': 'multipart/form-data'
                     // },
                 }
-                fetch("/commit",options)
-                .then(res => {
-                    return res.json();
-                })
-                .then(todos => {
-                    if(todos.code === 200){
-                        // success delete  articleList or get articleList
-                        window.location.href = "/p/"+todos.data
-                    }
-                });
+                fetch("/commit", options)
+                    .then(res => {
+                        return res.json();
+                    })
+                    .then(todos => {
+                        if (todos.code === 200) {
+                            // success delete  articleList or get articleList
+                            window.location.href = "/p/" + todos.data
+                        }
+                    });
             }
 
-            function translateMd(){
+            function translateMd() {
                 const md = window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown()
                 const transMd = new FormData();
-                transMd.append("content",md)
-                fetch("/translate",{
+                transMd.append("content", md)
+                fetch("/translate", {
                     method: 'POST',
                     body: transMd,
                 })
-                .then(res => {
-                    return res.json();
-                })
-                .then(todos => {
-                    if(todos.code === 200){
-                        // save origin content
-                        content = md
-                        window.GoplusMarkdown.MarkdownEditor.methods.setMarkdown(todos.data)
-                    }
-                });
+                    .then(res => {
+                        return res.json();
+                    })
+                    .then(todos => {
+                        if (todos.code === 200) {
+                            // save origin content
+                            content = md
+                            window.GoplusMarkdown.MarkdownEditor.methods.setMarkdown(todos.data)
+                        }
+                    });
             }
 
-            function customRequest(option){
-                console.log("option",option)
+            function customRequest(option) {
+                console.log("option", option)
                 const file = option.file
                 const coverData = new FormData();
                 coverData.append('file', file.file);
@@ -323,33 +389,40 @@
                     //     'Content-Type': 'multipart/form-data'
                     // },
                 }
-                fetch("/upload",options)
-                .then(res => {
-                    return res.json();
-                })
-                .then(todos => {
-                    console.log("cover",todos)
-                    fetch('/getMediaUrl/'+todos)
-                    .then(resUrl => {
-                        return resUrl.json();
+                fetch("/upload", options)
+                    .then(res => {
+                        return res.json();
                     })
-                    .then(todosUrl => {
-                        if(todosUrl.code === 200){
-                            coverUrl = todosUrl.url
-                        }
+                    .then(todos => {
+                        console.log("cover", todos)
+                        fetch('/getMediaUrl/' + todos)
+                            .then(resUrl => {
+                                return resUrl.json();
+                            })
+                            .then(todosUrl => {
+                                if (todosUrl.code === 200) {
+                                    coverUrl = todosUrl.url
+                                }
+                            });
+
                     });
-                    
-                });
             }
 
-            function modalVisible(){
-                if (articleForm.value.title === "" || window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown() === ""){
+            function modalVisible() {
+                if (articleForm.value.title === "" && window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown() === "") {
+                    showBothNotice.value = true;
+                    return
+                } else if (articleForm.value.title === "") {
+                    showTitleNotice.value = true;
+                    return
+                } else if (window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown() === "") {
+                    showContentNotice.value = true;
                     return
                 }
-                showModal.value = true
+                showModal.value = true;
             }
 
-            function goBack(){
+            function goBack() {
                 window.location.href = "/"
             }
 
@@ -357,6 +430,9 @@
             const app = Vue.createApp({
                 data() {
                     return {
+                        showBothNotice,
+                        showTitleNotice,
+                        showContentNotice,
                         showModal,
                         articleForm,
                         isAdd,
@@ -375,13 +451,37 @@
                     MarkdownEditor: window.GoplusMarkdown.MarkdownEditor
                 },
                 mounted() {
-                    if(!isAdd.value){
+                    if (!isAdd.value) {
                         articleForm.value.title = article.Title
                         articleForm.value.tags = article.Tags.split(";")
                         articleForm.value.abstract = article.Abstract
                         coverUrl = article.Cover
                         window.GoplusMarkdown.MarkdownEditor.methods.setMarkdown(article.Content)
                     }
+                },
+                watch: {
+                    // automatically close notification after 3 seconds
+                    showBothNotice(newValue) {
+                        if (newValue) {
+                            setTimeout(() => {
+                                showBothNotice.value = false;
+                            }, 3000);
+                        }
+                    },
+                    showTitleNotice(newValue) {
+                        if (newValue) {
+                            setTimeout(() => {
+                                showTitleNotice.value = false;
+                            }, 3000);
+                        }
+                    },
+                    showContentNotice(newValue) {
+                        if (newValue) {
+                            setTimeout(() => {
+                                showContentNotice.value = false;
+                            }, 3000);
+                        }
+                    },
                 },
             });
 
