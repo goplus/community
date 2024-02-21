@@ -63,12 +63,15 @@
                         <!-- Gender & Birthday -->
                         <n-gi class="flex items-center">
                             <i class="ph-duotone ph-user-circle" style="color: #ef5028; font-size: 20px;"></i>
-                            <p class="ml-3 text-gray-400">
-                                ${ CurrentUser.gender }
-                            <p class="text-gray-400">, born on ${ CurrentUser.birthday }</p>
-                            </p>
-                        </n-gi>
+                            <p v-if="CurrentUser.gender === ''" class="ml-3 text-gray-400">gender is empty</p>
+                            <p v-else class="ml-3 text-gray-400">${ CurrentUser.gender}</p>
 
+                        </n-gi>
+                        <n-gi class="flex items-center">
+                            <i class="ph-duotone ph-calendar-check" style="color: #3182ce; font-size: 20px;"></i>
+                            <p v-if="CurrentUser.birthday === ''" class="ml-3 text-gray-400">birthday is empty</p>
+                            <p v-else class="ml-3 text-gray-400">${ CurrentUser.birthday}</p>
+                        </n-gi>
                         <!-- Created Time -->
                         <n-gi class="flex items-center">
                             <i class="ph-duotone ph-calendar-check" style="color: #3182ce; font-size: 20px;"></i>
@@ -78,13 +81,16 @@
                         <!-- Email -->
                         <n-gi class="flex items-center">
                             <i class="ph-duotone ph-envelope" style="color: #2191ad; font-size: 20px;"></i>
-                            <p class="ml-3 text-gray-400">${ CurrentUser.email }</p>
+                            <p v-if="CurrentUser.email === ''" class="ml-3 text-gray-400">email is empty</p>
+                            <p v-else class="ml-3 text-gray-400">${ CurrentUser.email}</p>
                         </n-gi>
 
                         <!-- Phone -->
                         <n-gi class="flex items-center">
                             <i class="ph-duotone ph-phone-call" style="color: #d88d01; font-size: 20px;"></i>
-                            <p class="ml-3 text-gray-400">${ CurrentUser.phone }</p>
+
+                            <p v-if="CurrentUser.phone === ''" class="ml-3 text-gray-400">phone is empty</p>
+                            <p v-else class="ml-3 text-gray-400">${ CurrentUser.phone}</p>
                         </n-gi>
                     </n-grid>
                 </n-gi>
