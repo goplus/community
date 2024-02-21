@@ -20,7 +20,7 @@ import 'plyr/dist/plyr.css'
 // import {  UploadOutlined, SendOutlined } from '@ant-design/icons-vue';
 
 
-axios.defaults.baseURL = 'http://localhost:8080/';
+axios.defaults.baseURL = '/';
 
 var cherrInstance = null
 
@@ -37,7 +37,7 @@ function fileUpload(file) {
     // axios post 请求                
     axios({
         method: 'post',
-        url: '/upload', // 后端接口地址，需要根据实际情况修改
+        url: '/api/medias', // 后端接口地址，需要根据实际情况修改
         data: formData,
         headers: {
             'Content-Type': 'multipart/form-data' // 设置请求头部类型为 multipart/form-data
@@ -50,7 +50,7 @@ function fileUpload(file) {
             if(type.includes("video")) {
                 axios({
                     method: 'get',
-                    url: '/getVideoAndSubtitle/'+response.data,
+                    url: '/api/video-with-caption/'+response.data,
                 }).then(response => {
                     console.log("请求视频")
                     let url = response.data.url.fileKey
@@ -63,7 +63,7 @@ function fileUpload(file) {
             } else {
                 axios({
                     method: 'get',
-                    url: '/getMediaUrl/'+response.data,
+                    url: '/api/medias/url/'+response.data,
                 }).then(response => {
                     console.log("请求media成功")
                     let url = response.data.url
@@ -645,7 +645,7 @@ export default {
                 let id = url_len[4]
                 axios({
                     method: 'get',
-                    url: '/getArticle/'+id,
+                    url: '/api/article/'+id,
                     params: {
                         // id: id
                     }
@@ -704,7 +704,7 @@ export default {
             axios({
                 method: 'post',
                 // url: '/api/commit', // 后端接口地址，需要根据实际情况修改
-                url: '/commit', // 后端接口地址，需要根据实际情况修改
+                url: '/api/commit', // 后端接口地址，需要根据实际情况修改
                 data: formData,
                 headers: {
                 }
@@ -720,7 +720,7 @@ export default {
                     setTimeout(() => {
                         this.req_suc = false
                     }, 2000)
-                    window.location.href="http://localhost:8080/p/" + response.data.data; 
+                    window.location.href="/page/p/" + response.data.data; 
                 })
                 .catch(error => {
                     console.error('内容发送失败');
@@ -738,7 +738,7 @@ export default {
             }
             axios({
                 method: 'post',
-                url: '/translate', // 后端接口地址，需要根据实际情况修改
+                url: '/translations', // 后端接口地址，需要根据实际情况修改
                 // url: '/api/translate', // 后端接口地址，需要根据实际情况修改
                 data: formData,
                 headers: {

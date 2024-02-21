@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>user info</title>
+  </head>
+  <body>
+    {{ template "header" .}}
+    <div id="app" style="width: 80%; margin: 20px auto">
+        <n-breadcrumb>
+            <n-breadcrumb-item>
+                <a href="/"><i class="ph-duotone ph-house" style="font-size: 18px; margin-right: 5px;"></i>
+                Home</a>
+            </n-breadcrumb-item>
+            <n-breadcrumb-item>
+                <a href="/page/user/{{.User.Id}}"><i class="ph ph-user" style="font-size: 18px; margin-right: 5px;"></i>
+                User</a>
+            </n-breadcrumb-item>
+            <n-breadcrumb-item>
+                <i class="ph ph-article-medium"
+                    style="font-size: 18px; margin-right: -15px; color: transparent;"></i>
+                <span style="font-weight: 600;">Edit</span>
+            </n-breadcrumb-item>
+        </n-breadcrumb>
+      <div class="md:flex" style="margin-top: 10px;">
+        <ul
+          class="flex-column space-y space-y-4 text-sm font-medium text-gray-500 dark:text-gray-400 md:me-4 mb-4 md:mb-0"
+        >
+          <li>
+            <a
+              href="#"
+              class="inline-flex items-center px-4 py-3 rounded-lg hover:text-gray-900 bg-white hover:bg-gray-100 w-full dark:bg-gray-800 dark:hover:bg-gray-700 dark:hover:text-white"
+              aria-current="page"
+            >
+              <svg
+                class="w-4 h-4 me-2 text-gray-500 dark:text-gray-400"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M10 0a10 10 0 1 0 10 10A10.011 10.011 0 0 0 10 0Zm0 5a3 3 0 1 1 0 6 3 3 0 0 1 0-6Zm0 13a8.949 8.949 0 0 1-4.951-1.488A3.987 3.987 0 0 1 9 13h2a3.987 3.987 0 0 1 3.951 3.512A8.949 8.949 0 0 1 10 18Z"
+                />
+              </svg>
+              Profile
+            </a>
+          </li>
+          <li>
+            <a
+              href="#"
+              class="inline-flex items-center px-4 py-3 text-white bg-blue-700 rounded-lg active w-full dark:bg-blue-600"
+            >
+              <svg
+                class="w-4 h-4 me-2 white"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                viewBox="0 0 18 18"
+              >
+                <path
+                  d="M6.143 0H1.857A1.857 1.857 0 0 0 0 1.857v4.286C0 7.169.831 8 1.857 8h4.286A1.857 1.857 0 0 0 8 6.143V1.857A1.857 1.857 0 0 0 6.143 0Zm10 0h-4.286A1.857 1.857 0 0 0 10 1.857v4.286C10 7.169 10.831 8 11.857 8h4.286A1.857 1.857 0 0 0 18 6.143V1.857A1.857 1.857 0 0 0 16.143 0Zm-10 10H1.857A1.857 1.857 0 0 0 0 11.857v4.286C0 17.169.831 18 1.857 18h4.286A1.857 1.857 0 0 0 8 16.143v-4.286A1.857 1.857 0 0 0 6.143 10Zm10 0h-4.286A1.857 1.857 0 0 0 10 11.857v4.286c0 1.026.831 1.857 1.857 1.857h4.286A1.857 1.857 0 0 0 18 16.143v-4.286A1.857 1.857 0 0 0 16.143 10Z"
+                />
+              </svg>
+              Accounts
+            </a>
+          </li>
+        </ul>
+        <div
+          class="p-6 bg-white text-medium text-gray-500 dark:text-gray-400 dark:bg-gray-800 rounded-lg w-full"
+        >
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">
+            Accounts Tab
+          </h3>
+          <p class="mb-2">
+            Bind with your mainstream platform account to make login easier
+          </p>
+
+          <ul class="max-w-md divide-y divide-gray-200 dark:divide-gray-700">
+            <li class="py-3 sm:py-4" v-for="accountItem in accountList">
+              <div class="flex items-center space-x-4 rtl:space-x-reverse">
+                <div class="flex-shrink-0">
+                  <img
+                    class="w-8 h-8 rounded-full"
+                    :src="accountItem.img"
+                    alt="Neil image"
+                  />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p
+                    class="text-sm font-medium text-gray-900 truncate dark:text-white"
+                  >
+                    ${accountItem.platform}
+                  </p>
+                  <p class="text-sm text-gray-500 truncate dark:text-gray-400">
+                    ${accountItem.desc}
+                  </p>
+                </div>
+                <div
+                  class="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white"
+                >
+                  <a
+                  :href="accountItem.url"
+                    type="button"
+                    class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-2.5 py-1.5 text-center inline-flex items-center me-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                  >
+                    <svg
+                      class="w-3.5 h-3.5 me-2"
+                      t="1707241952090"
+                      class="icon"
+                      viewBox="0 0 1024 1024"
+                      version="1.1"
+                      xmlns="http://www.w3.org/2000/svg"
+                      p-id="1449"
+                    >
+                      <path
+                        d="M748.8 864 275.2 864c-32 0-57.6-25.6-57.6-57.6L217.6 512c0-32 32-57.6 57.6-57.6l467.2 0c38.4 0 57.6 25.6 57.6 57.6l0 294.4C806.4 838.4 780.8 864 748.8 864z"
+                        fill="#ffffff"
+                        p-id="1450"
+                      ></path>
+                      <path
+                        d="M364.8 422.4 364.8 339.2c0-70.4 51.2-121.6 121.6-121.6l51.2 0c64 0 121.6 51.2 121.6 121.6l0 83.2 57.6 0L716.8 339.2c0-102.4-83.2-179.2-179.2-179.2L486.4 160c-102.4 0-179.2 83.2-179.2 179.2l0 83.2L364.8 422.4z"
+                        fill="#ffffff"
+                        p-id="1451"
+                      ></path>
+                    </svg>
+                    Bind
+                  </a>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <script src="static/js/user_account.js"></script>
+  </body>
+</html>

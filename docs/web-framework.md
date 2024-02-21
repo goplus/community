@@ -21,7 +21,7 @@ var yapFS embed.FS
 fsYap, _ := fs.Sub(yapFS, "yap")
 y := yap.New(fsYap)
 
-y.GET("/p/:id", func(ctx *yap.Context) {
+y.GET(/page/p/:id", func(ctx *yap.Context) {
 	ctx.YAP(200, "article", article{
 		ID: ctx.Param("id"),
 	})

@@ -12,7 +12,7 @@ require (
 	golang.org/x/text v0.14.0
 )
 
-replace github.com/goplus/yap v0.7.2 => github.com/LiusCraft/yap v0.8.2
+replace github.com/goplus/yap v0.7.2 => github.com/LiusCraft/yap v0.8.3
 
 require (
 	github.com/casdoor/casdoor-go-sdk v0.35.1

@@ -151,7 +151,7 @@
                         <div style="width: 80%;">
                             <!-- Title -->
                             <div class="text-xl font-semibold text-gray-900 title-font mb-1">
-                                <a :href="'/p/' + item.ID">
+                                <a :href="'/page/p/' + item.ID">
                                     <p>${ item.Title }</p>
                                 </a>
                             </div>
@@ -162,7 +162,7 @@
                                 <div class="flex flex-row items-center mr-2" v-for="(tag, i) in item.Tags.split(';')">
                                     <i class="ph-duotone ph-hash" style="color: #3182ce; font-size: 17px;"></i>
                                     <div>
-                                        <a class="text-sm" :href="'/search?value=' + tag">
+                                        <a class="text-sm" :href="'/api/search?value=' + tag">
                                             ${ tag }
                                         </a>
                                     </div>
@@ -176,7 +176,7 @@
 
                             <!-- Avatar & Nick Name & Update Time -->
                             <div class="flex items-center absolute bottom-4">
-                                <a class="flex items-center" :href="'/user/' + item.User.Id">
+                                <a class="flex items-center" :href="'/page/user/' + item.User.Id">
                                     <!-- Avatar -->
                                     <n-avatar class="mr-2" round :size="25" :src="item.User.Avatar"></n-avatar>
 
@@ -232,11 +232,11 @@
 
             /*======= user related =======*/
             function signIn() {
-                window.location.href = '/login';
+                window.location.href = '/api/login';
             };
 
             function writeArticle() {
-                window.location.href = '/add';
+                window.location.href = '/page/add';
             };
 
             const userOptions = [
@@ -257,10 +257,10 @@
             function selectDropdown(key) {
                 if (key === 'profile') {
                     if ("{{.UserId}}" !== "") {
-                        window.location.href = '/user/{{ .UserId }}';
+                        window.location.href = '/page/user/{{ .UserId }}';
                     }
                 } else if (key === 'exit') {
-                    window.location.href = '/logout';
+                    window.location.href = '/api/logout';
                 }
             };
 
@@ -292,7 +292,7 @@
                 if (next.value !== "eof") {
                     isBottom.value = false;
                     window.setTimeout(() => {
-                        let url = "/get?from=" + next.value
+                        let url = "/api/articles?from=" + next.value
                         if ("{{.Value}}") {
                             url = url + "&value=" + "{{.Value}}"
                         }
@@ -322,7 +322,7 @@
 
             function handleSearch() {
                 if (searchValue.value !== "") {
-                    window.location.href = `/search?value=${searchValue.value}`
+                    window.location.href = `/api/search?value=${searchValue.value}`
                 }
             }
 

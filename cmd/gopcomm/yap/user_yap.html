@@ -38,7 +38,7 @@
                     Home</a>
                 </n-breadcrumb-item>
                 <n-breadcrumb-item>
-                    <a href="/user/{{.User.Id}}"><i class="ph ph-user" style="font-size: 18px; margin-right: 5px;"></i>
+                    <a href="/page/user/{{.User.Id}}"><i class="ph ph-user" style="font-size: 18px; margin-right: 5px;"></i>
                     User</a>
                 </n-breadcrumb-item>
             </n-breadcrumb> 
@@ -91,7 +91,7 @@
 
                 <!-- Edit Button & Followers -->
                 <n-gi :span="2" class="flex flex-col justify-center items-end">
-                    <n-button v-if="UserId === CurrentUser.id" text color="#3182ce" onclick="window.location.href='/userEdit'">
+                    <n-button v-if="UserId === CurrentUser.id" text color="#3182ce" onclick="window.location.href='/page/user/account'">
                         <template #icon>
                             <i class="ph-duotone ph-pencil-line" style="color: #3182ce;"></i>
                         </template>
@@ -129,7 +129,7 @@
                                 </div>
                             
                                 <button class="mt-2 block rounded-lg bg-transparent py-1.5 px-4 font-medium text-blue-600 transition-colors hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50">
-                                    <a href="/add">
+                                    <a href="/page/add">
                                         Return to add article!
                                     </a>
                                 </button>
@@ -174,7 +174,7 @@
                                             <template #icon>
                                                 <i class="ph-duotone ph-pencil-line" style="color: #3182ce;"></i>
                                             </template>
-                                            <a :href="'/edit/' + item.ID">Edit</a>
+                                            <a :href="'/page/edit/' + item.ID">Edit</a>
                                         </n-button>
 
                                         <!-- Delete Button -->
@@ -241,7 +241,7 @@
                                 </div>
                             
                                 <button class="mt-2 block rounded-lg bg-transparent py-1.5 px-4 font-medium text-blue-600 transition-colors hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50">
-                                    <a href="/add">
+                                    <a href="/page/add">
                                         Return to add article!
                                     </a>
                                 </button>
@@ -306,7 +306,7 @@
                                 </div>
                             
                                 <button class="mt-2 block rounded-lg bg-transparent py-1.5 px-4 font-medium text-blue-600 transition-colors hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50">
-                                    <a href="/add">
+                                    <a href="/page/add">
                                         Return to add article!
                                     </a>
                                 </button>
@@ -391,7 +391,15 @@
             let delImageId = 0;
             function deleteArticle(id) {
                 if (id !== 0){
-                    fetch("/delete?id="+id)
+                    const formData = new FormData();
+                    formData.append('id', id);
+                
+                    const requestOptions = {
+                        method: "DELETE",
+                        body: formData
+                    };
+
+                    fetch("/api/article/"+id, requestOptions)
                     .then(res => {
                         return res.json();
                     })
@@ -415,7 +423,7 @@
             }
             
             function getMdeias(format){
-                fetch("/medias?uid="+CurrentUser.value.id+"&format="+format)
+                fetch("/api/medias?uid="+CurrentUser.value.id+"&format="+format)
                 .then(res => {
                     return res.json();
                 })
@@ -434,7 +442,15 @@
             }
 
             function deleteMedia(id, format){
-                fetch("/delMedia?id="+id)
+                const formData = new FormData();
+                formData.append('id', id);
+            
+                const requestOptions = {
+                    method: "DELETE",
+                    body: formData
+                };
+
+                fetch("/api/medias/"+id, requestOptions)
                 .then(res => {
                     return res.json();
                 })

@@ -325,23 +325,23 @@
                     //     'Content-Type': 'multipart/form-data'
                     // },
                 }
-                fetch("/commit", options)
-                    .then(res => {
-                        return res.json();
-                    })
-                    .then(todos => {
-                        if (todos.code === 200) {
-                            // success delete  articleList or get articleList
-                            window.location.href = "/p/" + todos.data
-                        }
-                    });
+                fetch("/api/commit",options)
+                .then(res => {
+                    return res.json();
+                })
+                .then(todos => {
+                    if(todos.code === 200){
+                        // success delete  articleList or get articleList
+                        window.location.href = "/page/p/"+todos.data
+                    }
+                });
             }
 
             function translateMd() {
                 const md = window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown()
                 const transMd = new FormData();
-                transMd.append("content", md)
-                fetch("/translate", {
+                transMd.append("content",md)
+                fetch("/translate",{
                     method: 'POST',
                     body: transMd,
                 })
@@ -370,23 +370,23 @@
                     //     'Content-Type': 'multipart/form-data'
                     // },
                 }
-                fetch("/upload", options)
-                    .then(res => {
-                        return res.json();
+                fetch("/api/medias",options)
+                .then(res => {
+                    return res.json();
+                })
+                .then(todos => {
+                    console.log("cover",todos)
+                    fetch('/api/medias/url/'+todos)
+                    .then(resUrl => {
+                        return resUrl.json();
                     })
-                    .then(todos => {
-                        console.log("cover", todos)
-                        fetch('/getMediaUrl/' + todos)
-                            .then(resUrl => {
-                                return resUrl.json();
-                            })
-                            .then(todosUrl => {
-                                if (todosUrl.code === 200) {
-                                    coverUrl = todosUrl.url
-                                }
-                            });
-
+                    .then(todosUrl => {
+                        if(todosUrl.code === 200){
+                            coverUrl = todosUrl.url
+                        }
                     });
+                    
+                });
             }
 
             function modalVisible() {

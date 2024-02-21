@@ -30220,7 +30220,7 @@ function _share() {
                     return resp.text();
                 case 7:
                     hash = _ctx.sent;
-                    return _ctx.abrupt("return", "".concat(host, "/p/").concat(hash));
+                    return _ctx.abrupt("return", "".concat(host, "/page/p/").concat(hash));
                 case 9:
                 case "end":
                     return _ctx.stop();

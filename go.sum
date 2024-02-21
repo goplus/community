@@ -5,8 +5,8 @@ cloud.google.com/go/compute/metadata v0.2.3 h1:mg4jlk7mCAj6xXp9UJ4fjI9VUI5rubuGB
 cloud.google.com/go/iam v1.1.5 h1:1jTsCu4bcsNsE4iiqNT5SHwrDRCfRmIaaaVFhRveTJI=
 cloud.google.com/go/storage v1.35.1 h1:B59ahL//eDfx2IIKFBeT5Atm9wnNmj3+8xG/W4WB//w=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/LiusCraft/yap v0.8.2 h1:bWfWzL0U+CC2y9v1sb2eDNHuXSQJKmD8gu5A5hj9Xck=
-github.com/LiusCraft/yap v0.8.2/go.mod h1:Z8DrE5nzjGgeAS+ycIsD6Uv58svqCItSfz+mqzCkUSc=
+github.com/LiusCraft/yap v0.8.3 h1:gP1rtSV7OM7+uaFXxxRKRqlHnQpolq/4nBSUph3lo6E=
+github.com/LiusCraft/yap v0.8.3/go.mod h1:dTll76iPVk3N+Z89UHfHb6ZVm61q2nCvN+MZDGr0Oaw=
 github.com/aws/aws-sdk-go v1.49.0 h1:g9BkW1fo9GqKfwg2+zCD+TW/D36Ux+vtfJ8guF4AYmY=
 github.com/aws/aws-sdk-go-v2 v1.24.0 h1:890+mqQ+hTpNuw0gGP6/4akolQkSToDJgHfQE7AwGuk=
 github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.5.4 h1:OCs21ST2LrepDfD3lwlQiOqIGp6JiEUqG84GzTDoyJs=
