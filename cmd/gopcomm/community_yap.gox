@@ -203,15 +203,27 @@ get "/delete", ctx => {
 get "/medias", ctx => {
 	format := ctx.param("format")
 	uid := ctx.param("uid")
-	files, err := community.ListMediaByUserId(todo, uid, format)
+	from := ctx.param("from")
+	fromInt, err := strconv.Atoi(from)
+    if err != nil {
+       fromInt = 0
+    }
+    limit := ctx.param("limit")
+    limitInt, err := strconv.Atoi(limit)
+    if err != nil {
+    	limitInt = limitConst
+    }
+	files,next,err := community.ListMediaByUserId(todo, uid, format,fromInt,limitInt)
 	if err != nil {
 		ctx.json {
 			"code": 0,
-			"err":  "get media failed",
+			"next": next,
+			"err":  err.Error(),
 		}
 	} else {
 		ctx.json {
 			"code":  200,
+			"next": next,
 			"items": files,
 		}
 	}
