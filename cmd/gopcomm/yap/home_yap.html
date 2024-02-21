@@ -217,6 +217,10 @@
                     </n-list-item>
                 </n-list>
 
+                <template>
+                    <n-back-top :right="30" />
+                </template>
+
                 <!-- Loading Status -->
                 <div class="mt-2 text-center" v-if="!isBottom" key="span">
                     <n-spin :key="spin" size="small" stroke="#3182ce"></n-spin>
