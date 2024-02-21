@@ -585,7 +585,7 @@ run(endpoint, func(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
-				println("error", err)
+				xLog.Error(err)
 				http.Redirect(w, r, "/failed", http.StatusFound)
 			}
 		}()
