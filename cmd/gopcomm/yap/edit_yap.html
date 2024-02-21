@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Markdown</title>
-
+   
     <!-- Vue -->
     <script src="https://unpkg.com/vue"></script>
 
@@ -23,6 +23,9 @@
     <link rel="preconnect" href="https://fonts.proxy.ustclug.org">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.proxy.ustclug.org/css2?family=Noto+Sans+SC&display=swap" rel="stylesheet">
+     <!-- Plyr组件-->
+     <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+
     <style type="text/css" media="screen, print">
         body {
             font-family: 'Inter', 'Noto Sans SC';
@@ -31,6 +34,7 @@
     </style>
 
     <!-- markdown -->
+
     <link rel="stylesheet" href="/static/GoplusMarkdown/style.css">
     <link rel="stylesheet" href="https://cdn.plyr.io/3.6.8/plyr.css">
 
@@ -39,17 +43,18 @@
     <link rel="stylesheet" crossorigin href="/static/assets/index-xg-gy6jf.css"> -->
 </head>
 
-<script src="https://cdn.plyr.io/3.6.8/plyr.js"></script>
+<!-- <script src="https://cdn.plyr.io/3.6.8/plyr.js"></script> -->
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script data-widgets="code" src="https://goplus.org/widgets/loader.js"></script>
-<script src="/static/GoplusMarkdown/GoplusMarkdown.umd.cjs"></script>
+<script src="/static/GoplusMarkdown/GoplusMarkdown11.umd.cjs"></script>
+<script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
 
 <script type="importmap">
     { "imports": { 
         "vue":        "https://cdnjs.cloudflare.com/ajax/libs/vue/3.2.41/vue.esm-browser.prod.js", 
         "vue-router": "https://cdnjs.cloudflare.com/ajax/libs/vue-router/4.1.5/vue-router.esm-browser.min.js" 
     } } 
-  </script>
+</script>
 
 <body>
     <n-config-provider :theme-overrides="themeOverrides">
@@ -66,9 +71,9 @@
                 </n-button>
 
                 <span v-if="isAdd" style="color: #3182ce; font-weight: 700; font-size: medium; white-space: nowrap;"
-                    class="ml-2">New Article</span>
+                    class="ml-2">Article Add</span>
                 <span v-else style="color: #3182ce; font-weight: 700; font-size: medium; white-space: nowrap;"
-                    class="ml-2">Edit Article</span>
+                    class="ml-2">Article Editor</span>
 
                 <n-divider vertical style="--n-color: #e0e0e6; margin: 0 0.5rem;"></n-divider>
 
@@ -140,8 +145,9 @@
                             }"></n-input>
                         </n-form-item>
 
-                        <!-- Cover -->
+                        <!-- TODO  Cover -->
                         <n-form-item label="Cover" path="cover">
+
                             <!-- TODO: @Shi 预览封面 -->
                             <n-upload :max="1" directory-dnd accept="image/png, image/jpg, image/jpeg"
                                 @change="changeCover" :custom-request="customRequest" :default-file-list="fileList">
@@ -151,9 +157,6 @@
                                         <i class="ph-fill ph-folder-notch-plus"
                                             style="font-size: 70px; color: #808080;"></i>
                                     </div>
-                                    <span>
-                                        click or drag a file here to upload
-                                    </span>
                                 </n-upload-dragger>
                             </n-upload>
                         </n-form-item>
@@ -246,9 +249,24 @@
 
             <!-- Content -->
             <markdown-editor></markdown-editor>
+
+            <video controls crossorigin playsinline poster="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg">
+                <source src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4" type="video/mp4" size="576">
+                <source src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-720p.mp4" type="video/mp4" size="720">
+                <source src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-1080p.mp4" type="video/mp4" size="1080">
+        
+                <track kind="captions" label="English" srclang="en" src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt"
+                        default>
+                <track kind="captions" label="Français" srclang="fr" src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.fr.vtt">
+                <a href="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4" download>Download</a>
+            </video>
         </div>
 
         <script>
+            const p = new Plyr('video', {captions: {active: true}});
+
+            // import '/static/GoplusMarkdown/vue-plyr.css'
+
             const { reactive, toRefs, ref, h } = Vue;
 
             /*======= article info =======*/
@@ -288,7 +306,8 @@
 
             // step2: organize the formData in frontend
             function submitArticle() {
-                if (articleForm.value.title === "" || window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown() === "") {
+                console.log("markdown content", window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown())
+                if (articleForm.value.title === "" || window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown() === ""){
                     return
                 }
                 // convert the tags array into a string, separated by "; "
