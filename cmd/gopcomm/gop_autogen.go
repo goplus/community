@@ -150,6 +150,10 @@ func (this *community) MainEntry() {
 				xLog.Error("get user error:", err)
 			}
 		}
+		userId := ""
+		if user != nil {
+			userId = user.Id
+		}
 //line cmd/gopcomm/community_yap.gox:112:1
 		items, _ := this.community.GetArticlesByUid(todo, id)
 //line cmd/gopcomm/community_yap.gox:113:1
@@ -158,7 +162,7 @@ func (this *community) MainEntry() {
 		itemsJson, _ := json.Marshal(&items)
 //line cmd/gopcomm/community_yap.gox:115:1
 		ctx.Yap__1("user", map[string]interface {
-		}{"Id": id, "CurrentUser": strings.Replace(string(userClaimJson), `\"`, `"`, -1), "User": user, "Items": strings.Replace(string(itemsJson), `\"`, `"`, -1), "UserId": user.Id})
+		}{"Id": id, "CurrentUser": strings.Replace(string(userClaimJson), `\"`, `"`, -1), "User": user, "Items": strings.Replace(string(itemsJson), `\"`, `"`, -1), "UserId": userId})
 	})
 //line cmd/gopcomm/community_yap.gox:124:1
 	this.Get("/userEdit", func(ctx *yap.Context) {

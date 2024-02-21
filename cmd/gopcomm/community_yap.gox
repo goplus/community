@@ -101,6 +101,10 @@ get "/user/:id", ctx => {
 			xLog.Error("get user error:", err)
 		}
 	}
+	userId := ""
+	if user != nil {
+		userId = user.Id
+	}
 	// get article list published by uid
 	items, _ := community.GetArticlesByUid(todo, id)
 	userClaimJson, _ := json.Marshal(&userClaim)
@@ -110,7 +114,7 @@ get "/user/:id", ctx => {
 		"CurrentUser": strings.Replace(string(userClaimJson), `\"`, `"`, -1),
 		"User":        user,
 		"Items":       strings.Replace(string(itemsJson), `\"`, `"`, -1),
-		"UserId":      user.Id,
+		"UserId":      userId,
 	}
 }
 
@@ -373,7 +377,13 @@ post "/commit", ctx => {
 		article, _ = community.TranslateArticle(todo, article)
 	}
 
-	id, _ = community.PutArticle(todo, uid, article)
+	id, err = community.PutArticle(todo, uid, article)
+	if err != nil {
+		ctx.json {
+			"code": 0,
+			"err": "add failed",
+		}
+	}
 	ctx.json {
 		"code": 200,
 		"data": id,

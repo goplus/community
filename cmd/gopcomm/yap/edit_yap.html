@@ -118,7 +118,7 @@
                         </div>
                     </template>
 
-                    <n-form show-require-mark require-mark-placement="left" :label-width="200" :model="articleForm">
+                    <n-form ref="formRef" :label-width="200" :model="articleForm" :rules="rules">
                         <!-- Tags -->
                         <n-form-item label="Tags" path="tags">
                             <n-dynamic-tags v-model:value="articleForm.tags" :rule="{
@@ -141,7 +141,7 @@
                         </n-form-item>
 
                         <!-- Translate to en -->
-                        <n-form-item label="Translate" path="translate">
+                        <n-form-item label="Translate into English" path="translate">
                             <n-switch v-model:value="articleForm.trans" @update:value="changeTrans"/>
                         </n-form-item>
 
@@ -261,6 +261,7 @@
             const showTitleNotice = ref(false);
             const showContentNotice = ref(false);
             const showModal = ref(false);
+            const formRef = ref(null);
 
             // a form to be filled out by user in frontend
             const articleForm = ref({
@@ -270,6 +271,15 @@
                 trans:false
             });
             let coverUrl = "";
+
+            // form validate
+            const rules = {
+                abstract: {
+                    required: true,
+                    message: 'Please input abstract',
+                    trigger: ['input', 'blur']
+                },
+            }
 
             // edit
             const isAdd = window.location.href.indexOf("edit") !== -1 ? ref(false) : ref(true)
@@ -292,36 +302,43 @@
             }
 
             // step2: organize the formData in frontend
-            function submitArticle() {
-                if (articleForm.value.title === "" || window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown() === "") {
-                    return
-                }
-                // convert the tags array into a string, separated by "; "
-                let tags = ref();
-                if (Array.isArray(articleForm.value.tags) && articleForm.value.tags.length > 0) {
-                    tags.value = articleForm.value.tags.join(';');
-                } else {
-                    tags.value = null;
-                }
-                console.log('tags:', tags.value);
+            function submitArticle(e) {
+                this.$nextTick(() => {
+                    this.$refs.formRef?.validate((errors) => {
+                        if (!errors) {
+                        // convert the tags array into a string, separated by "; "
+                            let tags = ref();
+                            if (Array.isArray(articleForm.value.tags) && articleForm.value.tags.length > 0) {
+                                tags.value = articleForm.value.tags.join(';');
+                            } else {
+                                tags.value = null;
+                            }
+                            console.log('tags:', tags.value);
 
-                if (!isAdd.value) {
-                    formData.append("id", article.ID)
-                }
+                            if (!isAdd.value) {
+                                formData.append("id", article.ID)
+                            }
 
-                // organize the formData
-                formData.append("title", articleForm.value.title);
-                formData.append("tags", tags.value);
-                formData.append("abstract", articleForm.value.abstract);
-                formData.append("cover", coverUrl);
-                formData.append("content", window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown())
-                formData.append("trans", articleForm.value.trans)
-                // upload the formData to backend
-                uploadArticle(formData);
+                            // organize the formData
+                            formData.append("title", articleForm.value.title);
+                            formData.append("tags", tags.value);
+                            formData.append("abstract", articleForm.value.abstract);
+                            formData.append("cover", coverUrl);
+                            formData.append("content", window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown())
+                            formData.append("trans", articleForm.value.trans)
+                            // upload the formData to backend
+                            uploadArticle(formData);
+                        } else {
+                            console.log(errors);
+                        }
+                    });  
+                });
+                
             }
 
             // step3: upload the formData to backend 
             function uploadArticle(formData) {
+                console.log("submit")
                 const options = {
                     method: 'POST',
                     body: formData,
@@ -404,7 +421,7 @@
                     showContentNotice.value = true;
                     return
                 }
-                showModal.value = true;
+                showModal.value = true;     
             }
 
             function goBack() {
@@ -426,6 +443,8 @@
                         articleForm,
                         isAdd,
                         fileList,
+                        rules,
+                        formRef
                     }
                 },
                 methods: {

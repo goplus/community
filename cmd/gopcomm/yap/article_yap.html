@@ -92,21 +92,6 @@
                         <!-- Button Group -->
                         <!-- TODO: @Shi 固钉 Affix -->
                         <n-gi :span="1" class="flex flex-col justify-between items-center" style="height: 37vh;">
-                            <!-- translate -->
-                            <!-- <n-dropdown :options="transOptions" trigger="click" width="150" @select="selectDropdown">
-                                <n-button  type="tertiary" style="--n-text-color-hover: #2a82e4;
-                                    --n-text-color-pressed: #2a82e4;
-                                    --n-text-color-focus: #2a82e4;
-                                    --n-ripple-color: #3182ce;
-                                    --n-border-hover: 1.5px solid #2a82e4;
-                                    --n-border-pressed: 1.5px solid #2a82e4;
-                                    --n-border-focus: 1.5px solid #2a82e4;
-                                    height: 7vh; width: 7vh;
-                                    --n-padding: 0; --n-border-radius: 5px;">
-                                    <i class="ph-duotone ph-translate" style="font-size: 22px;"></i>
-                                </n-button>
-                            </n-dropdown> -->
-
                             <!-- TODO: 点赞事件和点赞数 -->
                             <!-- <n-badge :value="article.likes"> -->
                             <n-button type="tertiary" style="--n-text-color-hover: #d7266e;
@@ -285,7 +270,7 @@
                         <!-- Avatar & Nick Name -->
                         <div class="flex flex-row items-center">
                             <!-- Avatar -->
-                            <a href="/user/article.User.Id">
+                            <a :href="'/user/'+article.User.Id">
                                 <img class="w-12 h-12 rounded-full ml-3 mr-2" :src="article.User.Avatar" alt="Rounded avatar">
                             </a>
 
