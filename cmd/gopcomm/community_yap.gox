@@ -11,6 +11,7 @@ import (
 	"github.com/goplus/community/internal/core"
 	"github.com/goplus/community/translation"
 	_ "github.com/joho/godotenv/autoload"
+	gopaccountsdk "github.com/liuscraft/gop-casdoor-account-sdk"
 	"github.com/qiniu/x/xlog"
 	language "golang.org/x/text/language"
 )
@@ -74,10 +75,10 @@ get "/p/:id", ctx => {
 		"Title":   article.Title,
 		"Content": article.Content,
 		// "HtmlUrl": article.HtmlUrl,
-		"Tags":    article.Tags,
-		"Cover":   article.Cover,
-		"Mtime":   article.Mtime.Format(layoutUS),
-		"Author":  article.User,
+		"Tags":   article.Tags,
+		"Cover":  article.Cover,
+		"Mtime":  article.Mtime.Format(layoutUS),
+		"Author": article.User,
 		// "User": article.User,
 	}
 }
@@ -120,22 +121,43 @@ get "/user/:id", ctx => {
 		"UserId":      user.Id,
 	}
 }
-
-get "/userEdit", ctx => {
-	var user *core.User
+get "/userUnlink", ctx => {
+	pv := ctx.param("pv")
 	token, err := core.GetToken(ctx)
-	if err == nil {
-		user, err = community.GetUser(token.Value)
-		if err != nil {
-			xLog.Error("get user error:", err)
-		}
+	if err != nil {
+		http.Redirect(ctx.ResponseWriter, ctx.Request, "/login", http.StatusTemporaryRedirect)
+		return
 	}
-
+	switch pv {
+	case "Twitter":
+	case "Facebook":
+	case "Github":
+	case "WeChat":
+	default:
+		pv = ""
+	}
+	gac, err := gopaccountsdk.GetClient(token.Value)
+	if err == nil {
+		gac.UnLink(pv)
+	}
+	http.Redirect(ctx.ResponseWriter, ctx.Request, "/userEdit", http.StatusTemporaryRedirect)
+}
+get "/userEdit", ctx => {
+	token, err := core.GetToken(ctx)
 	if err != nil {
 		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
 	}
+	gac, err := gopaccountsdk.GetClient(token.Value)
+	if err != nil {
+		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
+	}
+	appInfo, _ := community.GetApplicationInfo()
+	appInfoStr, _ := json.Marshal(*appInfo)
+	binds, _ := json.Marshal(gac.GetProviderBindStatus())
 	ctx.yap "user_edit", {
-		"User": user,
+		"User":        gac.GetUserSimple(),
+		"Application": string(appInfoStr),
+		"Binds":       string(binds),
 	}
 }
 
@@ -149,7 +171,7 @@ get "/add", ctx => {
 		}
 	}
 	ctx.yap "edit", {
-		"User":        user,
+		"User": user,
 	}
 }
 
@@ -347,7 +369,7 @@ post "/commit", ctx => {
 	// get user id
 	token, err := core.GetToken(ctx)
 	if err != nil {
-		xLog.Info("token",err)
+		xLog.Info("token", err)
 		ctx.json {
 			"code": 0,
 			"err":  "no token",
@@ -355,7 +377,7 @@ post "/commit", ctx => {
 	}
 	uid, err := community.ParseJwtToken(token.Value)
 	if err != nil {
-		xLog.Info("uid",err)
+		xLog.Info("uid", err)
 		ctx.json {
 			"code": 0,
 			"err":  err.Error(),
@@ -367,11 +389,11 @@ post "/commit", ctx => {
 			ID:       id,
 			Title:    ctx.param("title"),
 			UId:      uid,
-			Cover:    ctx.param("cover"),   
+			Cover:    ctx.param("cover"),
 			Tags:     ctx.param("tags"),
 			Abstract: ctx.param("abstract"),
 		},
-		Content:  mdData,
+		Content:      mdData,
 		TransContent: transData,
 	}
 	id, _ = community.PutArticle(todo, uid, article)
@@ -450,26 +472,26 @@ get "/getMediaUrl/:id", ctx => {
 get "/getVideoAndSubtitle/:id", ctx => {
 	id := ctx.param("id")
 	fileKey, err := community.GetMediaUrl(todo, id)
-	m:=make(map[string]string,2)
-	format,err:=community.GetMediaType(todo,id)
-	if err!=nil {
-	ctx.json {
-          "code": 500,
-          "err":  err.Error(),
-             }
+	m := make(map[string]string, 2)
+	format, err := community.GetMediaType(todo, id)
+	if err != nil {
+		ctx.json {
+			"code": 500,
+			"err":  err.Error(),
+		}
 	}
 	if format == "video/mp4" {
-	    subtitle,err:=community.GetVideoSubtitle(todo,id)
-	    if err!=nil{
-	        if err != nil {
-            	ctx.json {
-            		"code": 500,
-            		"err":  err.Error(),
-            		}
-            	}
-            return
-	    }
-        m["subtitle"] = domain+subtitle
+		subtitle, err := community.GetVideoSubtitle(todo, id)
+		if err != nil {
+			if err != nil {
+				ctx.json {
+					"code": 500,
+					"err":  err.Error(),
+				}
+			}
+			return
+		}
+		m["subtitle"] = domain + subtitle
 	}
 	htmlUrl := fmt.Sprintf("%s%s", domain, fileKey)
 	if err != nil {
@@ -539,7 +561,7 @@ get "/callback", ctx => {
 	origin_path := ctx.URL.Query().Get("origin_path")
 	unurl, err := url.QueryUnescape(origin_path)
 	if err != nil {
-		xLog.Info("Unurl error",err)
+		xLog.Info("Unurl error", err)
 		unurl = "/"
 	}
 
@@ -563,6 +585,7 @@ run(endpoint, func(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
+				xLog.Error(err)
 				http.Redirect(w, r, "/failed", http.StatusFound)
 			}
 		}()

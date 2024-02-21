@@ -9,7 +9,8 @@ import Cherry from 'cherry-markdown'
 import axios from 'axios'
 
 
-// import Plyr from 'plyr';
+import Plyr from 'plyr';
+import 'plyr/dist/plyr.css'
 // const player = new Plyr('#player');
 // const p = new Plyr('video', {captions: {active: true}});
 
@@ -82,6 +83,7 @@ function fileUpload(file) {
     // console.log("type", file.type)
     // let type = file.type
     // let url = 'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4'
+    // vtt_src = "https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt"
     // onloadCallback(type, url)                        
 
 }
@@ -90,7 +92,7 @@ function onloadCallback(type, url) {
     let imgMdStr = ""
     if (/mp4|avi|rmvb/i.test(type)) {
         // 会渲染成video标签 需要替换video1标签 <video controls src=""> <video>
-        imgMdStr = `!video[${type}](${url})`;
+        imgMdStr = `!video[${type}](${url})(${vtt_src})`;
     } else if (/mp3/i.test(type)) {
         imgMdStr = `!audio[${type}](${url})`;
     } else if (/bmp|gif|jpg|jpeg|png/i.test(type)) {
@@ -113,8 +115,11 @@ function urlProcessor(url, srcType) {
         
 function afterChange(text, html) {
     this.content = text
-    // console.log("markdown", this.getCherryContent())
-    // console.log("html", this.getCherryHtml())
+
+    console.log("markdown", getCherryContent())
+    console.log("html", getCherryHtml())
+    const p = new Plyr('video', {captions: {active: true}});
+
     // this.$emit('mdChange', html, text)
     // this.$emit('input', text)
 }
@@ -217,16 +222,16 @@ function initCherryMD(value, config) {
     var defaultValue = value || ""
 
     // 自定义工具栏 - 翻译按钮
-    var customMenuF = Cherry.createMenuHook('Translate', {
-        noIcon: true,
-        iconName: true,
-        name: 'Translate',
-        onClick: (selection) => {
-            console.log("点击翻译")
-            // 调用 提交函数
-            this.tranlate_md()
-        },
-    }); 
+    // var customMenuF = Cherry.createMenuHook('Translate', {
+    //     noIcon: true,
+    //     iconName: true,
+    //     name: 'Translate',
+    //     onClick: (selection) => {
+    //         console.log("点击翻译")
+    //         // 调用 提交函数
+    //         this.tranlate_md()
+    //     },
+    // }); 
     //  测试数据
     // !video[video/mp4](https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4)
 
@@ -255,6 +260,7 @@ function initCherryMD(value, config) {
                 }
             });
         },
+        
         rule(str) {
             return {
                 // reg: /^!video.*.mp4\)/
@@ -486,7 +492,8 @@ function initCherryMD(value, config) {
 
                 'settings', 'theme', 
             ],
-            toolbarRight: ['fullScreen', '|', 'customMenuFName'],
+            // toolbarRight: ['fullScreen', '|', 'customMenuFName'],
+            toolbarRight: ['fullScreen'],
             bubble: ['bold', 'italic', 'underline', 'strikethrough', 'sub', 'sup', 'quote', 'ruby', '|', 'size',
                 'color'
             ],
@@ -497,7 +504,7 @@ function initCherryMD(value, config) {
                 // customMenuAName: customMenuA,
                 // customMenuBName: customMenuB,
                 // customMenuCName: customMenuC,
-                customMenuFName: customMenuF
+                // customMenuFName: customMenuF
             },
         },
         // 打开draw.io编辑页的url，如果为空则drawio按钮失效
@@ -807,5 +814,5 @@ export default {
 </script>
   
 <style>
-@import url('https://cdn.plyr.io/3.6.8/plyr.css');    
+/* @import url('https://cdn.plyr.io/3.6.8/plyr.css');     */
 </style>
