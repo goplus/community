@@ -562,3 +562,12 @@ func (a *Community) Share(ip, platform, userId, articleId string) {
 		a.xLog.Printf("user: %s, ip: %s, share to platform: %s, articleId: %s", userId, ip, platform, articleId)
 	}(ip, platform, userId, articleId)
 }
+
+// get community application information
+func (a *Community) GetApplicationInfo() (*casdoorsdk.Application, error) {
+	a2, err := casdoorsdk.GetApplication("application_x8aevk")
+	if err != nil {
+		a.xLog.Error(err)
+	}
+	return a2, err
+}

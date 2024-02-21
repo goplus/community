@@ -37,7 +37,7 @@
     <link href="https://fonts.proxy.ustclug.org/css2?family=Noto+Sans+SC&display=swap" rel="stylesheet">
 
     <!-- markdown -->
-    <link rel="stylesheet" href="/static/GoplusMarkdown/style.css">
+    <link rel="stylesheet" href="/static/GoplusMarkdown/style7.css">
     <link rel="stylesheet" href="https://cdn.plyr.io/3.6.8/plyr.css" >
     <script data-widgets="code" src="https://goplus.org/widgets/loader.js"></script>
 
@@ -51,7 +51,9 @@
 <script src="https://cdn.plyr.io/3.6.8/plyr.js"></script>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script data-widgets="code" src="https://goplus.org/widgets/loader.js"></script>
-<script src="/static/GoplusMarkdown/GoplusMarkdown.umd.cjs"></script>
+<script src="/static/GoplusMarkdown/GoplusMarkdown11.umd.cjs"></script>
+
+
 
 <script type="importmap"> 
   { "imports": { 
@@ -441,6 +443,11 @@
                 },
                 components: {
                     MarkdownViewer: window.GoplusMarkdown.MarkdownViewer
+                },
+                mounted() {
+                    const p = new Plyr('video', {captions: {active: true}});
+                    var htmlStr = document.documentElement.outerHTML; // 获取完整的HTML结构
+                    console.log("===============", htmlStr)
                 }
             });
 

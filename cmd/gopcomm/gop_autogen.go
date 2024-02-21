@@ -23,14 +23,14 @@ const (
 	limitConst = 10
 )
 
-type community struct {
+type community_yap struct {
 	yap.App
 	community *core.Community
 	trans     *translation.Engine
 }
 
 //line cmd/gopcomm/community_yap.gox:28
-func (this *community) MainEntry() {
+func (this *community_yap) MainEntry() {
 //line cmd/gopcomm/community_yap.gox:28:1
 	todo := context.TODO()
 //line cmd/gopcomm/community_yap.gox:29:1
@@ -243,187 +243,205 @@ func (this *community) MainEntry() {
 //line cmd/gopcomm/community_yap.gox:183:1
 		uid := ctx.Param("uid")
 //line cmd/gopcomm/community_yap.gox:184:1
-		files, err := this.community.ListMediaByUserId(todo, uid, format)
+		from := ctx.Param("from")
 //line cmd/gopcomm/community_yap.gox:185:1
-		if err != nil {
+		fromInt, err := strconv.Atoi(from)
 //line cmd/gopcomm/community_yap.gox:186:1
-			ctx.Json__1(map[string]interface {
-			}{"code": 0, "err": "get media failed"})
-		} else {
+		if err != nil {
+//line cmd/gopcomm/community_yap.gox:187:1
+			fromInt = 0
+		}
+//line cmd/gopcomm/community_yap.gox:189:1
+		limit := ctx.Param("limit")
+//line cmd/gopcomm/community_yap.gox:190:1
+		limitInt, err := strconv.Atoi(limit)
 //line cmd/gopcomm/community_yap.gox:191:1
+		if err != nil {
+//line cmd/gopcomm/community_yap.gox:192:1
+			limitInt = limitConst
+		}
+//line cmd/gopcomm/community_yap.gox:194:1
+		files, next, err := this.community.ListMediaByUserId(todo, uid, format, fromInt, limitInt)
+//line cmd/gopcomm/community_yap.gox:195:1
+		if err != nil {
+//line cmd/gopcomm/community_yap.gox:196:1
 			ctx.Json__1(map[string]interface {
-			}{"code": 200, "items": files})
+			}{"code": 0, "next": next, "err": err.Error()})
+		} else {
+//line cmd/gopcomm/community_yap.gox:202:1
+			ctx.Json__1(map[string]interface {
+			}{"code": 200, "next": next, "items": files})
 		}
 	})
-//line cmd/gopcomm/community_yap.gox:198:1
+//line cmd/gopcomm/community_yap.gox:210:1
 	this.Get("/delMedia", func(ctx *yap.Context) {
-//line cmd/gopcomm/community_yap.gox:199:1
+//line cmd/gopcomm/community_yap.gox:211:1
 		id := ctx.Param("id")
-//line cmd/gopcomm/community_yap.gox:200:1
+//line cmd/gopcomm/community_yap.gox:212:1
 		token, err := core.GetToken(ctx)
-//line cmd/gopcomm/community_yap.gox:201:1
+//line cmd/gopcomm/community_yap.gox:213:1
 		uid, err := this.community.ParseJwtToken(token.Value)
-//line cmd/gopcomm/community_yap.gox:202:1
+//line cmd/gopcomm/community_yap.gox:214:1
 		if err != nil {
-//line cmd/gopcomm/community_yap.gox:203:1
+//line cmd/gopcomm/community_yap.gox:215:1
 			xLog.Error("token parse error")
-//line cmd/gopcomm/community_yap.gox:204:1
+//line cmd/gopcomm/community_yap.gox:216:1
 			ctx.Json__1(map[string]interface {
 			}{"code": 0, "err": err.Error()})
 		}
-//line cmd/gopcomm/community_yap.gox:209:1
+//line cmd/gopcomm/community_yap.gox:221:1
 		err = this.community.DelMedia(todo, uid, id)
-//line cmd/gopcomm/community_yap.gox:210:1
+//line cmd/gopcomm/community_yap.gox:222:1
 		if err != nil {
-//line cmd/gopcomm/community_yap.gox:211:1
+//line cmd/gopcomm/community_yap.gox:223:1
 			ctx.Json__1(map[string]interface {
 			}{"code": 0, "err": "delete failed"})
 		} else {
-//line cmd/gopcomm/community_yap.gox:216:1
+//line cmd/gopcomm/community_yap.gox:228:1
 			ctx.Json__1(map[string]interface {
 			}{"code": 200, "msg": "delete success"})
 		}
 	})
-//line cmd/gopcomm/community_yap.gox:223:1
+//line cmd/gopcomm/community_yap.gox:235:1
 	this.Get("/", func(ctx *yap.Context) {
-//line cmd/gopcomm/community_yap.gox:225:1
+//line cmd/gopcomm/community_yap.gox:237:1
 		// Get User Info
 		var user *core.User
-//line cmd/gopcomm/community_yap.gox:226:1
+//line cmd/gopcomm/community_yap.gox:238:1
 		userId := ""
-//line cmd/gopcomm/community_yap.gox:227:1
+//line cmd/gopcomm/community_yap.gox:239:1
 		token, err := core.GetToken(ctx)
-//line cmd/gopcomm/community_yap.gox:228:1
+//line cmd/gopcomm/community_yap.gox:240:1
 		if err == nil {
-//line cmd/gopcomm/community_yap.gox:229:1
+//line cmd/gopcomm/community_yap.gox:241:1
 			user, err = this.community.GetUser(token.Value)
-//line cmd/gopcomm/community_yap.gox:230:1
+//line cmd/gopcomm/community_yap.gox:242:1
 			if err != nil {
-//line cmd/gopcomm/community_yap.gox:231:1
+//line cmd/gopcomm/community_yap.gox:243:1
 				xLog.Error("get user error:", err)
 			} else {
-//line cmd/gopcomm/community_yap.gox:233:1
+//line cmd/gopcomm/community_yap.gox:245:1
 				userId = user.Id
 			}
 		}
-//line cmd/gopcomm/community_yap.gox:237:1
+//line cmd/gopcomm/community_yap.gox:249:1
 		articles, next, _ := this.community.ListArticle(todo, core.MarkBegin, limitConst, "")
-//line cmd/gopcomm/community_yap.gox:238:1
+//line cmd/gopcomm/community_yap.gox:250:1
 		articlesJson, _ := json.Marshal(&articles)
-//line cmd/gopcomm/community_yap.gox:239:1
+//line cmd/gopcomm/community_yap.gox:251:1
 		ctx.Yap__1("home", map[string]interface {
 		}{"UserId": userId, "User": user, "Items": strings.Replace(string(articlesJson), `\"`, `"`, -1), "Next": next})
 	})
-//line cmd/gopcomm/community_yap.gox:247:1
+//line cmd/gopcomm/community_yap.gox:259:1
 	this.Get("/get", func(ctx *yap.Context) {
-//line cmd/gopcomm/community_yap.gox:248:1
+//line cmd/gopcomm/community_yap.gox:260:1
 		from := ctx.Param("from")
-//line cmd/gopcomm/community_yap.gox:249:1
+//line cmd/gopcomm/community_yap.gox:261:1
 		limit := ctx.Param("limit")
-//line cmd/gopcomm/community_yap.gox:250:1
+//line cmd/gopcomm/community_yap.gox:262:1
 		searchValue := ctx.Param("value")
-//line cmd/gopcomm/community_yap.gox:252:1
+//line cmd/gopcomm/community_yap.gox:264:1
 		limitInt, err := strconv.Atoi(limit)
-//line cmd/gopcomm/community_yap.gox:253:1
+//line cmd/gopcomm/community_yap.gox:265:1
 		if err != nil {
-//line cmd/gopcomm/community_yap.gox:254:1
+//line cmd/gopcomm/community_yap.gox:266:1
 			limitInt = limitConst
 		}
-//line cmd/gopcomm/community_yap.gox:257:1
+//line cmd/gopcomm/community_yap.gox:269:1
 		articles, next, _ := this.community.ListArticle(todo, from, limitInt, searchValue)
-//line cmd/gopcomm/community_yap.gox:258:1
+//line cmd/gopcomm/community_yap.gox:270:1
 		ctx.Json__1(map[string]interface {
 		}{"code": 200, "items": articles, "next": next, "value": searchValue})
 	})
-//line cmd/gopcomm/community_yap.gox:266:1
+//line cmd/gopcomm/community_yap.gox:278:1
 	this.Get("/search", func(ctx *yap.Context) {
-//line cmd/gopcomm/community_yap.gox:267:1
+//line cmd/gopcomm/community_yap.gox:279:1
 		searchValue := ctx.Param("value")
-//line cmd/gopcomm/community_yap.gox:276:1
+//line cmd/gopcomm/community_yap.gox:288:1
 		// todo middleware
 		var user *core.User
-//line cmd/gopcomm/community_yap.gox:277:1
+//line cmd/gopcomm/community_yap.gox:289:1
 		userId := ""
-//line cmd/gopcomm/community_yap.gox:278:1
+//line cmd/gopcomm/community_yap.gox:290:1
 		token, err := core.GetToken(ctx)
-//line cmd/gopcomm/community_yap.gox:279:1
+//line cmd/gopcomm/community_yap.gox:291:1
 		if err == nil {
-//line cmd/gopcomm/community_yap.gox:280:1
+//line cmd/gopcomm/community_yap.gox:292:1
 			user, err = this.community.GetUser(token.Value)
-//line cmd/gopcomm/community_yap.gox:281:1
+//line cmd/gopcomm/community_yap.gox:293:1
 			if err != nil {
-//line cmd/gopcomm/community_yap.gox:282:1
+//line cmd/gopcomm/community_yap.gox:294:1
 				xLog.Error("get user error:", err)
 			} else {
-//line cmd/gopcomm/community_yap.gox:284:1
+//line cmd/gopcomm/community_yap.gox:296:1
 				userId = user.Id
 			}
 		}
-//line cmd/gopcomm/community_yap.gox:288:1
+//line cmd/gopcomm/community_yap.gox:300:1
 		articles, next, _ := this.community.ListArticle(todo, core.MarkBegin, limitConst, searchValue)
-//line cmd/gopcomm/community_yap.gox:289:1
+//line cmd/gopcomm/community_yap.gox:301:1
 		articlesJson, _ := json.Marshal(&articles)
-//line cmd/gopcomm/community_yap.gox:290:1
+//line cmd/gopcomm/community_yap.gox:302:1
 		ctx.Yap__1("home", map[string]interface {
 		}{"UserId": userId, "User": user, "Items": strings.Replace(string(articlesJson), `\"`, `"`, -1), "Value": searchValue, "Next": next})
 	})
-//line cmd/gopcomm/community_yap.gox:299:1
+//line cmd/gopcomm/community_yap.gox:311:1
 	this.Get("/edit/:id", func(ctx *yap.Context) {
-//line cmd/gopcomm/community_yap.gox:300:1
+//line cmd/gopcomm/community_yap.gox:312:1
 		var user *core.User
-//line cmd/gopcomm/community_yap.gox:301:1
+//line cmd/gopcomm/community_yap.gox:313:1
 		token, err := core.GetToken(ctx)
-//line cmd/gopcomm/community_yap.gox:302:1
+//line cmd/gopcomm/community_yap.gox:314:1
 		if err == nil {
-//line cmd/gopcomm/community_yap.gox:303:1
+//line cmd/gopcomm/community_yap.gox:315:1
 			user, err = this.community.GetUser(token.Value)
-//line cmd/gopcomm/community_yap.gox:304:1
+//line cmd/gopcomm/community_yap.gox:316:1
 			if err != nil {
-//line cmd/gopcomm/community_yap.gox:305:1
+//line cmd/gopcomm/community_yap.gox:317:1
 				xLog.Error("get user error:", err)
 			}
 		}
-//line cmd/gopcomm/community_yap.gox:309:1
+//line cmd/gopcomm/community_yap.gox:321:1
 		uid := user.Id
-//line cmd/gopcomm/community_yap.gox:310:1
+//line cmd/gopcomm/community_yap.gox:322:1
 		id := ctx.Param("id")
-//line cmd/gopcomm/community_yap.gox:311:1
+//line cmd/gopcomm/community_yap.gox:323:1
 		if id != "" {
-//line cmd/gopcomm/community_yap.gox:312:1
+//line cmd/gopcomm/community_yap.gox:324:1
 			if
-//line cmd/gopcomm/community_yap.gox:312:1
+//line cmd/gopcomm/community_yap.gox:324:1
 			editable, _ := this.community.CanEditable(todo, uid, id); !editable {
-//line cmd/gopcomm/community_yap.gox:313:1
+//line cmd/gopcomm/community_yap.gox:325:1
 				xLog.Error("no permissions")
-//line cmd/gopcomm/community_yap.gox:314:1
+//line cmd/gopcomm/community_yap.gox:326:1
 				http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
 			}
-//line cmd/gopcomm/community_yap.gox:316:1
+//line cmd/gopcomm/community_yap.gox:328:1
 			article, _ := this.community.Article(todo, id)
-//line cmd/gopcomm/community_yap.gox:317:1
+//line cmd/gopcomm/community_yap.gox:329:1
 			articleJson, _ := json.Marshal(&article)
-//line cmd/gopcomm/community_yap.gox:318:1
+//line cmd/gopcomm/community_yap.gox:330:1
 			ctx.Yap__1("edit", map[string]interface {
 			}{"User": user, "Article": strings.Replace(string(articleJson), `\"`, `"`, -1)})
 		}
 	})
-//line cmd/gopcomm/community_yap.gox:325:1
+//line cmd/gopcomm/community_yap.gox:337:1
 	this.Get("/getTrans", func(ctx *yap.Context) {
-//line cmd/gopcomm/community_yap.gox:326:1
+//line cmd/gopcomm/community_yap.gox:338:1
 		id := ctx.Param("id")
-//line cmd/gopcomm/community_yap.gox:327:1
+//line cmd/gopcomm/community_yap.gox:339:1
 		htmlUrl, err := this.community.TransHtmlUrl(todo, id)
-//line cmd/gopcomm/community_yap.gox:328:1
+//line cmd/gopcomm/community_yap.gox:340:1
 		if err != nil {
-//line cmd/gopcomm/community_yap.gox:329:1
+//line cmd/gopcomm/community_yap.gox:341:1
 			ctx.Json__1(map[string]interface {
 			}{"code": 500, "err": err.Error()})
 		}
-//line cmd/gopcomm/community_yap.gox:334:1
+//line cmd/gopcomm/community_yap.gox:346:1
 		ctx.Json__1(map[string]interface {
 		}{"code": 200, "data": htmlUrl})
 	})
-//line cmd/gopcomm/community_yap.gox:341:1
+//line cmd/gopcomm/community_yap.gox:353:1
 	this.Post("/commit", func(ctx *yap.Context) {
 		id := ctx.Param("id")
 		mdData := ctx.Param("content")
@@ -434,21 +452,21 @@ func (this *community) MainEntry() {
 		trans, _ := strconv.ParseBool(ctx.Param("trans"))
 //line cmd/gopcomm/community_yap.gox:348:1
 		token, err := core.GetToken(ctx)
-//line cmd/gopcomm/community_yap.gox:349:1
+//line cmd/gopcomm/community_yap.gox:361:1
 		if err != nil {
-//line cmd/gopcomm/community_yap.gox:350:1
+//line cmd/gopcomm/community_yap.gox:362:1
 			xLog.Info("token", err)
-//line cmd/gopcomm/community_yap.gox:351:1
+//line cmd/gopcomm/community_yap.gox:363:1
 			ctx.Json__1(map[string]interface {
 			}{"code": 0, "err": "no token"})
 		}
-//line cmd/gopcomm/community_yap.gox:356:1
+//line cmd/gopcomm/community_yap.gox:368:1
 		uid, err := this.community.ParseJwtToken(token.Value)
-//line cmd/gopcomm/community_yap.gox:357:1
+//line cmd/gopcomm/community_yap.gox:369:1
 		if err != nil {
-//line cmd/gopcomm/community_yap.gox:358:1
+//line cmd/gopcomm/community_yap.gox:370:1
 			xLog.Info("uid", err)
-//line cmd/gopcomm/community_yap.gox:359:1
+//line cmd/gopcomm/community_yap.gox:371:1
 			ctx.Json__1(map[string]interface {
 			}{"code": 0, "err": err.Error()})
 		}
@@ -679,5 +697,5 @@ func (this *community) MainEntry() {
 	})
 }
 func main() {
-	yap.Gopt_App_Main(new(community))
+	yap.Gopt_App_Main(new(community_yap))
 }
