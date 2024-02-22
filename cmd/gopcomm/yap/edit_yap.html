@@ -443,14 +443,14 @@
                 //     'Content-Type': 'multipart/form-data'
                 // },
             }
-            fetch("/commit", options)
+            fetch("/api/article/commit", options)
                 .then(res => {
                     return res.json();
                 })
                 .then(todos => {
                     if (todos.code === 200) {
                         // success delete  articleList or get articleList
-                        window.location.href = "/p/" + todos.data
+                        window.location.href = "/article/" + todos.data
                     }
                 });
         }
@@ -462,7 +462,7 @@
             const md = window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown()
             const transMd = new FormData();
             transMd.append("content", md)
-            fetch("/translate", {
+            fetch("/api/translation", {
                 method: 'POST',
                 body: transMd,
             })
@@ -492,13 +492,13 @@
                 //     'Content-Type': 'multipart/form-data'
                 // },
             }
-            fetch("/upload", options)
+            fetch("/api/media", options)
                 .then(res => {
                     return res.json();
                 })
                 .then(todos => {
                     console.log("cover", todos)
-                    fetch('/getMediaUrl/' + todos)
+                    fetch('/api/media/' + todos + "/url")
                         .then(resUrl => {
                             return resUrl.json();
                         })
