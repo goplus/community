@@ -259,6 +259,16 @@ func (c *Community) UploadFile(ctx *yap.Context) {
 	ctx.JSON(200, id)
 }
 
+func (c *Community) RetryCaptionGenerate(ctx context.Context, userId, videoId string) error {
+	err := c.NewVideoTask(ctx, userId, videoId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// func (c *Community) ListMediaByUserId(ctx context.Context, userId string, format string) ([]File, error) {
+// 	sqlStr := "select * from file where user_id = ?"
 func (c *Community) ListMediaByUserId(ctx context.Context, userId string, format string, from, limitInt int) ([]File, string, error) {
 	sqlStr := "select * from file where user_id = ? "
 	var args []any
