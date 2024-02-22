@@ -260,7 +260,7 @@
                                     <!-- <a :href="'/player/' + item.id"> -->
                                         <div class="video">
                                             <!-- TODO replace with community player -->
-                                            <video controls class="video-item">
+                                            <video controls preload="meta" class="video-item"> <!--?vframe/jpg/offset/8/w/300/h/200-->
                                                 <!-- <source src="https://mp4.vjshi.com/2022-02-09/5fc86e8ea5e24eadace55305782af82b.mp4" type="video/mp4" /> -->
                                                 <source :src="item.FileKey" :type="item.Format" />
                                             </video>

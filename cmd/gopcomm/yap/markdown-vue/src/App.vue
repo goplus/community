@@ -8,7 +8,8 @@ import MarkdownViewer from './components/MarkdownViewer.vue';
 
 <template>
     <markdown-editor></markdown-editor>
-    <markdown-viewer md="```gop println  ```"></markdown-viewer>
+    <markdown-viewer :md="c"></markdown-viewer>
+    <!-- <markdown-viewer md="!video[video/mp4](https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)"></markdown-viewer> -->
     <!-- <video id="player" playsinline controls data-poster="/path/to/poster.jpg" ref="plyr">
         <source src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4" type="video/mp4" />
     </video> -->
@@ -51,9 +52,14 @@ export default  {
             // crossorigin: 'anonymous',
             // poster: '',
             // playsinline: true
+            c: "!video[video/mp4](https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)"
         }
     },
     mounted() {
+        setTimeout(() => {
+            this.c = "```gop ```"
+            console.log("set time out")
+        }, 5000)
         // const player = new Plyr(this.$refs.plyr, {
         //     controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'airplay', 'fullscreen']
         // })
