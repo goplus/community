@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/goplus/community/internal/core"
 	"github.com/goplus/community/translation"
@@ -76,7 +75,7 @@ get "/p/:id", ctx => {
 	ctx.yap "article", {
 		"UserId":  userId,
 		"User":    user,
-		"Article": strings.Replace(string(articleJson), `\"`, `"`, -1),
+		"Article": string(articleJson),
 	}
 }
 
@@ -114,9 +113,9 @@ get "/user/:id", ctx => {
 	itemsJson, _ := json.Marshal(&items)
 	ctx.yap "user", {
 		"Id":          id,
-		"CurrentUser": strings.Replace(string(userClaimJson), `\"`, `"`, -1),
+		"CurrentUser": string(userClaimJson),
 		"User":        user,
-		"Items":       strings.Replace(string(itemsJson), `\"`, `"`, -1),
+		"Items":       string(itemsJson),
 		"UserId":      userId,
 		"Next":        next,
 	}
@@ -209,27 +208,27 @@ get "/delete", ctx => {
 get "/medias", ctx => {
 	format := ctx.param("format")
 	uid := ctx.param("uid")
-	from := ctx.param("from")
-	fromInt, err := strconv.Atoi(from)
-	if err != nil {
-		fromInt = 0
-	}
+	page := ctx.param("page")
 	limit := ctx.param("limit")
 	limitInt, err := strconv.Atoi(limit)
 	if err != nil {
 		limitInt = limitConst
 	}
-	files, next, err := community.ListMediaByUserId(todo, uid, format, fromInt, limitInt)
+	pageInt, err := strconv.Atoi(page)
+	if err != nil {
+		pageInt = 1
+	}
+	files, total, err := community.ListMediaByUserId(todo, uid, format, pageInt, limitInt)
 	if err != nil {
 		ctx.json {
-			"code": 0,
-			"next": next,
-			"err":  err.Error(),
+			"code":  0,
+			"total": total,
+			"err":   err.Error(),
 		}
 	} else {
 		ctx.json {
 			"code":  200,
-			"next":  next,
+			"total": total,
 			"items": files,
 		}
 	}
@@ -279,7 +278,7 @@ get "/", ctx => {
 	ctx.yap "home", {
 		"UserId": userId,
 		"User":   user,
-		"Items":  strings.Replace(string(articlesJson), `\"`, `"`, -1),
+		"Items":  string(articlesJson),
 		"Next":   next,
 	}
 }
@@ -347,7 +346,7 @@ get "/search", ctx => {
 	ctx.yap "home", {
 		"UserId": userId,
 		"User":   user,
-		"Items":  strings.Replace(string(articlesJson), `\"`, `"`, -1),
+		"Items":  string(articlesJson),
 		"Value":  searchValue,
 		"Next":   next,
 	}
@@ -378,7 +377,7 @@ get "/edit/:id", ctx => {
 		ctx.yap "edit", {
 			"UserId":  userId,
 			"User":    user,
-			"Article": strings.Replace(string(articleJson), `\"`, `"`, -1),
+			"Article": string(articleJson),
 		}
 	}
 }

@@ -187,17 +187,6 @@ func (p *Community) GetTranslateArticle(ctx context.Context, id string) (article
 	return
 }
 
-// func (p *Community) getTotal(ctx context.Context, searchValue string) (total int, err error) {
-// 	if searchValue != "" {
-// 		sqlStr := "select count(*) from article where title like ?"
-// 		err = p.db.QueryRow(sqlStr, "%"+searchValue+"%").Scan(&total)
-// 	} else {
-// 		sqlStr := "select count(*) from article"
-// 		err = p.db.QueryRow(sqlStr).Scan(&total)
-// 	}
-// 	return
-// }
-
 // Article returns an article.
 func (p *Community) Article(ctx context.Context, id string) (article *Article, err error) {
 	article = &Article{}
