@@ -38,18 +38,17 @@
                     Home</a>
                 </n-breadcrumb-item>
                 <n-breadcrumb-item>
-                    <a href="/user/{{.User.Id}}"><i class="ph ph-user" style="font-size: 18px; margin-right: 5px;"></i>
-                    User</a>
-                </n-breadcrumb-item>
-            </n-breadcrumb> 
-            
-            <div style="padding: 0 20px; margin: 10px auto;" class="container px-5 py-3">
+                    <a><i class="ph ph-user" style="font-size: 18px; margin-right: 5px;"></i>
+                    ${ CurrentUser.name }</a>
+            </n-breadcrumb-item>
+
+            <div style="padding: 40px 40px; margin: 30px auto;" class="container px-5 py-3 mx-auto bg-white rounded-lg">
                 <!-- Personal Profile -->
                 <n-grid :x-gap="12" :cols="7" style="padding: 0 20px;">
                     <!-- TODO: bug  Avatar -->
                     <n-gi :span="1" class="flex justify-center items-center">
                         <n-avatar v-if="CurrentUser.avatar" round :size="100" :src="CurrentUser.avatar"></n-avatar>
-                        <n-avatar v-else round :size="100" src="./static/img/qiniu.png"></n-avatar>
+                        <n-avatar v-else round :size="100" src="/static/img/gop-avatar.png"></n-avatar>
                     </n-gi>
 
                     <!-- Name & Description & Contact Info -->
@@ -80,26 +79,30 @@
                             <!-- Email -->
                             <n-gi class="flex items-center">
                                 <i class="ph-duotone ph-envelope" style="color: #2191ad; font-size: 20px;"></i>
-                                <p class="ml-3 text-gray-400">${ CurrentUser.email }</p>
+                                <p v-if="CurrentUser.email === ''" class="ml-3 text-gray-400">email is empty</p>
+                                <p v-else class="ml-3 text-gray-400">${ CurrentUser.email}</p>
                             </n-gi>
 
                             <!-- Phone -->
                             <n-gi class="flex items-center">
                                 <i class="ph-duotone ph-phone-call" style="color: #d88d01; font-size: 20px;"></i>
-                                <p class="ml-3 text-gray-400">${ CurrentUser.phone }</p>
+
+                                <p v-if="CurrentUser.phone === ''" class="ml-3 text-gray-400">phone is empty</p>
+                                <p v-else class="ml-3 text-gray-400">${ CurrentUser.phone}</p>
                             </n-gi>
                         </n-grid>
                     </n-gi>
 
                     <!-- Edit Button & Followers -->
                     <n-gi :span="2" class="flex flex-col justify-center items-end">
+                        {{ if .UserId}}
                         <n-button v-if="UserId === CurrentUser.id" text color="#3182ce" onclick="window.location.href='/userEdit'">
                             <template #icon>
                                 <i class="ph-duotone ph-pencil-line" style="color: #3182ce;"></i>
                             </template>
                             Edit Profile
                         </n-button>
-
+                        {{ end }}
                         <!-- Following & Followers -->
                         <div class="flex items-center mt-3">
                             <div class="flex flex-col items-center">

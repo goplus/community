@@ -79,7 +79,7 @@ func New(translationAPIKey string, qiniuAccessKey string, qiniuSecretKey string)
 }
 
 // TranslateMarkdown translate markdown with bytes
-func (e *Engine) TranslateMarkdown(src []byte, from, to language.Tag) (ret []byte, err error) {
+func (e *Engine) TranslateMarkdown(src []byte, from string, to language.Tag) (ret []byte, err error) {
 	// Init markdown parser
 	md := goldmark.New(goldmark.WithExtensions())
 	reader := text.NewReader(src)
@@ -145,13 +145,13 @@ func (e *Engine) TranslateMarkdown(src []byte, from, to language.Tag) (ret []byt
 }
 
 // TranslateMarkdown translate markdown text
-func (e *Engine) TranslateMarkdownText(src string, from, to language.Tag) (ret string, err error) {
+func (e *Engine) TranslateMarkdownText(src string, from string, to language.Tag) (ret string, err error) {
 	retByte, err := e.TranslateMarkdown([]byte(src), from, to)
 	return string(retByte), err
 }
 
 // TranslateWebVTT translate WebVTT
-func (e *Engine) TranslateWebVTT(src *SimpleWebVTT, from, to language.Tag) (err error) {
+func (e *Engine) TranslateWebVTT(src *SimpleWebVTT, from string, to language.Tag) (err error) {
 	// Prepare translation
 	translationSep := generateSeparator()
 	var translationVec []string
@@ -220,18 +220,18 @@ func generateSeparator() string {
 }
 
 // Translate translate sequence of bytes
-func (e *Engine) TranslatePlain(src []byte, from, to language.Tag) (ret []byte, err error) {
+func (e *Engine) TranslatePlain(src []byte, from string, to language.Tag) (ret []byte, err error) {
 	retString, err := e.TranslatePlainText(string(src), from, to)
 
 	return []byte(retString), err
 }
 
 // Translate translate sequence of text
-func (e *Engine) TranslatePlainText(src string, from, to language.Tag) (ret string, err error) {
+func (e *Engine) TranslatePlainText(src string, from string, to language.Tag) (ret string, err error) {
 	// Get translate result from api server
 	// Request form data
 	formData := url.Values{
-		"from":     {from.String()},
+		"from":     {from},
 		"to":       {to.String()},
 		"apikey":   {e.translationAPIKey},
 		"src_text": {src},
@@ -273,7 +273,7 @@ func (e *Engine) TranslatePlainText(src string, from, to language.Tag) (ret stri
 }
 
 // TranslateBatchSeq translate a series of sequences of text
-func (e *Engine) TranslateBatchPlain(src []string, from, to language.Tag) ([]string, error) {
+func (e *Engine) TranslateBatchPlain(src []string, from string, to language.Tag) ([]string, error) {
 	// Max batch size is 50
 	sem := make(chan struct{}, 50)
 	defer close(sem)

@@ -11,21 +11,6 @@ import (
 
 var c *core.Community
 
-func TestMain(t *testing.M) {
-	config := &core.Config{
-		Driver: "mysql",
-		DSN:    "",
-		BlobUS: "",
-	}
-	ret, err := core.New(context.Background(), config)
-	if err != nil {
-		log.Fatalln(err.Error())
-		return
-	}
-	c = ret
-	t.Run()
-}
-
 func TestGetMediaUrl(t *testing.T) {
 	url, err := c.GetMediaUrl(context.Background(), "10")
 	if err != nil {

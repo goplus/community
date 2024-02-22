@@ -1,9 +1,10 @@
 package core
 
 import (
-	"github.com/goplus/yap"
 	"net/http"
 	"os"
+
+	"github.com/goplus/yap"
 
 	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 )
@@ -63,6 +64,7 @@ func (p *Community) GetUserClaim(uid string) (claim *casdoorsdk.User, err error)
 		p.xLog.Error(err)
 		return &casdoorsdk.User{}, ErrNotExist
 	}
+	claim.Properties["oauth_Wechat_extra"] = ""
 	return
 }
 
@@ -73,11 +75,20 @@ func (p *Community) GetUserById(uid string) (user *User, err error) {
 		p.xLog.Error(err)
 		return &User{}, ErrNotExist
 	}
-	user = &User{
-		Name:   claim.Name,
-		Avatar: claim.Avatar,
-		Id:     claim.Id,
+	if claim == nil {
+		user = &User{
+			Name:   "unknown",
+			Avatar: "",
+			Id:     "",
+		}
+	} else {
+		user = &User{
+			Name:   claim.Name,
+			Avatar: claim.Avatar,
+			Id:     claim.Id,
+		}
 	}
+
 	return
 }
 

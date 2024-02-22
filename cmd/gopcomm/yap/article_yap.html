@@ -37,8 +37,9 @@
     <link href="https://fonts.proxy.ustclug.org/css2?family=Noto+Sans+SC&display=swap" rel="stylesheet">
 
     <!-- markdown -->
-    <link rel="stylesheet" href="/static/GoplusMarkdown/style.css">
+    <link rel="stylesheet" href="/static/GoplusMarkdown/style7.css">
     <link rel="stylesheet" href="https://cdn.plyr.io/3.6.8/plyr.css" >
+    <script data-widgets="code" src="https://goplus.org/widgets/loader.js"></script>
 
     <style type="text/css" media="screen, print">
         body {
@@ -50,7 +51,9 @@
 <script src="https://cdn.plyr.io/3.6.8/plyr.js"></script>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script data-widgets="code" src="https://goplus.org/widgets/loader.js"></script>
-<script src="/static/GoplusMarkdown/GoplusMarkdown.umd.cjs"></script>
+<script src="/static/GoplusMarkdown/GoplusMarkdown11.umd.cjs"></script>
+
+
 
 <script type="importmap"> 
   { "imports": { 
@@ -59,6 +62,7 @@
   } } 
 </script>
   
+<!-- <template> -->
 <body style="background-color: #f7fafc;">
    {{ template "header" .}}
 
@@ -81,7 +85,7 @@
                         <n-breadcrumb-item>
                             <i class="ph ph-article-medium"
                                 style="font-size: 18px; margin-right: -15px; color: transparent;"></i>
-                            <span style="font-weight: 600;">{{ .Title }}</span>
+                            <span style="font-weight: 600;">${ article.Title }</span>
                         </n-breadcrumb-item>
                     </n-breadcrumb>
 
@@ -93,14 +97,14 @@
                             <!-- TODO: 点赞事件和点赞数 -->
                             <!-- <n-badge :value="article.likes"> -->
                             <n-button type="tertiary" style="--n-text-color-hover: #d7266e;
-                                    --n-text-color-pressed: #d7266e;
-                                    --n-text-color-focus: #d7266e;
-                                    --n-ripple-color: #df7ba3;
-                                    --n-border-hover: 1.5px solid #d7266e;
-                                    --n-border-pressed: 1.5px solid #d7266e;
-                                    --n-border-focus: 1.5px solid #d7266e;
-                                    height: 7vh; width: 7vh;
-                                    --n-padding: 0; --n-border-radius: 5px;">
+                                --n-text-color-pressed: #d7266e;
+                                --n-text-color-focus: #d7266e;
+                                --n-ripple-color: #df7ba3;
+                                --n-border-hover: 1.5px solid #d7266e;
+                                --n-border-pressed: 1.5px solid #d7266e;
+                                --n-border-focus: 1.5px solid #d7266e;
+                                height: 7vh; width: 7vh;
+                                --n-padding: 0; --n-border-radius: 5px;">
                                 <i class="ph-duotone ph-thumbs-up" style="font-size: 22px;"></i>
                             </n-button>
                             <!-- </n-badge> -->
@@ -154,19 +158,33 @@
                         box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05); padding: 20px 30px;">
                             <!-- Tags & Title & Update Time -->
                             <header class="mb-4 not-format">
-                                <!-- Tags -->
-                                <!-- TODO: 分割为字符数组 -->
-                                <div class="flex flex-row items-center" v-for="(item, index) in tags.split(';')">
-                                    <span
-                                        class="mr-3 inline-flex items-center bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300">
-                                        <span class="w-2 h-2 me-1 bg-blue-500 rounded-full"></span>
-                                        ${ item }
-                                    </span>
+                                <div class="flex flex-row" style="justify-content: space-between">
+                                     <!-- Tags -->
+                                    <div class="flex flex-row items-center">
+                                        <span v-for="(item, index) in article.Tags.split(';')"
+                                            class="mr-3 inline-flex items-center bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300">
+                                            <span class="w-2 h-2 me-1 bg-blue-500 rounded-full"></span>
+                                            ${ item }
+                                        </span>
+                                    </div>
+
+                                    <n-dropdown :options="transOptions" trigger="click" width="150" @select="selectDropdown" style="margin-left: auto">
+                                        <n-button @click="translateMd" class="ml-2" style="--n-border-radius: 7px; --n-ripple-color: #7ba7d3; 
+                                            --n-text-color-hover: #2a82e4; --n-text-color-pressed: #3182ce;
+                                            --n-text-color-focus: #2a82e4; --n-border-hover: 1px solid #2a82e4;
+                                            --n-border-pressed: 1px solid #3182ce; --n-border-focus: 1px solid #2a82e4;">
+                                            <template #icon>
+                                                <i class="ph-bold ph-translate" style="color: #2a82e4;"></i>
+                                            </template>
+                                            <span style="font-weight: 600; color: #2a82e4;">Translate</span>
+                                        </n-button>
+                                    </n-dropdown>
                                 </div>
+                               
 
                                 <!-- Title -->
                                 <h1 class="my-4 text-4xl font-extrabold leading-tight text-gray-900">
-                                    {{ .Title }}
+                                    ${ article.Title }
                                 </h1>
 
                                 <!-- Update Time -->
@@ -174,7 +192,7 @@
                                     <div class="inline-flex items-center text-sm text-gray-900">
                                         <p class="text-sm" style="color: #a0aec0;">
                                             <time pubdate>
-                                                Updated on {{.Mtime}}
+                                                Updated on ${ article.Mtime.slice(0,10) }
                                             </time>
                                         </p>
                                     </div>
@@ -190,8 +208,7 @@
 
                             <!-- Content -->
                             <n-divider style="margin: 10px 0 18px 0;"></n-divider>
-                            <markdown-viewer md="{{ .Content }}"></markdown-viewer>
-                            <!-- <iframe style="width: 100%;" src="{{ .HtmlUrl }}"></iframe> -->
+                                <markdown-viewer :md="article.Content"></markdown-viewer>
                             <n-divider style="margin: 18px 0 10px 0;"></n-divider>
 
                             <!-- Quick Sharing -->
@@ -255,13 +272,13 @@
                         <!-- Avatar & Nick Name -->
                         <div class="flex flex-row items-center">
                             <!-- Avatar -->
-                            <a href="/user/{{ .Author.Id }}">
-                                <img class="w-12 h-12 rounded-full ml-3 mr-2" src="{{ .Author.Avatar }}" alt="Rounded avatar">
+                            <a :href="'/user/'+article.User.Id">
+                                <img class="w-12 h-12 rounded-full ml-3 mr-2" :src="article.User.Avatar" alt="Rounded avatar">
                             </a>
 
                             <!-- Nick Name -->
                             <div>
-                                <span class="creator-name">{{ .Author.Name }}<br></span>
+                                <span class="creator-name">${ article.User.Name }<br></span>
                                 <span class="creator-desc">GoPlus Developer</span>
                             </div>
                         </div>
@@ -317,30 +334,29 @@
         <script type="module">
             const { reactive, toRefs, ref, h } = Vue;
 
-            /*======= current article's info =======*/
-            // const article = ref({
-            //     Title: 'This is default title!',
-            //     Mtime: '2024-01-01',
-            //     Abstract: 'This is default abstract! This is default abstract! This is default abstract! This is default abstract!',
-            // });
-
-            // // TODO: @Bai const author = JSON.parse("{{.}}");
-            // const author = ref({
-            //     Id: 123,
-            //     Avatar: '',
-            //     Name: 'Nick_1977',
-            // })
-
-            // TODO: @Bai const author = JSON.parse("{{.}}");
-            const author = ref({
-                Id: 123,
-                Avatar: '',
-                Name: 'Nick_1977',
-            })
-            const tags = ref("{{.Tags}}")
-
+            const article = ref(JSON.parse("{{.Article}}"));
+            const originArticle = JSON.parse("{{.Article}}");
+            let transArticle = {}
+            const isOrigin = ref(true)
+            
             /*======= share related functions =======*/
             const currentHref = ref(window.location.href);
+
+            const transOptions = [
+                {
+                    label: "Original",
+                    key: "original"
+                },
+                {
+                    key: "divider",
+                    type: "divider"
+                },
+                {
+                    label: "English",
+                    key: "english"
+                }
+            ];
+
 
             function shareToFacebook() {
                 var w = 900;
@@ -382,20 +398,56 @@
                 window.open(intentUrl, "_blank", "width=900, height=600");
             };
 
+            function selectDropdown(key) {
+                if (key === 'original' && !isOrigin.value) {
+                    console.log("origin")
+                    article.value = originArticle
+                    isOrigin.value = true
+                } else if (key === 'english' && isOrigin.value) {
+                    console.log("english")
+                    // translate
+                    if (transArticle.Content){
+                        article.value = transArticle
+                    }else{
+                        fetch("/tranArticle?id="+article.value.ID)
+                        .then(res => {
+                            return res.json();
+                        })
+                        .then(todos => {
+                            if(todos.code === 200){
+                                article.value.Title = todos.title
+                                article.value.Content = todos.content
+                                article.value.Tags = todos.tags
+                                transArticle = article.value
+                            }
+                        });
+                    } 
+                    isOrigin.value = false
+                }
+            };
+
             /*======= register vue component =======*/
             const app = Vue.createApp({
                 data() {
                     return {
                         currentHref,
-                        tags
+                        article,
+                        isOrigin,
+                        transOptions
                     }
                 },
                 methods: {
                     shareToFacebook,
                     shareToTwitter,
+                    selectDropdown
                 },
                 components: {
                     MarkdownViewer: window.GoplusMarkdown.MarkdownViewer
+                },
+                mounted() {
+                    const p = new Plyr('video', {captions: {active: true}});
+                    var htmlStr = document.documentElement.outerHTML; // 获取完整的HTML结构
+                    console.log("===============", htmlStr)
                 }
             });
 
@@ -404,7 +456,9 @@
             app.mount('#app')
         </script>
     </n-config-provider>
+
 </body>
+<!-- </template> -->
 
 </html>
 

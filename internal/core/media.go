@@ -267,8 +267,10 @@ func (c *Community) RetryCaptionGenerate(ctx context.Context, userId, videoId st
 	return nil
 }
 
-func (c *Community) ListMediaByUserId(ctx context.Context, userId string, format string) ([]File, error) {
-	sqlStr := "select * from file where user_id = ?"
+// func (c *Community) ListMediaByUserId(ctx context.Context, userId string, format string) ([]File, error) {
+// 	sqlStr := "select * from file where user_id = ?"
+func (c *Community) ListMediaByUserId(ctx context.Context, userId string, format string, from, limitInt int) ([]File, string, error) {
+	sqlStr := "select * from file where user_id = ? "
 	var args []any
 	args = append(args, userId)
 	var rows *sql.Rows
@@ -277,22 +279,30 @@ func (c *Community) ListMediaByUserId(ctx context.Context, userId string, format
 		sqlStr += " and format like ?"
 		args = append(args, "%"+format+"%")
 	}
+	sqlStr = sqlStr + " limit ? offset ?"
+	args = append(args, limitInt)
+	args = append(args, from)
 	rows, err = c.db.Query(sqlStr, args...)
 
 	var files []File
 	if err != nil {
-		return files, err
+		return files, MarkEnd, err
 	}
-
+	var rowLen int
 	for rows.Next() {
 		var file File
 		if err := rows.Scan(&file.Id, &file.CreateAt, &file.UpdateAt, &file.FileKey, &file.Format, &file.UserId, &file.Size); err != nil {
-			return files, err
+			return files, MarkEnd, err
 		}
 		file.FileKey = c.domain + file.FileKey
 		files = append(files, file)
+		rowLen++
 	}
-	return files, nil
+	if rowLen == 0 {
+		return []File{}, MarkEnd, io.EOF
+	}
+	next := strconv.Itoa(from + rowLen)
+	return files, next, nil
 }
 
 func (c *Community) ListSubtitleByVideoId(ctx context.Context, videoId int) ([]VideoSubtitle, error) {

@@ -23,7 +23,9 @@ import (
 	"io"
 	"net/url"
 	"os"
+	"reflect"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/goplus/community/translation"
@@ -65,7 +67,8 @@ type Article struct {
 	Content string // in markdown
 	// Status  int    // published or draft
 	// HtmlUrl  string // parsed html file url
-	TransContent string
+	// TransContent string
+	Trans bool
 }
 
 type Community struct {
@@ -139,8 +142,49 @@ func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 	return &Community{bucket, db, domain, casdoorConf, xLog, translationEngine}, nil
 }
 
-func (p *Community) TranslateMarkdownText(ctx context.Context, src string, from, to language.Tag) (string, error) {
+func (p *Community) TranslateMarkdownText(ctx context.Context, src string, from string, to language.Tag) (string, error) {
 	return p.translation.Engine.TranslateMarkdownText(src, from, to)
+}
+
+func (p *Community) TranslateArticle(ctx context.Context, inputArticle *Article) (translatedArticle *Article, err error) {
+	translatedArticle = inputArticle
+
+	transTitle, _ := p.translation.Engine.TranslatePlainText(inputArticle.Title, "auto", language.English)
+	translatedArticle.Title = transTitle
+
+	transTags, _ := p.translation.Engine.TranslateBatchPlain(strings.Split(inputArticle.Tags, ","), "auto", language.English)
+	translatedArticle.Tags = strings.Join(transTags, ";")
+
+	transAbstract, _ := p.translation.Engine.TranslatePlainText(inputArticle.Abstract, "auto", language.English)
+	translatedArticle.Abstract = transAbstract
+
+	transContent, _ := p.translation.Engine.TranslateMarkdownText(inputArticle.Content, "auto", language.English)
+	translatedArticle.Content = transContent
+
+	return translatedArticle, nil
+}
+
+func (p *Community) GetTranslateArticle(ctx context.Context, id string) (article *Article, err error) {
+	article = &Article{}
+	var content interface{}
+	sqlStr := "select trans_content, trans_title, trans_tags, trans_abstract from article where id=?"
+	err = p.db.QueryRow(sqlStr, id).Scan(&content, &article.Title, &article.Tags, &article.Abstract)
+	if content == "" || content == nil || reflect.ValueOf(content).Len() == 0 {
+		sqlStr := "select content, title, tags, abstract from article where id=?"
+		err = p.db.QueryRow(sqlStr, id).Scan(&article.Content, &article.Title, &article.Tags, &article.Abstract)
+		if err != nil {
+			return &Article{}, err
+		}
+		// database has no tranlation article, so we must translate it
+		article, _ = p.TranslateArticle(ctx, article)
+		// save transltation result
+		sqlStr = "update article set trans_content=?, trans_title=?, trans_tags=?, trans_abstract=? where id=?"
+		_, err = p.db.Exec(sqlStr, &article.Content, &article.Title, &article.Tags, &article.Abstract, id)
+		return
+	}
+	contentStr, _ := content.([]byte)
+	article.Content = string(contentStr)
+	return
 }
 
 // func (p *Community) getTotal(ctx context.Context, searchValue string) (total int, err error) {
@@ -172,13 +216,6 @@ func (p *Community) Article(ctx context.Context, id string) (article *Article, e
 		return
 	}
 	article.User = *user
-	// get html url
-	// fileKey, err := p.GetMediaUrl(ctx, htmlId)
-	// article.HtmlUrl = fmt.Sprintf("%s%s", p.domain, fileKey)
-	// if err != nil {
-	// 	p.xLog.Warn("have no html media")
-	// 	article.HtmlUrl = ""
-	// }
 	return
 }
 
@@ -239,22 +276,12 @@ func (p *Community) SaveHtml(ctx context.Context, uid, htmlStr, mdData, id strin
 	return id, err
 }
 
-// uploadHtml upload html(string) to media for html id
-// func (p *Community) uploadHtml(ctx context.Context, uid, htmlStr string) (htmlId int64, err error) {
-// 	htmlId, err = p.SaveMedia(ctx, uid, []byte(htmlStr))
-// 	return
-// }
-
 // PutArticle adds new article (ID == "") or edits an existing article (ID != "").
 func (p *Community) PutArticle(ctx context.Context, uid string, article *Article) (id string, err error) {
-	// htmlId, err := p.uploadHtml(ctx, uid, article.HtmlData)
-	// if err != nil {
-	// 	htmlId = 0
-	// }
 	// new article
 	if article.ID == "" {
-		sqlStr := "insert into article (title, ctime, mtime, user_id, tags, abstract, cover, content, trans_content) values (?, ?, ?, ?, ?, ?, ?, ?, ?)"
-		res, err := p.db.Exec(sqlStr, &article.Title, time.Now(), time.Now(), uid, &article.Tags, &article.Abstract, &article.Cover, &article.Content, &article.TransContent)
+		sqlStr := "insert into article (title, ctime, mtime, user_id, tags, abstract, cover, content, trans) values (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+		res, err := p.db.Exec(sqlStr, &article.Title, time.Now(), time.Now(), uid, &article.Tags, &article.Abstract, &article.Cover, &article.Content, &article.Trans)
 		if err != nil {
 			return "", err
 		}
@@ -265,8 +292,8 @@ func (p *Community) PutArticle(ctx context.Context, uid string, article *Article
 		return strconv.FormatInt(idInt, 10), nil
 	}
 	// edit article
-	sqlStr := "update article set title=?, mtime=?, tags=?, abstract=?, cover=?, content=?, trans_content=? where id=?"
-	_, err = p.db.Exec(sqlStr, &article.Title, time.Now(), &article.Tags, &article.Abstract, &article.Cover, &article.Content, &article.TransContent, &article.ID)
+	sqlStr := "update article set title=?, mtime=?, tags=?, abstract=?, cover=?, content=?, trans=? where id=?"
+	_, err = p.db.Exec(sqlStr, &article.Title, time.Now(), &article.Tags, &article.Abstract, &article.Cover, &article.Content, &article.Trans, &article.ID)
 	return article.ID, err
 }
 
@@ -291,18 +318,6 @@ func (p *Community) deleteMedias(ctx context.Context, uid, id string) (err error
 	err = p.DelMedias(ctx, uid, htmlIds)
 	return
 }
-
-// DeleteArticle delete the article.
-// func (p *Community) DeleteArticle(ctx context.Context, uid, id string) (err error) {
-// 	// get htmlId
-// 	err = p.deleteMedias(ctx, uid ,id)
-// 	if err != nil{
-// 		return
-// 	}
-// 	sqlStr := "delete from article where id=? and user_id=?"
-// 	_, err = p.db.Exec(sqlStr, id, uid)
-// 	return
-// }
 
 // DeleteArticle delete the article.
 func (p *Community) DeleteArticle(ctx context.Context, uid, id string) (err error) {
@@ -546,4 +561,13 @@ func (a *Community) Share(ip, platform, userId, articleId string) {
 		}
 		a.xLog.Printf("user: %s, ip: %s, share to platform: %s, articleId: %s", userId, ip, platform, articleId)
 	}(ip, platform, userId, articleId)
+}
+
+// get community application information
+func (a *Community) GetApplicationInfo() (*casdoorsdk.Application, error) {
+	a2, err := casdoorsdk.GetApplication("application_x8aevk")
+	if err != nil {
+		a.xLog.Error(err)
+	}
+	return a2, err
 }
