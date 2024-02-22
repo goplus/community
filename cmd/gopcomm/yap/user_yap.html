@@ -234,6 +234,11 @@
                                 </div>
                             </n-list-item>
                         </n-list>
+                        <!-- Loading Status -->
+                        <div class="mt-2 text-center" key="span">
+                            <n-spin v-if="!isBottom" :key="spin" size="small" stroke="#3182ce"></n-spin>
+                            <span v-if="!haveMoreData" class="text-xs text-gray-400">No more data🙌</span>
+                        </div>
                     </div>
                 </n-tab-pane>
                 <n-tab-pane name="video" tab="Videos">
@@ -388,10 +393,16 @@
 
             // Article List
             let articleList = ref(JSON.parse("{{.Items}}"));
+            console.log("articleList",articleList.value)
             let videoList = ref([]);
             let imageList = ref([]);
             let videoGet = ref(false);
             let imageGet = ref(false);
+
+            const isBottom = ref(true);
+            const next = ref("{{.Next}}"); // the page size
+            const haveMoreData = next.value === "eof" ? ref(false) : ref(true);
+
             // to change theme
             const themeOverrides = {
                 common: {
@@ -490,7 +501,57 @@
 
             }
 
+            function listenBottom() {
+                console.log("haveMoreData.value",haveMoreData.value)
+                console.log("isBottom.value",isBottom.value)
+                let scrollTop = window.scrollY;
+                let clientHeight = document.documentElement.clientHeight;
+                let scrollHeight = document.documentElement.scrollHeight;
+                if (isBottom.value && haveMoreData.value && scrollTop + clientHeight + 10 >= scrollHeight) {
+
+                    // reaching bottom detected
+                    loadMore();
+                }
+            }
+
+            function loadMore() {
+                console.log('Reach bottom! next is ', next.value, '. Loading more...');
+                // load more data into articleList
+                if (next.value !== "eof") {
+                    isBottom.value = false;
+                    window.setTimeout(() => {
+                        let url = "/userArticles?from=" + next.value + "&id=" + CurrentUser.value.id
+                        console.log("url", url)
+                        // load a new page of articles, and append it to the articleList
+                        fetch(url)
+                            .then(res => {
+                                return res.json();
+                            })
+                            .then(todos => {
+                                if (todos.code === 200) {
+                                    console.log("todos.next", todos.next)
+                                    articleList.value.push(...todos.items);
+                                    next.value = todos.next;
+                                    if (todos.next === "eof") {
+                                        haveMoreData.value = false;
+                                    }
+                                    isBottom.value = true
+                                }
+                            });
+                    }, 500)
+                } else {
+                    isBottom.value = true
+                    haveMoreData.value = false;
+                }
+            };
+
             const app = Vue.createApp({
+                mounted() {
+                    window.addEventListener('scroll', listenBottom, true);
+                },
+                destroyed() {
+                    window.removeEventListener('scroll', listenBottom, false)
+                },
                 data() {
                     return {
                         CurrentUser,
@@ -501,7 +562,10 @@
                         delImageId,
                         delVideoId,
                         themeOverrides,
-                        UserId
+                        UserId,
+                        haveMoreData,
+                        isBottom,
+                        
                     }
                 },
                 methods: {

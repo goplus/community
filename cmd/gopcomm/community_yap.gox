@@ -96,7 +96,6 @@ get "/user/:id", ctx => {
 	if err != nil {
 		xLog.Error("get current user error:", err)
 	}
-	// todo middleware
 	// get user by token
 	var user *core.User
 	userId := ""
@@ -108,9 +107,9 @@ get "/user/:id", ctx => {
 		} else {
 			userId = user.Id
 		}
-	}	
+	}
 	// get article list published by uid
-	items, _ := community.GetArticlesByUid(todo, id)
+	items, next, _ := community.GetArticlesByUid(todo, id, core.MarkBegin, limitConst)
 	userClaimJson, _ := json.Marshal(&userClaim)
 	itemsJson, _ := json.Marshal(&items)
 	ctx.yap "user", {
@@ -119,6 +118,7 @@ get "/user/:id", ctx => {
 		"User":        user,
 		"Items":       strings.Replace(string(itemsJson), `\"`, `"`, -1),
 		"UserId":      userId,
+		"Next":        next,
 	}
 }
 get "/userUnlink", ctx => {
@@ -211,15 +211,15 @@ get "/medias", ctx => {
 	uid := ctx.param("uid")
 	from := ctx.param("from")
 	fromInt, err := strconv.Atoi(from)
-    if err != nil {
-       fromInt = 0
-    }
-    limit := ctx.param("limit")
-    limitInt, err := strconv.Atoi(limit)
-    if err != nil {
-    	limitInt = limitConst
-    }
-	files,next,err := community.ListMediaByUserId(todo, uid, format,fromInt,limitInt)
+	if err != nil {
+		fromInt = 0
+	}
+	limit := ctx.param("limit")
+	limitInt, err := strconv.Atoi(limit)
+	if err != nil {
+		limitInt = limitConst
+	}
+	files, next, err := community.ListMediaByUserId(todo, uid, format, fromInt, limitInt)
 	if err != nil {
 		ctx.json {
 			"code": 0,
@@ -229,7 +229,7 @@ get "/medias", ctx => {
 	} else {
 		ctx.json {
 			"code":  200,
-			"next": next,
+			"next":  next,
 			"items": files,
 		}
 	}
@@ -300,6 +300,23 @@ get "/get", ctx => {
 		"items": articles,
 		"next":  next,
 		"value": searchValue,
+	}
+}
+
+get "/userArticles", ctx => {
+	id := ctx.param("id")
+	from := ctx.param("from")
+	limit := ctx.param("limit")
+
+	limitInt, err := strconv.Atoi(limit)
+	if err != nil {
+		limitInt = limitConst
+	}
+	items, next, _ := community.GetArticlesByUid(todo, id, from, limitInt)
+	ctx.json {
+		"code":  200,
+		"items": items,
+		"next":  next,
 	}
 }
 
@@ -411,12 +428,12 @@ post "/commit", ctx => {
 			ID:       id,
 			Title:    title,
 			UId:      uid,
-			Cover:    ctx.param("cover"),   
+			Cover:    ctx.param("cover"),
 			Tags:     tags,
 			Abstract: abstract,
 		},
-		Content:  content,
-		Trans: trans,
+		Content: content,
+		Trans:   trans,
 	}
 
 	// if trans == true translate the article
@@ -428,7 +445,7 @@ post "/commit", ctx => {
 	if err != nil {
 		ctx.json {
 			"code": 0,
-			"err": "add failed",
+			"err":  "add failed",
 		}
 	}
 	ctx.json {
@@ -447,10 +464,10 @@ get "/tranArticle", ctx => {
 		}
 	}
 	ctx.json {
-		"code": 200,
+		"code":    200,
 		"content": article.Content,
-		"tags": article.Tags,
-		"title": article.Title,
+		"tags":    article.Tags,
+		"title":   article.Title,
 	}
 }
 
@@ -544,20 +561,20 @@ post "/caption/task", ctx => {
 	if uid == "" || vid == "" {
 		ctx.json {
 			"code": 200,
-			"msg": "Invalid param",
+			"msg":  "Invalid param",
 		}
 	}
 
 	if err := community.RetryCaptionGenerate(todo, uid, vid); err != nil {
 		ctx.json {
 			"code": 200,
-			"msg": "Request task error",
+			"msg":  "Request task error",
 		}
 	}
 
 	ctx.json {
 		"code": 200,
-		"msg": "Ok",
+		"msg":  "Ok",
 	}
 }
 

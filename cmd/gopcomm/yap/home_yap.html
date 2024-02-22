@@ -226,11 +226,9 @@
                 </template>
 
                 <!-- Loading Status -->
-                <div class="mt-2 text-center" v-if="!isBottom" key="span">
-                    <n-spin :key="spin" size="small" stroke="#3182ce"></n-spin>
-                </div>
-                <div class="mt-2 text-center" v-if="!haveMoreData" key="span">
-                    <span class="text-xs text-gray-400">No more data🙌</span>
+                <div class="mt-2 text-center" key="span">
+                    <n-spin v-if="!isBottom" :key="spin" size="small" stroke="#3182ce"></n-spin>
+                    <span v-if="!haveMoreData" class="text-xs text-gray-400">No more data🙌</span>
                 </div>
             </div>
         </div>
