@@ -59,11 +59,14 @@ get "/p/:id", ctx => {
 	// todo middleware
 	// Get User Info
 	var user *core.User
+	userId := ""
 	token, err := core.GetToken(ctx)
 	if err == nil {
 		user, err = community.GetUser(token.Value)
 		if err != nil {
 			xLog.Error("get user error:", err)
+		} else {
+			userId = user.Id
 		}
 	}
 
@@ -71,6 +74,7 @@ get "/p/:id", ctx => {
 	article, _ := community.Article(todo, id)
 	articleJson, _ := json.Marshal(&article)
 	ctx.yap "article", {
+		"UserId":  userId,
 		"User":    user,
 		"Article": strings.Replace(string(articleJson), `\"`, `"`, -1),
 	}
@@ -95,17 +99,16 @@ get "/user/:id", ctx => {
 	// todo middleware
 	// get user by token
 	var user *core.User
+	userId := ""
 	token, err := core.GetToken(ctx)
 	if err == nil {
 		user, err = community.GetUser(token.Value)
 		if err != nil {
 			xLog.Error("get user error:", err)
+		} else {
+			userId = user.Id
 		}
-	}
-	userId := ""
-	if user != nil {
-		userId = user.Id
-	}
+	}	
 	// get article list published by uid
 	items, _ := community.GetArticlesByUid(todo, id)
 	userClaimJson, _ := json.Marshal(&userClaim)
@@ -151,8 +154,10 @@ get "/userEdit", ctx => {
 	appInfo, _ := community.GetApplicationInfo()
 	appInfoStr, _ := json.Marshal(*appInfo)
 	binds, _ := json.Marshal(gac.GetProviderBindStatus())
+	user := gac.GetUserSimple()
 	ctx.yap "user_edit", {
-		"User":        gac.GetUserSimple(),
+		"UserId":      user.Id,
+		"User":        user,
 		"Application": string(appInfoStr),
 		"Binds":       string(binds),
 	}
@@ -160,15 +165,19 @@ get "/userEdit", ctx => {
 
 get "/add", ctx => {
 	var user *core.User
+	userId := ""
 	token, err := core.GetToken(ctx)
 	if err == nil {
 		user, err = community.GetUser(token.Value)
 		if err != nil {
 			xLog.Error("get user error:", err)
+		} else {
+			userId = user.Id
 		}
 	}
 	ctx.yap "edit", {
-		"User": user,
+		"User":   user,
+		"UserId": userId,
 	}
 }
 
@@ -329,11 +338,14 @@ get "/search", ctx => {
 
 get "/edit/:id", ctx => {
 	var user *core.User
+	userId := ""
 	token, err := core.GetToken(ctx)
 	if err == nil {
 		user, err = community.GetUser(token.Value)
 		if err != nil {
 			xLog.Error("get user error:", err)
+		} else {
+			userId = user.Id
 		}
 	}
 
@@ -347,6 +359,7 @@ get "/edit/:id", ctx => {
 		article, _ := community.Article(todo, id)
 		articleJson, _ := json.Marshal(&article)
 		ctx.yap "edit", {
+			"UserId":  userId,
 			"User":    user,
 			"Article": strings.Replace(string(articleJson), `\"`, `"`, -1),
 		}

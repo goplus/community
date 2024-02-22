@@ -38,9 +38,10 @@
                     Home</a>
                 </n-breadcrumb-item>
                 <n-breadcrumb-item>
-                    <a><i class="ph ph-user" style="font-size: 18px; margin-right: 5px;"></i>
-                    ${ CurrentUser.name }</a>
-            </n-breadcrumb-item>
+                    <i class="ph ph-user" style="font-size: 18px; margin-right: 5px;"></i>
+                    ${ CurrentUser.name }
+                </n-breadcrumb-item>
+            </n-breadcrumb>
 
             <div style="padding: 40px 40px; margin: 30px auto;" class="container px-5 py-3 mx-auto bg-white rounded-lg">
                 <!-- Personal Profile -->
@@ -64,16 +65,17 @@
                             <!-- Gender & Birthday -->
                             <n-gi class="flex items-center">
                                 <i class="ph-duotone ph-user-circle" style="color: #ef5028; font-size: 20px;"></i>
-                                <p class="ml-3 text-gray-400">
-                                    ${ CurrentUser.gender }
-                                <p class="text-gray-400">, born on ${ CurrentUser.birthday }</p>
+                                <p v-if="CurrentUser.gender" class="ml-3 text-gray-400">
+                                    ${ CurrentUser.gender }, 
                                 </p>
+                                <p v-if="CurrentUser.birthday" class="text-gray-400"> born on ${ CurrentUser.birthday }</p>
+                                <p v-if="!CurrentUser.gender && !CurrentUser.birthday" class="ml-3 text-gray-400">birthday is empty</p>
                             </n-gi>
 
                             <!-- Created Time -->
                             <n-gi class="flex items-center">
                                 <i class="ph-duotone ph-calendar-check" style="color: #3182ce; font-size: 20px;"></i>
-                                <p class="ml-3 text-gray-400">${ CurrentUser.createdTime } Joined GoPlus Community</p>
+                                <p class="ml-3 text-gray-400">${ CurrentUser.createdTime.slice(0,10) } Joined GoPlus Community</p>
                             </n-gi>
 
                             <!-- Email -->
@@ -396,7 +398,7 @@
                     primaryColor: '#3f83f8'
                 },
                 Tab: {
-                    backgroundColor: '#3f83f8',  // 设置 Tab 背景色
+                    backgroundColor: '#3f83f8',
                 }
             }
             /*=======delete Article=======*/
