@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Markdown</title>
-   
+
     <!-- Vue -->
     <script src="https://unpkg.com/vue"></script>
 
@@ -23,8 +23,8 @@
     <link rel="preconnect" href="https://fonts.proxy.ustclug.org">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.proxy.ustclug.org/css2?family=Noto+Sans+SC&display=swap" rel="stylesheet">
-     <!-- Plyr组件-->
-     <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <!-- Plyr组件-->
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
 
     <style type="text/css" media="screen, print">
         body {
@@ -58,205 +58,241 @@
 
 <body>
     {{ template "header" .}}
-    <n-config-provider :theme-overrides="themeOverrides">
-        <div id="app" class="h-full w-full" style="background: url('/static/img/editor-background.svg') top no-repeat;
+    <div id="app" class="h-full w-full" style="background: url('/static/img/editor-background.svg') top no-repeat;
             background-size: 100% auto;">
-            
-            <!-- Header -->
-            <div class="flex items-center justify-between mb-2">
-                <!-- Back Button -->
-                <n-button quaternary color="#808080" @click="goBack">
-                    <template #icon>
-                        <i class="ph-fill ph-arrow-line-left" style="font-size: 24px;"></i>
-                    </template>
-                </n-button>
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-2">
+            <!-- Back Button -->
+            <n-button quaternary color="#808080" @click="goBack">
+                <template #icon>
+                    <i class="ph-fill ph-arrow-line-left" style="font-size: 24px;"></i>
+                </template>
+            </n-button>
 
-                <span v-if="isAdd" style="color: #3182ce; font-weight: 700; font-size: medium; white-space: nowrap;"
-                    class="ml-2">Article Add</span>
-                <span v-else style="color: #3182ce; font-weight: 700; font-size: medium; white-space: nowrap;"
-                    class="ml-2">Article Editor</span>
+            <span v-if="isAdd" style="color: #3182ce; font-weight: 700; font-size: medium; white-space: nowrap;"
+                class="ml-2">New Article</span>
+            <span v-else style="color: #3182ce; font-weight: 700; font-size: medium; white-space: nowrap;"
+                class="ml-2">Edit Article</span>
 
-                <n-divider vertical style="--n-color: #e0e0e6; margin: 0 0.5rem;"></n-divider>
+            <n-divider vertical style="--n-color: #e0e0e6; margin: 0 0.5rem;"></n-divider>
 
-                <!-- Title Input -->
-                <n-input v-model:value="articleForm.title" placeholder="Input the article title" clearable size="large"
-                    maxlength="50" show-count style="width: 60%; 
+            <!-- Title Input -->
+            <n-input v-model:value="articleForm.title" placeholder="Input the article title" clearable size="large"
+                maxlength="50" show-count style="width: 60%; 
                     --n-caret-color: #3182ce; --n-border: 1px solid #ecf5fe;
                     --n-border-hover: 1px solid #ecf5fe; --n-border-focus: 1px solid #2a82e4; 
                     --n-box-shadow-focus: 0 0 0 2.5px #cee1f5;">
-                </n-input>
+            </n-input>
 
-                <!-- TODO: Export Button -->
-                <n-button class="ml-2" style="--n-border-radius: 7px; --n-ripple-color: #7ba7d3; 
+            <!-- TODO: Export Button -->
+            <n-button class="ml-2" style="--n-border-radius: 7px; --n-ripple-color: #7ba7d3; 
                     --n-text-color-hover: #2a82e4; --n-text-color-pressed: #3182ce;
                     --n-text-color-focus: #2a82e4; --n-border-hover: 1px solid #2a82e4;
                     --n-border-pressed: 1px solid #3182ce; --n-border-focus: 1px solid #2a82e4;">
-                    <template #icon>
-                        <i class="ph-bold ph-export"></i>
-                    </template>
-                    <span style="font-weight: 600;">Export</span>
-                </n-button>
+                <template #icon>
+                    <i class="ph-bold ph-export"></i>
+                </template>
+                <span style="font-weight: 600;">Export</span>
+            </n-button>
 
-                <!-- Translate Button -->
-                <n-button @click="translateMd" class="ml-2" style="--n-border-radius: 7px; --n-ripple-color: #7ba7d3; 
-                    --n-text-color-hover: #2a82e4; --n-text-color-pressed: #3182ce;
-                    --n-text-color-focus: #2a82e4; --n-border-hover: 1px solid #2a82e4;
-                    --n-border-pressed: 1px solid #3182ce; --n-border-focus: 1px solid #2a82e4;">
-                    <template #icon>
-                        <i class="ph-bold ph-translate"></i>
-                    </template>
-                    <span style="font-weight: 600;">Translate</span>
-                </n-button>
+            <!-- Translate Button -->
+            <n-tooltip trigger="hover" placement="bottom">
+                <template #trigger>
+                    <n-button @click="showTranNotice=true" class="ml-2" style="--n-border-radius: 7px; --n-ripple-color: #7ba7d3; 
+                            --n-text-color-hover: #2a82e4; --n-text-color-pressed: #3182ce;
+                            --n-text-color-focus: #2a82e4; --n-border-hover: 1px solid #2a82e4;
+                            --n-border-pressed: 1px solid #3182ce; --n-border-focus: 1px solid #2a82e4;">
+                        <template #icon>
+                            <i class="ph-bold ph-translate"></i>
+                        </template>
+                        <span style="font-weight: 600;">Translate</span>
+                    </n-button>
+                </template>
+                translate into English
+            </n-tooltip>
 
-                <!-- Submit Button -->
-                <n-button @click="modalVisible" class="ml-2" color="#3182ce"
-                    style="--n-border-radius: 7px; background-color: #3182ce;">
-                    <template #icon>
-                        <i class="ph-bold ph-paper-plane-tilt"></i>
-                    </template>
-                    <span style="font-weight: 600;">Submit</span>
-                </n-button>
-                <n-modal v-model:show="showModal" preset="card" size="huge" :bordered="false" :segmented="true"
-                    style="width: 60%; height: 75vh; overflow-y: auto;">
-                    <template #header>
-                        <div style="text-align: center;">
-                            <span style="font-weight: 600; font-size: larger;">📫Post this article</span>
-                        </div>
-                    </template>
+            <!-- Submit Button -->
+            <n-button @click="modalVisible" class="ml-2" color="#3182ce"
+                style="--n-border-radius: 7px; background-color: #3182ce;">
+                <template #icon>
+                    <i class="ph-bold ph-paper-plane-tilt"></i>
+                </template>
+                <span style="font-weight: 600;">Submit</span>
+            </n-button>
+            <!-- Submit Form -->
+            <n-modal v-model:show="showModal" preset="card" size="huge" :bordered="false" :segmented="true"
+                style="width: 60%; height: 75vh; overflow-y: auto;">
+                <template #header>
+                    <div style="text-align: center;">
+                        <span style="font-weight: 600; font-size: larger;">📫Post this article</span>
+                    </div>
+                </template>
 
-                    <n-form ref="formRef" :label-width="200" :model="articleForm" :rules="rules">
-                        <!-- Tags -->
-                        <n-form-item label="Tags" path="tags">
-                            <n-dynamic-tags v-model:value="articleForm.tags" :rule="{
+                <n-form ref="formRef" :label-width="200" :model="articleForm" :rules="rules">
+                    <!-- Tags -->
+                    <n-form-item label="Tags" path="tags">
+                        <n-dynamic-tags v-model:value="articleForm.tags" :rule="{
                                 required: true,
                                 message: 'Please input at least one tag',
                                 trigger: ['change']
                             }"></n-dynamic-tags>
-                        </n-form-item>
+                    </n-form-item>
 
-                        <!-- Abstract -->
-                        <n-form-item label="Abstract" path="abstract">
-                            <n-input v-model:value="articleForm.abstract" type="textarea" show-count :min-length="15"
-                                placeholder="write an abstract for your article" style="--n-caret-color: #3182ce; --n-border: 1px solid #ecf5fe;
+                    <!-- Abstract -->
+                    <n-form-item label="Abstract" path="abstract">
+                        <n-input v-model:value="articleForm.abstract" type="textarea" show-count :min-length="15"
+                            placeholder="write an abstract for your article" style="--n-caret-color: #3182ce; --n-border: 1px solid #ecf5fe;
                                 --n-border-hover: 1px solid #ecf5fe; --n-border-focus: 1px solid #2a82e4; 
                                 --n-box-shadow-focus: 0 0 0 2px #cee1f5;" :rule="{
                                 required: true,
                                 message: 'Please input abstract',
                                 trigger: ['input', 'blur']
                             }"></n-input>
-                        </n-form-item>
+                    </n-form-item>
 
-                        <!-- Translate to en -->
-                        <n-form-item label="Translate into English" path="translate">
-                            <n-switch v-model:value="articleForm.trans" @update:value="changeTrans"/>
-                        </n-form-item>
+                    <!-- Translate to en -->
+                    <n-form-item label="Translate into English" path="translate">
+                        <n-switch v-model:value="articleForm.trans" @update:value="changeTrans" />
+                    </n-form-item>
 
-                        <!-- Cover -->
-                        <n-form-item label="Cover" path="cover">
+                    <!-- Cover -->
+                    <n-form-item label="Cover" path="cover">
 
-                            <!-- TODO: @Shi 预览封面 -->
-                            <n-upload :max="1" directory-dnd accept="image/png, image/jpg, image/jpeg"
-                                @change="changeCover" :custom-request="customRequest" :default-file-list="fileList">
-                                <n-upload-dragger
-                                    style="--n-dragger-border-hover: 1.5px dashed #3182ce; border-radius: 7px;">
-                                    <div class="mb-1">
-                                        <i class="ph-fill ph-folder-notch-plus"
-                                            style="font-size: 70px; color: #808080;"></i>
-                                    </div>
-                                </n-upload-dragger>
-                            </n-upload>
-                        </n-form-item>
-                    </n-form>
+                        <!-- TODO: @Shi 预览封面 -->
+                        <n-upload :max="1" directory-dnd accept="image/png, image/jpg, image/jpeg" @change="changeCover"
+                            :custom-request="customRequest" :default-file-list="fileList">
+                            <n-upload-dragger
+                                style="--n-dragger-border-hover: 1.5px dashed #3182ce; border-radius: 7px;">
+                                <div class="mb-1">
+                                    <i class="ph-fill ph-folder-notch-plus"
+                                        style="font-size: 70px; color: #808080;"></i>
+                                </div>
+                            </n-upload-dragger>
+                        </n-upload>
+                    </n-form-item>
+                </n-form>
 
-                    <!-- Cancel Button & Submit Button -->
-                    <template #footer>
-                        <div class="w-full flex justify-end">
-                            <!-- Cancel Button -->
-                            <n-button @click="showModal = false" style="--n-border-radius: 5px; --n-ripple-color: #7ba7d3; 
+                <!-- Cancel Button & Submit Button -->
+                <template #footer>
+                    <div class="w-full flex justify-end">
+                        <!-- Cancel Button -->
+                        <n-button @click="showModal = false" style="--n-border-radius: 5px; --n-ripple-color: #7ba7d3; 
                             --n-text-color-hover: #2a82e4; --n-text-color-pressed: #3182ce;
                             --n-text-color-focus: #2a82e4; --n-border-hover: 1px solid #2a82e4;
                             --n-border-pressed: 1px solid #3182ce; --n-border-focus: 1px solid #2a82e4;">
-                                <span>Cancel</span>
+                            <span>Cancel</span>
+                        </n-button>
+
+                        <!-- Submit Button -->
+                        <n-button @click="submitArticle" class="ml-2" color="#3182ce"
+                            style="--n-border-radius: 5px; background-color: #3182ce;">
+                            <span>Confirm</span>
+                        </n-button>
+                    </div>
+                </template>
+            </n-modal>
+            <!-- Message Prompts -->
+            <transition enter-active-class="ease-out duration-300 transform"
+                leave-active-class="ease-in duration-300 transform" enter-class="scale-50 opacity-0"
+                enter-to-class="scale-100 opacity-100" leave-class="scale-100 opacity-100"
+                leave-to-class="scale-50 opacity-0">
+                <!-- Fill in Title and Content -->
+                <div v-if="showBothNotice" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-10">
+                    <div class="bg-white shadow-xl rounded-lg p-4 right-0 mr-4 mt-4 border border-gray-300">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center">
+                                <div class="text-red-500 mr-1">
+                                    <i class="ph-duotone ph-warning" style="font-size: 27px;"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-lg font-semibold text-red-500">Please fill in the article title
+                                        and content!
+                                    </p>
+                                    <p class="text-sm text-gray-500">Your article information is incomplete.</p>
+                                </div>
+                            </div>
+                            <n-button quaternary size="tiny" class="ml-3" @click="showBothNotice=false">
+                                <i class="ph-bold ph-x" style="font-size: 15px;"></i>
                             </n-button>
+                        </div>
+                    </div>
+                </div>
 
-                            <!-- Submit Button -->
-                            <n-button @click="submitArticle" class="ml-2" color="#3182ce"
-                                style="--n-border-radius: 5px; background-color: #3182ce;">
-                                <span>Confirm</span>
+                <!-- Fill in Title -->
+                <div v-if="showTitleNotice" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-10">
+                    <div class="bg-white shadow-xl rounded-lg p-4 right-0 mr-4 mt-4 border border-gray-300">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center">
+                                <div class="text-red-500 mr-1">
+                                    <i class="ph-duotone ph-warning" style="font-size: 27px;"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-lg font-semibold text-red-500">Please fill in the article title!
+                                    </p>
+                                    <p class="text-sm text-gray-500">Your article information is incomplete.</p>
+                                </div>
+                            </div>
+                            <n-button quaternary size="tiny" class="ml-3" @click="showTitleNotice=false">
+                                <i class="ph-bold ph-x" style="font-size: 15px;"></i>
                             </n-button>
                         </div>
-                    </template>
-                </n-modal>
-                <transition enter-active-class="ease-out duration-300 transform"
-                    leave-active-class="ease-in duration-300 transform" enter-class="scale-50 opacity-0"
-                    enter-to-class="scale-100 opacity-100" leave-class="scale-100 opacity-100"
-                    leave-to-class="scale-50 opacity-0">
-                    <div v-if="showBothNotice" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-10">
-                        <div class="bg-white shadow-xl rounded-lg p-4 right-0 mr-4 mt-4 border border-gray-300">
-                            <div class="flex items-start justify-between">
-                                <div class="flex items-center">
-                                    <div class="text-red-500 mr-1">
-                                        <i class="ph-duotone ph-warning" style="font-size: 27px;"></i>
-                                    </div>
-                                    <div class="ml-3">
-                                        <p class="text-lg font-semibold text-red-500">Please fill in the article title
-                                            and content!
-                                        </p>
-                                        <p class="text-sm text-gray-500">Your article information is incomplete.</p>
-                                    </div>
-                                </div>
-                                <n-button quaternary size="tiny" class="ml-3" @click="showBothNotice=false">
-                                    <i class="ph-bold ph-x" style="font-size: 15px;"></i>
-                                </n-button>
-                            </div>
-                        </div>
                     </div>
-                    <div v-if="showTitleNotice" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-10">
-                        <div class="bg-white shadow-xl rounded-lg p-4 right-0 mr-4 mt-4 border border-gray-300">
-                            <div class="flex items-start justify-between">
-                                <div class="flex items-center">
-                                    <div class="text-red-500 mr-1">
-                                        <i class="ph-duotone ph-warning" style="font-size: 27px;"></i>
-                                    </div>
-                                    <div class="ml-3">
-                                        <p class="text-lg font-semibold text-red-500">Please fill in the article title!
-                                        </p>
-                                        <p class="text-sm text-gray-500">Your article information is incomplete.</p>
-                                    </div>
-                                </div>
-                                <n-button quaternary size="tiny" class="ml-3" @click="showTitleNotice=false">
-                                    <i class="ph-bold ph-x" style="font-size: 15px;"></i>
-                                </n-button>
-                            </div>
-                        </div>
-                    </div>
-                    <div v-if="showContentNotice" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-10">
-                        <div class="bg-white shadow-xl rounded-lg p-4 right-0 mr-4 mt-4 border border-gray-300">
-                            <div class="flex items-start justify-between">
-                                <div class="flex items-center">
-                                    <div class="text-red-500 mr-1">
-                                        <i class="ph-duotone ph-warning" style="font-size: 27px;"></i>
-                                    </div>
-                                    <div class="ml-3">
-                                        <p class="text-lg font-semibold text-red-500">Please fill in the article
-                                            content!
-                                        </p>
-                                        <p class="text-sm text-gray-500">Your article information is incomplete.</p>
-                                    </div>
-                                </div>
-                                <n-button quaternary size="tiny" class="ml-3" @click="showContentNotice=false">
-                                    <i class="ph-bold ph-x" style="font-size: 15px;"></i>
-                                </n-button>
-                            </div>
-                        </div>
-                    </div>
-                </transition>
-            </div>
+                </div>
 
-            <!-- Content -->
-            <markdown-editor></markdown-editor>
+                <!-- Fill in Content -->
+                <div v-if="showContentNotice" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-10">
+                    <div class="bg-white shadow-xl rounded-lg p-4 right-0 mr-4 mt-4 border border-gray-300">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center">
+                                <div class="text-red-500 mr-1">
+                                    <i class="ph-duotone ph-warning" style="font-size: 27px;"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-lg font-semibold text-red-500">Please fill in the article
+                                        content!
+                                    </p>
+                                    <p class="text-sm text-gray-500">Your article information is incomplete.</p>
+                                </div>
+                            </div>
+                            <n-button quaternary size="tiny" class="ml-3" @click="showContentNotice=false">
+                                <i class="ph-bold ph-x" style="font-size: 15px;"></i>
+                            </n-button>
+                        </div>
+                    </div>
+                </div>
 
-            <!-- <video controls crossorigin playsinline poster="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg">
+                <!-- Sure to translate -->
+                <div v-if="showTranNotice" class="fixed inset-0 flex items-center justify-center z-10">
+                    <div class="bg-white shadow-xl rounded-lg px-5 py-4 right-0 mr-4 mt-4 border border-gray-300">
+                        <div class="flex items-start">
+                            <div class="text-yellow-400 mr-1">
+                                <i class="ph-duotone ph-warning-circle" style="font-size: 27px;"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-lg font-semibold" style="color: #e3a008;">TIPS</p>
+                                <p class="text-gray-500">Are you sure to translate all article content into English?</p>
+                                <p class="text-gray-500">Note: This action is irreversible.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-end mt-2">
+                            <n-button strong secondary size="small" style="font-weight: 600;"
+                                @click="showTranNotice=false">
+                                Cancel
+                            </n-button>
+                            <n-button strong secondary type="warning" size="small" style="font-weight: 600;"
+                                class="ml-3" @click="translateMd">
+                                Confirm
+                            </n-button>
+                        </div>
+                    </div>
+                </div>
+            </transition>
+        </div>
+
+        <!-- Content -->
+        <markdown-editor></markdown-editor>
+
+        <!-- <video controls crossorigin playsinline poster="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg">
                 <source src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4" type="video/mp4" size="576">
                 <source src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-720p.mp4" type="video/mp4" size="720">
                 <source src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-1080p.mp4" type="video/mp4" size="1080">
@@ -266,259 +302,263 @@
                 <track kind="captions" label="Français" srclang="fr" src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.fr.vtt">
                 <a href="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4" download>Download</a>
             </video> -->
-        </div>
+    </div>
 
-        <script>
-            const p = new Plyr('video', {captions: {active: true}});
+    <script>
+        const p = new Plyr('video', { captions: { active: true } });
 
-            // import '/static/GoplusMarkdown/vue-plyr.css'
+        // import '/static/GoplusMarkdown/vue-plyr.css'
 
-            const { reactive, toRefs, ref, h } = Vue;
+        const { reactive, toRefs, ref, h } = Vue;
 
-            /*======= article info =======*/
-            const showBothNotice = ref(false);
-            const showTitleNotice = ref(false);
-            const showContentNotice = ref(false);
-            const showModal = ref(false);
-            const formRef = ref(null);
+        /*======= article info =======*/
+        const showBothNotice = ref(false);
+        const showTitleNotice = ref(false);
+        const showContentNotice = ref(false);
+        const showTranNotice = ref(false);
+        const showModal = ref(false);
+        const formRef = ref(null);
 
-            // a form to be filled out by user in frontend
-            const articleForm = ref({
-                title: '',
-                tags: [],
-                abstract: '',
-                trans:false
+        // a form to be filled out by user in frontend
+        const articleForm = ref({
+            title: '',
+            tags: [],
+            abstract: '',
+            trans: false
+        });
+        let coverUrl = "";
+
+        // form validate
+        const rules = {
+            abstract: {
+                required: true,
+                message: 'Please input abstract',
+                trigger: ['input', 'blur']
+            },
+        }
+
+        // edit
+        const isAdd = window.location.href.indexOf("edit") !== -1 ? ref(false) : ref(true)
+        const article = isAdd.value ? {} : JSON.parse("{{.Article}}")
+        const fileList = isAdd.value ? ref([]) : ref([{
+            id: "cover",
+            status: "finished",
+            url: article.Cover,
+        }])
+
+        // a form to be submitted to backend
+        const formData = new FormData();
+
+        // step1: user uploads a cover file
+        async function changeCover(f) {
+            // wait for the file to be added successfully
+            await new Promise((resolve) => {
+                resolve();
             });
-            let coverUrl = "";
+        }
 
-            // form validate
-            const rules = {
-                abstract: {
-                    required: true,
-                    message: 'Please input abstract',
-                    trigger: ['input', 'blur']
-                },
-            }
-
-            // edit
-            const isAdd = window.location.href.indexOf("edit") !== -1 ? ref(false) : ref(true)
-            const article = isAdd.value ? {} : JSON.parse("{{.Article}}")
-            const fileList = isAdd.value ? ref([]) : ref([{
-                id: "cover",
-                status: "finished",
-                url: article.Cover,
-            }])
-
-            // a form to be submitted to backend
-            const formData = new FormData();
-
-            // step1: user uploads a cover file
-            async function changeCover(f) {
-                // wait for the file to be added successfully
-                await new Promise((resolve) => {
-                    resolve();
-                });
-            }
-
-            // step2: organize the formData in frontend
-            function submitArticle(e) {
-                this.$nextTick(() => {
-                    this.$refs.formRef?.validate((errors) => {
-                        if (!errors) {
+        // step2: organize the formData in frontend
+        function submitArticle(e) {
+            this.$nextTick(() => {
+                this.$refs.formRef?.validate((errors) => {
+                    if (!errors) {
                         // convert the tags array into a string, separated by "; "
-                            let tags = ref();
-                            if (Array.isArray(articleForm.value.tags) && articleForm.value.tags.length > 0) {
-                                tags.value = articleForm.value.tags.join(';');
-                            } else {
-                                tags.value = null;
-                            }
-                            console.log('tags:', tags.value);
-
-                            if (!isAdd.value) {
-                                formData.append("id", article.ID)
-                            }
-
-                            // organize the formData
-                            formData.append("title", articleForm.value.title);
-                            formData.append("tags", tags.value);
-                            formData.append("abstract", articleForm.value.abstract);
-                            formData.append("cover", coverUrl);
-                            formData.append("content", window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown())
-                            formData.append("trans", articleForm.value.trans)
-                            // upload the formData to backend
-                            uploadArticle(formData);
+                        let tags = ref();
+                        if (Array.isArray(articleForm.value.tags) && articleForm.value.tags.length > 0) {
+                            tags.value = articleForm.value.tags.join(';');
                         } else {
-                            console.log(errors);
+                            tags.value = null;
                         }
-                    });  
+                        console.log('tags:', tags.value);
+
+                        if (!isAdd.value) {
+                            formData.append("id", article.ID)
+                        }
+
+                        // organize the formData
+                        formData.append("title", articleForm.value.title);
+                        formData.append("tags", tags.value);
+                        formData.append("abstract", articleForm.value.abstract);
+                        formData.append("cover", coverUrl);
+                        formData.append("content", window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown())
+                        formData.append("trans", articleForm.value.trans)
+                        // upload the formData to backend
+                        uploadArticle(formData);
+                    } else {
+                        console.log(errors);
+                    }
                 });
-                
-            }
-
-            // step3: upload the formData to backend 
-            function uploadArticle(formData) {
-                console.log("submit")
-                const options = {
-                    method: 'POST',
-                    body: formData,
-                    // headers: {
-                    //     'Content-Type': 'multipart/form-data'
-                    // },
-                }
-                fetch("/commit", options)
-                    .then(res => {
-                        return res.json();
-                    })
-                    .then(todos => {
-                        if (todos.code === 200) {
-                            // success delete  articleList or get articleList
-                            window.location.href = "/p/" + todos.data
-                        }
-                    });
-            }
-
-            function translateMd() {
-                const md = window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown()
-                const transMd = new FormData();
-                transMd.append("content", md)
-                fetch("/translate", {
-                    method: 'POST',
-                    body: transMd,
-                })
-                    .then(res => {
-                        return res.json();
-                    })
-                    .then(todos => {
-                        if (todos.code === 200) {
-                            // save origin content
-                            content = md
-                            window.GoplusMarkdown.MarkdownEditor.methods.setMarkdown(todos.data)
-                        }
-                    });
-            }
-
-            function customRequest(option) {
-                console.log("option", option)
-                const file = option.file
-                const coverData = new FormData();
-                coverData.append('file', file.file);
-
-                const options = {
-                    method: 'POST',
-                    body: coverData,
-                    // headers: {
-                    //     'Content-Type': 'multipart/form-data'
-                    // },
-                }
-                fetch("/upload", options)
-                    .then(res => {
-                        return res.json();
-                    })
-                    .then(todos => {
-                        console.log("cover", todos)
-                        fetch('/getMediaUrl/' + todos)
-                            .then(resUrl => {
-                                return resUrl.json();
-                            })
-                            .then(todosUrl => {
-                                if (todosUrl.code === 200) {
-                                    coverUrl = todosUrl.url
-                                }
-                            });
-
-                    });
-            }
-
-            function modalVisible() {
-                if (articleForm.value.title === "" && window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown() === "") {
-                    showBothNotice.value = true;
-                    return
-                } else if (articleForm.value.title === "") {
-                    showTitleNotice.value = true;
-                    return
-                } else if (window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown() === "") {
-                    showContentNotice.value = true;
-                    return
-                }
-                showModal.value = true;     
-            }
-
-            function goBack() {
-                window.location.href = "/"
-            }
-
-            function changeTrans(value){
-                articleForm.value.trans = value
-            }
-
-            /*======= register vue component =======*/
-            const app = Vue.createApp({
-                data() {
-                    return {
-                        showBothNotice,
-                        showTitleNotice,
-                        showContentNotice,
-                        showModal,
-                        articleForm,
-                        isAdd,
-                        fileList,
-                        rules,
-                        formRef
-                    }
-                },
-                methods: {
-                    changeCover,
-                    submitArticle,
-                    translateMd,
-                    customRequest,
-                    modalVisible,
-                    goBack,
-                    changeTrans
-                },
-                components: {
-                    MarkdownEditor: window.GoplusMarkdown.MarkdownEditor
-                },
-                mounted() {
-                    if (!isAdd.value) {
-                        articleForm.value.title = article.Title
-                        articleForm.value.tags = article.Tags.split(";")
-                        articleForm.value.abstract = article.Abstract
-                        articleForm.value.trans = article.Trans
-                        coverUrl = article.Cover
-                        window.GoplusMarkdown.MarkdownEditor.methods.setMarkdown(article.Content)
-                    }
-                },
-                watch: {
-                    // automatically close notification after 3 seconds
-                    showBothNotice(newValue) {
-                        if (newValue) {
-                            setTimeout(() => {
-                                showBothNotice.value = false;
-                            }, 3000);
-                        }
-                    },
-                    showTitleNotice(newValue) {
-                        if (newValue) {
-                            setTimeout(() => {
-                                showTitleNotice.value = false;
-                            }, 3000);
-                        }
-                    },
-                    showContentNotice(newValue) {
-                        if (newValue) {
-                            setTimeout(() => {
-                                showContentNotice.value = false;
-                            }, 3000);
-                        }
-                    },
-                },
             });
 
-            app.use(naive)
-            app.config.compilerOptions.delimiters = ['${', '}']
-            app.mount('#app')
-        </script>
-    </n-config-provider>
+        }
+
+        // step3: upload the formData to backend 
+        function uploadArticle(formData) {
+            console.log("submit")
+            const options = {
+                method: 'POST',
+                body: formData,
+                // headers: {
+                //     'Content-Type': 'multipart/form-data'
+                // },
+            }
+            fetch("/commit", options)
+                .then(res => {
+                    return res.json();
+                })
+                .then(todos => {
+                    if (todos.code === 200) {
+                        // success delete  articleList or get articleList
+                        window.location.href = "/p/" + todos.data
+                    }
+                });
+        }
+
+        // translate md
+        function translateMd() {
+            showTranNotice.value = false;
+
+            const md = window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown()
+            const transMd = new FormData();
+            transMd.append("content", md)
+            fetch("/translate", {
+                method: 'POST',
+                body: transMd,
+            })
+                .then(res => {
+                    return res.json();
+                })
+                .then(todos => {
+                    if (todos.code === 200) {
+                        // save origin content
+                        content = md
+                        window.GoplusMarkdown.MarkdownEditor.methods.setMarkdown(todos.data)
+                    }
+                });
+        }
+
+        function customRequest(option) {
+            console.log("option", option)
+            const file = option.file
+            const coverData = new FormData();
+            coverData.append('file', file.file);
+
+            const options = {
+                method: 'POST',
+                body: coverData,
+                // headers: {
+                //     'Content-Type': 'multipart/form-data'
+                // },
+            }
+            fetch("/upload", options)
+                .then(res => {
+                    return res.json();
+                })
+                .then(todos => {
+                    console.log("cover", todos)
+                    fetch('/getMediaUrl/' + todos)
+                        .then(resUrl => {
+                            return resUrl.json();
+                        })
+                        .then(todosUrl => {
+                            if (todosUrl.code === 200) {
+                                coverUrl = todosUrl.url
+                            }
+                        });
+
+                });
+        }
+
+        function modalVisible() {
+            if (articleForm.value.title === "" && window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown() === "") {
+                showBothNotice.value = true;
+                return
+            } else if (articleForm.value.title === "") {
+                showTitleNotice.value = true;
+                return
+            } else if (window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown() === "") {
+                showContentNotice.value = true;
+                return
+            }
+            showModal.value = true;
+        }
+
+        function goBack() {
+            window.history.back();
+        }
+
+        function changeTrans(value) {
+            articleForm.value.trans = value
+        }
+
+        /*======= register vue component =======*/
+        const app = Vue.createApp({
+            data() {
+                return {
+                    showBothNotice,
+                    showTitleNotice,
+                    showContentNotice,
+                    showTranNotice,
+                    showModal,
+                    articleForm,
+                    isAdd,
+                    fileList,
+                    rules,
+                    formRef
+                }
+            },
+            methods: {
+                changeCover,
+                submitArticle,
+                translateMd,
+                customRequest,
+                modalVisible,
+                goBack,
+                changeTrans
+            },
+            components: {
+                MarkdownEditor: window.GoplusMarkdown.MarkdownEditor
+            },
+            mounted() {
+                if (!isAdd.value) {
+                    articleForm.value.title = article.Title
+                    articleForm.value.tags = article.Tags.split(";")
+                    articleForm.value.abstract = article.Abstract
+                    articleForm.value.trans = article.Trans
+                    coverUrl = article.Cover
+                    window.GoplusMarkdown.MarkdownEditor.methods.setMarkdown(article.Content)
+                }
+            },
+            watch: {
+                // automatically close notification after 3 seconds
+                showBothNotice(newValue) {
+                    if (newValue) {
+                        setTimeout(() => {
+                            showBothNotice.value = false;
+                        }, 3000);
+                    }
+                },
+                showTitleNotice(newValue) {
+                    if (newValue) {
+                        setTimeout(() => {
+                            showTitleNotice.value = false;
+                        }, 3000);
+                    }
+                },
+                showContentNotice(newValue) {
+                    if (newValue) {
+                        setTimeout(() => {
+                            showContentNotice.value = false;
+                        }, 3000);
+                    }
+                },
+            },
+        });
+
+        app.use(naive)
+        app.config.compilerOptions.delimiters = ['${', '}']
+        app.mount('#app')
+    </script>
 </body>
 
 </html>
