@@ -97,7 +97,9 @@ export default {
                             let vtt_a = now_v[i]
                             console.log("=========duibi", src, src_a)
                             // console.log("src", src)
-                            return `<div><video controls crossorigin playsinline data-poster="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg" id="player"><source src=${src_a} type="video/mp4" size="576"/><track kind="captions" label="English" srclang="en" src=${vtt_a} default/><track kind="captions" label="Français" srclang="fr" src=${vtt_a}/><a href=${src_a} download>Download</a></video></div>`
+                            // return `<div><video controls crossorigin playsinline data-poster="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg" id="player"><source src=${src_a} type="video/mp4" size="576"/><track kind="captions" label="English" srclang="en" src=${vtt_a} default/><track kind="captions" label="Français" srclang="fr" src=${vtt_a}/><a href=${src_a} download>Download</a></video></div>`
+                            let poster = src_a + "/vframe/jpg/offset/7"
+                            return `<div><video controls crossorigin playsinline preload="meta" poster=${poster} id="player"><source src=${src_a} type="video/mp4" size="576"/><track kind="captions" label="English" srclang="en" src=${vtt_a} default/><track kind="captions" label="Français" srclang="fr" src=${vtt_a}/><a href=${src_a} download>Download</a></video></div>`
                         })
                     }
                     console.log("replace")
