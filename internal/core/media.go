@@ -275,7 +275,7 @@ func (c *Community) ListMediaByUserId(ctx context.Context, userId string, format
 	if err != nil || total == 0 {
 		return []File{}, 0, err
 	}
-	sqlStr = "select * from file where user_id = ? "
+	sqlStr = "select id, create_at, update_at, file_key, format, user_id, size from file where user_id = ? "
 	var args []any
 	args = append(args, userId)
 	var rows *sql.Rows

@@ -298,7 +298,7 @@
                                         <!-- Video Cover -->
                                         <!-- TODO: @Bai 视频封面src -->
                                         <img class="w-full object-cover rounded" style="height: 20vh; width: 32vh;"
-                                            :src="" alt="">
+                                            src="" alt="">
                                     </template>
 
                                     <!-- content -->
@@ -306,7 +306,7 @@
                                         <div class="absolute top-4">
                                             <!-- Video Filename -->
                                             <!-- TODO: @Bai 视频文件名${ item. } -->
-                                            <p class="text-xl font-semibold mb-3">视频文件名</p>
+                                            <p class="text-xl font-semibold mb-3">Video Name</p>
 
                                             <!-- TODO: 视频时长 -->
 
@@ -324,6 +324,7 @@
                                         </n-button>
 
                                         <!-- View Video -->
+                                        {{ if .User}}
                                         <n-modal :show="viewVideoId === item.Id" v-if="{{.User.Id}} === item.UserId"
                                             style="width: 60%; height: 75vh; overflow-y: auto;">
                                             <n-card role="dialog" aria-modal="true" transform-origin="center"
@@ -341,6 +342,7 @@
                                                 </video>
                                             </n-card>
                                         </n-modal>
+                                        {{ end }}
                                     </div>
 
                                     <!-- suffix -->
@@ -392,9 +394,9 @@
                             </n-list>
 
                             <!-- Pagination -->
-                            <n-pagination class="mt-4"
-                                :theme-overrides="themeOverrides" :page="curVideoPage" :page-size="pageSize"
-                                :page-count="totalVideoPage" :page-slot="5">
+                            <n-pagination v-if="totalVideoPage !== 1" class="mt-4"
+                                :theme-overrides="themeOverrides" v-model:page="curVideoPage" :page-size="pageSize"
+                                :page-count="totalVideoPage" :page-slot="5" @update:page="handleVideoPageChange">
                             </n-pagination>
                         </div>
                     </div>
@@ -469,9 +471,9 @@
                             </n-grid>
 
                             <!-- Pagination -->
-                            <n-pagination class="mt-4"
-                                :theme-overrides="themeOverrides" :page="curImagePage" :page-size="pageSize"
-                                :page-count="totalImagePage" :page-slot="5">
+                            <n-pagination v-if="totalImagePage !== 1" class="mt-4"
+                                :theme-overrides="themeOverrides" v-model:page="curImagePage" :page-size="pageSize"
+                                :page-count="totalImagePage" :page-slot="5" @update:page="handleImagePageChange">
                             </n-pagination>
                         </div>
                     </div>
@@ -545,24 +547,31 @@
                 }
             }
 
+            function handleImagePageChange(page) {
+                console.log("pageimage", page)
+                getMedias("image", page)
+            }
+
+            function handleVideoPageChange(page) {
+                console.log("pagevideo", page)
+                getMedias("video", page)
+            }
+
             function getMedias(format, curPage) {
-                fetch("/medias?uid=" + CurrentUser.value.id + "&format=" + format)
-                //  + "&page=" + curPage
-                // TODO: @Bai
+                fetch("/medias?uid=" + CurrentUser.value.id + "&format=" + format + "&page=" + curPage)
                     .then(res => {
                         return res.json();
                     })
                     .then(todos => {
-                        console.log("========",todos)
                         if (todos.code === 200) {
                             if (format === "video") {
                                 videoList.value = todos.items
                                 videoGet.value = true
-                                // totalVideoPage.value = todos.total;
+                                totalVideoPage.value = Math.ceil(todos.total/pageSize.value);
                             } else {
                                 imageList.value = todos.items
                                 imageGet.value = true
-                                // totalImagePage.value = todos.total;
+                                totalImagePage.value = Math.ceil(todos.total/pageSize.value);
                             }
                         }
                     });
@@ -608,8 +617,6 @@
             }
 
             function listenBottom() {
-                console.log("haveMoreData.value", haveMoreData.value)
-                console.log("isBottom.value", isBottom.value)
                 let scrollTop = window.scrollY;
                 let clientHeight = document.documentElement.clientHeight;
                 let scrollHeight = document.documentElement.scrollHeight;
