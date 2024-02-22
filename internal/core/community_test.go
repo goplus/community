@@ -274,14 +274,16 @@ func TestGetArticlesByUid(t *testing.T) {
 
 	// test data
 	tests := []struct {
+		from          string
+		limit         int
 		uid           string
 		expectedError error
 	}{
-		{"1", nil},
+		{"", 10, "1", nil},
 	}
 
 	for _, tt := range tests {
-		_, err := community.GetArticlesByUid(todo, tt.uid)
+		_, _, err := community.GetArticlesByUid(todo, tt.uid, tt.from, tt.limit)
 
 		if err != tt.expectedError {
 			t.Errorf("GetArticlesByUid(%s) returned err: %v, expected: %v", tt.uid, err, tt.expectedError)

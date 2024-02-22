@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -140,7 +139,6 @@ func (c *Community) SaveMedia(ctx context.Context, userId string, data []byte) (
 			return 0, err
 		}
 	}
-	fmt.Println(duration)
 	// save
 	stem, err := c.db.Prepare(`insert into file (file_key,format,size,user_id,create_at,update_at,duration) VALUES (?,?,?,?,?,?,?)`)
 	if err != nil {
@@ -201,8 +199,7 @@ func GetVideoDuration(url string) (duration string, err error) {
 	err = json.Unmarshal(body, &Data)
 
 	if err != nil {
-		fmt.Println(err.Error())
-		return
+		return "", err
 	}
 	duration = Data.Format.Duration
 
@@ -369,7 +366,6 @@ func (c *Community) ListSubtitleByVideoId(ctx context.Context, videoId int) ([]V
 		var videoSubtitle VideoSubtitle
 		err = rows.Scan(&videoSubtitle.VideoId, &videoSubtitle.SubtitleId, &videoSubtitle.UserId, &videoSubtitle.Language)
 		if err != nil {
-			fmt.Println("get data fail:", err.Error())
 			return videoSubtitles, err
 		}
 		videoSubtitles = append(videoSubtitles, videoSubtitle)
