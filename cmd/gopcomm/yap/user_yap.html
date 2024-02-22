@@ -38,9 +38,10 @@
                     Home</a>
                 </n-breadcrumb-item>
                 <n-breadcrumb-item>
-                    <a><i class="ph ph-user" style="font-size: 18px; margin-right: 5px;"></i>
-                    ${ CurrentUser.name }</a>
-            </n-breadcrumb-item>
+                    <i class="ph ph-user" style="font-size: 18px; margin-right: 5px;"></i>
+                    ${ CurrentUser.name }
+                </n-breadcrumb-item>
+            </n-breadcrumb>
 
             <div style="padding: 40px 40px; margin: 30px auto;" class="container px-5 py-3 mx-auto bg-white rounded-lg">
                 <!-- Personal Profile -->
@@ -64,16 +65,17 @@
                             <!-- Gender & Birthday -->
                             <n-gi class="flex items-center">
                                 <i class="ph-duotone ph-user-circle" style="color: #ef5028; font-size: 20px;"></i>
-                                <p class="ml-3 text-gray-400">
-                                    ${ CurrentUser.gender }
-                                <p class="text-gray-400">, born on ${ CurrentUser.birthday }</p>
+                                <p v-if="CurrentUser.gender" class="ml-3 text-gray-400">
+                                    ${ CurrentUser.gender }, 
                                 </p>
+                                <p v-if="CurrentUser.birthday" class="text-gray-400"> born on ${ CurrentUser.birthday }</p>
+                                <p v-if="!CurrentUser.gender && !CurrentUser.birthday" class="ml-3 text-gray-400">birthday is empty</p>
                             </n-gi>
 
                             <!-- Created Time -->
                             <n-gi class="flex items-center">
                                 <i class="ph-duotone ph-calendar-check" style="color: #3182ce; font-size: 20px;"></i>
-                                <p class="ml-3 text-gray-400">${ CurrentUser.createdTime } Joined GoPlus Community</p>
+                                <p class="ml-3 text-gray-400">${ CurrentUser.createdTime.slice(0,10) } Joined GoPlus Community</p>
                             </n-gi>
 
                             <!-- Email -->
@@ -232,6 +234,11 @@
                                 </div>
                             </n-list-item>
                         </n-list>
+                        <!-- Loading Status -->
+                        <div class="mt-2 text-center" key="span">
+                            <n-spin v-if="!isBottom" :key="spin" size="small" stroke="#3182ce"></n-spin>
+                            <span v-if="!haveMoreData" class="text-xs text-gray-400">No more data🙌</span>
+                        </div>
                     </div>
                 </n-tab-pane>
                 <n-tab-pane name="video" tab="Videos">
@@ -386,17 +393,23 @@
 
             // Article List
             let articleList = ref(JSON.parse("{{.Items}}"));
+            console.log("articleList",articleList.value)
             let videoList = ref([]);
             let imageList = ref([]);
             let videoGet = ref(false);
             let imageGet = ref(false);
+
+            const isBottom = ref(true);
+            const next = ref("{{.Next}}"); // the page size
+            const haveMoreData = next.value === "eof" ? ref(false) : ref(true);
+
             // to change theme
             const themeOverrides = {
                 common: {
                     primaryColor: '#3f83f8'
                 },
                 Tab: {
-                    backgroundColor: '#3f83f8',  // 设置 Tab 背景色
+                    backgroundColor: '#3f83f8',
                 }
             }
             /*=======delete Article=======*/
@@ -488,7 +501,57 @@
 
             }
 
+            function listenBottom() {
+                console.log("haveMoreData.value",haveMoreData.value)
+                console.log("isBottom.value",isBottom.value)
+                let scrollTop = window.scrollY;
+                let clientHeight = document.documentElement.clientHeight;
+                let scrollHeight = document.documentElement.scrollHeight;
+                if (isBottom.value && haveMoreData.value && scrollTop + clientHeight + 10 >= scrollHeight) {
+
+                    // reaching bottom detected
+                    loadMore();
+                }
+            }
+
+            function loadMore() {
+                console.log('Reach bottom! next is ', next.value, '. Loading more...');
+                // load more data into articleList
+                if (next.value !== "eof") {
+                    isBottom.value = false;
+                    window.setTimeout(() => {
+                        let url = "/userArticles?from=" + next.value + "&id=" + CurrentUser.value.id
+                        console.log("url", url)
+                        // load a new page of articles, and append it to the articleList
+                        fetch(url)
+                            .then(res => {
+                                return res.json();
+                            })
+                            .then(todos => {
+                                if (todos.code === 200) {
+                                    console.log("todos.next", todos.next)
+                                    articleList.value.push(...todos.items);
+                                    next.value = todos.next;
+                                    if (todos.next === "eof") {
+                                        haveMoreData.value = false;
+                                    }
+                                    isBottom.value = true
+                                }
+                            });
+                    }, 500)
+                } else {
+                    isBottom.value = true
+                    haveMoreData.value = false;
+                }
+            };
+
             const app = Vue.createApp({
+                mounted() {
+                    window.addEventListener('scroll', listenBottom, true);
+                },
+                destroyed() {
+                    window.removeEventListener('scroll', listenBottom, false)
+                },
                 data() {
                     return {
                         CurrentUser,
@@ -499,7 +562,10 @@
                         delImageId,
                         delVideoId,
                         themeOverrides,
-                        UserId
+                        UserId,
+                        haveMoreData,
+                        isBottom,
+                        
                     }
                 },
                 methods: {

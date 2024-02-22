@@ -267,42 +267,44 @@ func (c *Community) RetryCaptionGenerate(ctx context.Context, userId, videoId st
 	return nil
 }
 
-// func (c *Community) ListMediaByUserId(ctx context.Context, userId string, format string) ([]File, error) {
-// 	sqlStr := "select * from file where user_id = ?"
-func (c *Community) ListMediaByUserId(ctx context.Context, userId string, format string, from, limitInt int) ([]File, string, error) {
-	sqlStr := "select * from file where user_id = ? "
+//	func (c *Community) ListMediaByUserId(ctx context.Context, userId string, format string) ([]File, error) {
+//		sqlStr := "select * from file where user_id = ?"
+func (c *Community) ListMediaByUserId(ctx context.Context, userId string, format string, page int, limit int) (files []File, total int, err error) {
+	sqlStr := "select count(*) from file where user_id = ? and format like ?"
+	err = c.db.QueryRow(sqlStr, userId, "%"+format+"%").Scan(&total)
+	if err != nil || total == 0 {
+		return []File{}, 0, err
+	}
+	sqlStr = "select * from file where user_id = ? "
 	var args []any
 	args = append(args, userId)
 	var rows *sql.Rows
-	var err error
 	if format != "" {
 		sqlStr += " and format like ?"
 		args = append(args, "%"+format+"%")
 	}
-	sqlStr = sqlStr + " limit ? offset ?"
-	args = append(args, limitInt)
-	args = append(args, from)
+	sqlStr = sqlStr + " order by create_at desc limit ? offset ?"
+	args = append(args, limit)
+	args = append(args, (page-1)*limit)
 	rows, err = c.db.Query(sqlStr, args...)
 
-	var files []File
 	if err != nil {
-		return files, MarkEnd, err
+		return files, total, err
 	}
 	var rowLen int
 	for rows.Next() {
 		var file File
 		if err := rows.Scan(&file.Id, &file.CreateAt, &file.UpdateAt, &file.FileKey, &file.Format, &file.UserId, &file.Size); err != nil {
-			return files, MarkEnd, err
+			return files, total, err
 		}
 		file.FileKey = c.domain + file.FileKey
 		files = append(files, file)
 		rowLen++
 	}
 	if rowLen == 0 {
-		return []File{}, MarkEnd, io.EOF
+		return []File{}, total, io.EOF
 	}
-	next := strconv.Itoa(from + rowLen)
-	return files, next, nil
+	return files, total, nil
 }
 
 func (c *Community) ListSubtitleByVideoId(ctx context.Context, videoId int) ([]VideoSubtitle, error) {

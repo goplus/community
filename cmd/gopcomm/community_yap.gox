@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/goplus/community/internal/core"
 	"github.com/goplus/community/translation"
@@ -59,11 +58,14 @@ get "/p/:id", ctx => {
 	// todo middleware
 	// Get User Info
 	var user *core.User
+	userId := ""
 	token, err := core.GetToken(ctx)
 	if err == nil {
 		user, err = community.GetUser(token.Value)
 		if err != nil {
 			xLog.Error("get user error:", err)
+		} else {
+			userId = user.Id
 		}
 	}
 
@@ -71,8 +73,9 @@ get "/p/:id", ctx => {
 	article, _ := community.Article(todo, id)
 	articleJson, _ := json.Marshal(&article)
 	ctx.yap "article", {
+		"UserId":  userId,
 		"User":    user,
-		"Article": strings.Replace(string(articleJson), `\"`, `"`, -1),
+		"Article": string(articleJson),
 	}
 }
 
@@ -92,30 +95,29 @@ get "/user/:id", ctx => {
 	if err != nil {
 		xLog.Error("get current user error:", err)
 	}
-	// todo middleware
 	// get user by token
 	var user *core.User
+	userId := ""
 	token, err := core.GetToken(ctx)
 	if err == nil {
 		user, err = community.GetUser(token.Value)
 		if err != nil {
 			xLog.Error("get user error:", err)
+		} else {
+			userId = user.Id
 		}
 	}
-	userId := ""
-	if user != nil {
-		userId = user.Id
-	}
 	// get article list published by uid
-	items, _ := community.GetArticlesByUid(todo, id)
+	items, next, _ := community.GetArticlesByUid(todo, id, core.MarkBegin, limitConst)
 	userClaimJson, _ := json.Marshal(&userClaim)
 	itemsJson, _ := json.Marshal(&items)
 	ctx.yap "user", {
 		"Id":          id,
-		"CurrentUser": strings.Replace(string(userClaimJson), `\"`, `"`, -1),
+		"CurrentUser": string(userClaimJson),
 		"User":        user,
-		"Items":       strings.Replace(string(itemsJson), `\"`, `"`, -1),
+		"Items":       string(itemsJson),
 		"UserId":      userId,
+		"Next":        next,
 	}
 }
 get "/userUnlink", ctx => {
@@ -151,8 +153,10 @@ get "/userEdit", ctx => {
 	appInfo, _ := community.GetApplicationInfo()
 	appInfoStr, _ := json.Marshal(*appInfo)
 	binds, _ := json.Marshal(gac.GetProviderBindStatus())
+	user := gac.GetUserSimple()
 	ctx.yap "user_edit", {
-		"User":        gac.GetUserSimple(),
+		"UserId":      user.Id,
+		"User":        user,
 		"Application": string(appInfoStr),
 		"Binds":       string(binds),
 	}
@@ -160,15 +164,19 @@ get "/userEdit", ctx => {
 
 get "/add", ctx => {
 	var user *core.User
+	userId := ""
 	token, err := core.GetToken(ctx)
 	if err == nil {
 		user, err = community.GetUser(token.Value)
 		if err != nil {
 			xLog.Error("get user error:", err)
+		} else {
+			userId = user.Id
 		}
 	}
 	ctx.yap "edit", {
-		"User": user,
+		"User":   user,
+		"UserId": userId,
 	}
 }
 
@@ -200,27 +208,27 @@ get "/delete", ctx => {
 get "/medias", ctx => {
 	format := ctx.param("format")
 	uid := ctx.param("uid")
-	from := ctx.param("from")
-	fromInt, err := strconv.Atoi(from)
-    if err != nil {
-       fromInt = 0
-    }
-    limit := ctx.param("limit")
-    limitInt, err := strconv.Atoi(limit)
-    if err != nil {
-    	limitInt = limitConst
-    }
-	files,next,err := community.ListMediaByUserId(todo, uid, format,fromInt,limitInt)
+	page := ctx.param("page")
+	limit := ctx.param("limit")
+	limitInt, err := strconv.Atoi(limit)
+	if err != nil {
+		limitInt = limitConst
+	}
+	pageInt, err := strconv.Atoi(page)
+	if err != nil {
+		pageInt = 1
+	}
+	files, total, err := community.ListMediaByUserId(todo, uid, format, pageInt, limitInt)
 	if err != nil {
 		ctx.json {
-			"code": 0,
-			"next": next,
-			"err":  err.Error(),
+			"code":  0,
+			"total": total,
+			"err":   err.Error(),
 		}
 	} else {
 		ctx.json {
 			"code":  200,
-			"next": next,
+			"total": total,
 			"items": files,
 		}
 	}
@@ -270,7 +278,7 @@ get "/", ctx => {
 	ctx.yap "home", {
 		"UserId": userId,
 		"User":   user,
-		"Items":  strings.Replace(string(articlesJson), `\"`, `"`, -1),
+		"Items":  string(articlesJson),
 		"Next":   next,
 	}
 }
@@ -291,6 +299,23 @@ get "/get", ctx => {
 		"items": articles,
 		"next":  next,
 		"value": searchValue,
+	}
+}
+
+get "/userArticles", ctx => {
+	id := ctx.param("id")
+	from := ctx.param("from")
+	limit := ctx.param("limit")
+
+	limitInt, err := strconv.Atoi(limit)
+	if err != nil {
+		limitInt = limitConst
+	}
+	items, next, _ := community.GetArticlesByUid(todo, id, from, limitInt)
+	ctx.json {
+		"code":  200,
+		"items": items,
+		"next":  next,
 	}
 }
 
@@ -321,7 +346,7 @@ get "/search", ctx => {
 	ctx.yap "home", {
 		"UserId": userId,
 		"User":   user,
-		"Items":  strings.Replace(string(articlesJson), `\"`, `"`, -1),
+		"Items":  string(articlesJson),
 		"Value":  searchValue,
 		"Next":   next,
 	}
@@ -329,11 +354,14 @@ get "/search", ctx => {
 
 get "/edit/:id", ctx => {
 	var user *core.User
+	userId := ""
 	token, err := core.GetToken(ctx)
 	if err == nil {
 		user, err = community.GetUser(token.Value)
 		if err != nil {
 			xLog.Error("get user error:", err)
+		} else {
+			userId = user.Id
 		}
 	}
 
@@ -347,8 +375,9 @@ get "/edit/:id", ctx => {
 		article, _ := community.Article(todo, id)
 		articleJson, _ := json.Marshal(&article)
 		ctx.yap "edit", {
+			"UserId":  userId,
 			"User":    user,
-			"Article": strings.Replace(string(articleJson), `\"`, `"`, -1),
+			"Article": string(articleJson),
 		}
 	}
 }
@@ -398,12 +427,12 @@ post "/commit", ctx => {
 			ID:       id,
 			Title:    title,
 			UId:      uid,
-			Cover:    ctx.param("cover"),   
+			Cover:    ctx.param("cover"),
 			Tags:     tags,
 			Abstract: abstract,
 		},
-		Content:  content,
-		Trans: trans,
+		Content: content,
+		Trans:   trans,
 	}
 
 	// if trans == true translate the article
@@ -415,7 +444,7 @@ post "/commit", ctx => {
 	if err != nil {
 		ctx.json {
 			"code": 0,
-			"err": "add failed",
+			"err":  "add failed",
 		}
 	}
 	ctx.json {
@@ -434,10 +463,10 @@ get "/tranArticle", ctx => {
 		}
 	}
 	ctx.json {
-		"code": 200,
+		"code":    200,
 		"content": article.Content,
-		"tags": article.Tags,
-		"title": article.Title,
+		"tags":    article.Tags,
+		"title":   article.Title,
 	}
 }
 
@@ -531,20 +560,20 @@ post "/caption/task", ctx => {
 	if uid == "" || vid == "" {
 		ctx.json {
 			"code": 200,
-			"msg": "Invalid param",
+			"msg":  "Invalid param",
 		}
 	}
 
 	if err := community.RetryCaptionGenerate(todo, uid, vid); err != nil {
 		ctx.json {
 			"code": 200,
-			"msg": "Request task error",
+			"msg":  "Request task error",
 		}
 	}
 
 	ctx.json {
 		"code": 200,
-		"msg": "Ok",
+		"msg":  "Ok",
 	}
 }
 
