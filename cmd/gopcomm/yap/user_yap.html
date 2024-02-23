@@ -193,10 +193,14 @@
 
                                     <!-- Tags -->
                                     <div class="flex flex-row items-center">
-                                        <i class="ph-duotone ph-hash" style="color: #3182ce; font-size: 17px;"></i>
-                                        <p class="text-sm ml-1 hover:text-blue-600">
-                                            ${ item.Tags }
-                                        </p>
+                                        <span v-for="(tag, index) in item.Tags.split(';')" class="flex flex-row items-center">
+                                            <i class="ph-duotone ph-hash" style="color: #3182ce; font-size: 17px;"></i>
+                                            <p class="text-sm ml-1 mr-2 hover:text-blue-600">
+                                                <a :href="'/search?value=' + tag">
+                                                    ${ tag }
+                                                </a>
+                                            </p>
+                                        </span>
                                     </div>
 
                                     <!-- Description -->
@@ -324,8 +328,7 @@
                                         </n-button>
 
                                         <!-- View Video -->
-                                        {{ if .User}}
-                                        <n-modal :show="viewVideoId === item.Id" v-if="{{.User.Id}} === item.UserId"
+                                        <n-modal :show="viewVideoId === item.Id"
                                             style="width: 60%; height: 75vh; overflow-y: auto;">
                                             <n-card role="dialog" aria-modal="true" transform-origin="center"
                                                 :bordered="false" size="huge">
@@ -342,7 +345,6 @@
                                                 </video>
                                             </n-card>
                                         </n-modal>
-                                        {{ end }}
                                     </div>
 
                                     <!-- suffix -->

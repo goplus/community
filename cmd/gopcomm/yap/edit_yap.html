@@ -184,7 +184,7 @@
                         </n-button>
 
                         <!-- Submit Button -->
-                        <n-button @click="submitArticle" class="ml-2" color="#3182ce"
+                        <n-button @click="submitArticle" :loading="!canSubmit" :disabled="!canSubmit" class="ml-2" color="#3182ce"
                             style="--n-border-radius: 5px; background-color: #3182ce;">
                             <span>Confirm</span>
                         </n-button>
@@ -318,6 +318,7 @@
         const showTranNotice = ref(false);
         const showModal = ref(false);
         const formRef = ref(null);
+        const canSubmit = ref(true);
 
         // a form to be filled out by user in frontend
         const articleForm = ref({
@@ -438,6 +439,7 @@
         }
 
         function customRequest(option) {
+            canSubmit.value = false
             console.log("option", option)
             const file = option.file
             const coverData = new FormData();
@@ -464,6 +466,7 @@
                             if (todosUrl.code === 200) {
                                 coverUrl = todosUrl.url
                             }
+                            canSubmit.value = true
                         });
 
                 });
@@ -504,7 +507,8 @@
                     isAdd,
                     fileList,
                     rules,
-                    formRef
+                    formRef,
+                    canSubmit
                 }
             },
             methods: {
