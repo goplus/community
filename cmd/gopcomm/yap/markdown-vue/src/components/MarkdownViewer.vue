@@ -9,6 +9,8 @@
 </template>
 <script>
 import CherryEngine from 'cherry-markdown/dist/cherry-markdown.engine.core'
+// import 'cherry-markdown/dist/cherry-markdown.min.css'
+
 // import Plyr from 'plyr';
 // import 'plyr/dist/plyr.css'
 const cherryEngineInstance = new CherryEngine();
@@ -23,10 +25,11 @@ export default {
         },
         data() {
             return {
-                content: "Hello World",
+                content: "##Hello World",
                 // content: '!video[video/mp4](https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)', // HTML内容
                 vtts: [],
-                videos: []
+                videos: [],
+                new_vtts: []
             }
         },
         watch: {
@@ -49,23 +52,8 @@ export default {
             // console.log("result", htmlContent)
             this.computeOut(this.md)
         },
-        mounted() {
-            // console.log("mounted", this.md)
-            // const cherryEngineInstance = new CherryEngine();
-            // // markdown语法以 <code>gop 开头</code>结尾
-            // // video <video>开头 </video>结尾 
-            // // <code>gop println&quot;&quot;</code>
-            // // var md = this.replaceGoplus(this.md)
-            // var html = this.getVttfile(this.md)
-            // console.log("++++++++", html)
-            // var htmlContent = cherryEngineInstance.makeHtml(html);
-            // console.log("html content", htmlContent)
-            // htmlContent = this.replaceVideo(htmlContent)
-            // htmlContent = this.replaceGoplus(htmlContent)
-            // this.content = htmlContent
-            // console.log("result", htmlContent)
-            // const p = new Plyr('video', {captions: {active: true}});
-
+        mounted() {            
+            this.computeOut(this.md)
         },
         methods: {  
             computeOut(md) {
@@ -84,7 +72,7 @@ export default {
                 var matches = htmlContent.match(regex); // 使用match()函数获取匹配结果
                 console.log("m", matches)
                 let now_s = this.videos
-                let now_v = this.vtts
+                let now_v = this.vtts  // 在这里选择需要的是 vtts还是 new_vtt
                 if(matches) {
                     for(let i=0; i<matches.length; i++) {
                         console.log("match", matches[i])
@@ -94,8 +82,8 @@ export default {
                             let src = matches[i].match(regex1)[1]
                             let src_a = now_s[i]
                             // console.log("---------", this.videos)
-                            let vtt_a = now_v[i]
-                            console.log("=========duibi", src, src_a)
+                            let vtt_a = now_v[i] // 
+                            // console.log("=========duibi", src, src_a)
                             // console.log("src", src)
                             // return `<div><video controls crossorigin playsinline data-poster="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg" id="player"><source src=${src_a} type="video/mp4" size="576"/><track kind="captions" label="English" srclang="en" src=${vtt_a} default/><track kind="captions" label="Français" srclang="fr" src=${vtt_a}/><a href=${src_a} download>Download</a></video></div>`
                             let poster = src_a + "/vframe/jpg/offset/7"
@@ -134,6 +122,25 @@ export default {
                             this.vtts.push(matchResult[1])
                             this.videos.push(matchResult[0])
                             console.log('temp', replace_vtt)
+                            let formData = new FormData({
+                                "video": matchResult[0] // video src地址
+                            })
+                            axios({
+                                method: 'get',
+                                url: '/newVtt', // 后端接口 获取新的vtt文件
+                                data: formData,
+                                headers: {
+                                    'Content-Type': 'multipart/form-data' // 设置请求头部类型为 multipart/form-data
+                                }
+                            })
+                                .then(response => {
+                                    this.new_vtts.push(response.data)
+                                
+                                })
+                                .catch(error => {
+                                    console.error('文件上传失败！');
+                                    console.error(error);
+                                });
                         } 
                     }
                     return replace_vtt
@@ -143,6 +150,9 @@ export default {
                 console.log(this.videos, this.vtts)
                 return mdContent
             },
+            // getNewVtt() {
+
+            // },
             replaceGoplus(htmlContent) {    
                 // 获取 data-lang 如果是gop 就进行匹配
                 var regex_l = /data-lang="(.*?)"/
@@ -194,4 +204,5 @@ export default {
 </script>
   
 <style>
+/* @import 'cherry-markdown/dist/cherry-markdown.min.css' */
 </style>
