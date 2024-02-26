@@ -58,6 +58,7 @@ type ArticleEntry struct {
 	Tags     string
 	User     User
 	Abstract string
+	Label    string
 	Ctime    time.Time
 	Mtime    time.Time
 }
@@ -65,10 +66,7 @@ type ArticleEntry struct {
 type Article struct {
 	ArticleEntry
 	Content string // in markdown
-	// Status  int    // published or draft
-	// HtmlUrl  string // parsed html file url
-	// TransContent string
-	Trans bool
+	Trans   bool
 }
 
 type Community struct {
@@ -191,8 +189,8 @@ func (p *Community) GetTranslateArticle(ctx context.Context, id string) (article
 func (p *Community) Article(ctx context.Context, id string) (article *Article, err error) {
 	article = &Article{}
 	// var htmlId string
-	sqlStr := "select id,title,user_id,cover,tags,abstract,content,ctime,mtime from article where id=?"
-	err = p.db.QueryRow(sqlStr, id).Scan(&article.ID, &article.Title, &article.UId, &article.Cover, &article.Tags, &article.Abstract, &article.Content, &article.Ctime, &article.Mtime)
+	sqlStr := "select id,title,user_id,cover,tags,abstract,content,ctime,mtime,label from article where id=?"
+	err = p.db.QueryRow(sqlStr, id).Scan(&article.ID, &article.Title, &article.UId, &article.Cover, &article.Tags, &article.Abstract, &article.Content, &article.Ctime, &article.Mtime, &article.Label)
 	if err == sql.ErrNoRows {
 		p.xLog.Warn("not found the article")
 		return article, ErrNotExist
@@ -269,8 +267,8 @@ func (p *Community) SaveHtml(ctx context.Context, uid, htmlStr, mdData, id strin
 func (p *Community) PutArticle(ctx context.Context, uid string, article *Article) (id string, err error) {
 	// new article
 	if article.ID == "" {
-		sqlStr := "insert into article (title, ctime, mtime, user_id, tags, abstract, cover, content, trans) values (?, ?, ?, ?, ?, ?, ?, ?, ?)"
-		res, err := p.db.Exec(sqlStr, &article.Title, time.Now(), time.Now(), uid, &article.Tags, &article.Abstract, &article.Cover, &article.Content, &article.Trans)
+		sqlStr := "insert into article (title, ctime, mtime, user_id, tags, abstract, cover, content, trans, label) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+		res, err := p.db.Exec(sqlStr, &article.Title, time.Now(), time.Now(), uid, &article.Tags, &article.Abstract, &article.Cover, &article.Content, &article.Trans, &article.Label)
 		if err != nil {
 			return "", err
 		}
@@ -281,8 +279,8 @@ func (p *Community) PutArticle(ctx context.Context, uid string, article *Article
 		return strconv.FormatInt(idInt, 10), nil
 	}
 	// edit article
-	sqlStr := "update article set title=?, mtime=?, tags=?, abstract=?, cover=?, content=?, trans=? where id=?"
-	_, err = p.db.Exec(sqlStr, &article.Title, time.Now(), &article.Tags, &article.Abstract, &article.Cover, &article.Content, &article.Trans, &article.ID)
+	sqlStr := "update article set title=?, mtime=?, tags=?, abstract=?, cover=?, content=?, trans=?, label=? where id=?"
+	_, err = p.db.Exec(sqlStr, &article.Title, time.Now(), &article.Tags, &article.Abstract, &article.Cover, &article.Content, &article.Trans, &article.Label, &article.ID)
 	return article.ID, err
 }
 
@@ -352,7 +350,7 @@ const (
 	MarkEnd   = "eof"
 )
 
-func (p *Community) getPageArticles(sqlStr string, from string, limit int, value string) (items []*ArticleEntry, next string, err error) {
+func (p *Community) getPageArticles(sqlStr string, from string, limit int, value string, label string) (items []*ArticleEntry, next string, err error) {
 	if from == MarkBegin {
 		from = "0"
 	} else if from == MarkEnd {
@@ -363,7 +361,7 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 		return []*ArticleEntry{}, from, err
 	}
 
-	rows, err := p.db.Query(sqlStr, value, limit, fromInt)
+	rows, err := p.db.Query(sqlStr, value, label, limit, fromInt)
 	if err != nil {
 		return []*ArticleEntry{}, from, err
 	}
@@ -373,7 +371,7 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 	var rowLen int
 	for rows.Next() {
 		article := &ArticleEntry{}
-		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Abstract, &article.Cover)
+		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Abstract, &article.Cover, &article.Label)
 		if err != nil {
 			return []*ArticleEntry{}, from, err
 		}
@@ -399,15 +397,15 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 }
 
 // ListArticle lists articles from a position.
-func (p *Community) ListArticle(ctx context.Context, from string, limit int, searchValue string) (items []*ArticleEntry, next string, err error) {
-	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover from article where title like ? order by ctime desc limit ? offset ?"
-	return p.getPageArticles(sqlStr, from, limit, "%"+searchValue+"%")
+func (p *Community) ListArticle(ctx context.Context, from string, limit int, searchValue string, label string) (items []*ArticleEntry, next string, err error) {
+	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label from article where title like ? and label like ? order by ctime desc limit ? offset ?"
+	return p.getPageArticles(sqlStr, from, limit, "%"+searchValue+"%", "%"+label+"%")
 }
 
 // GetArticlesByUid get articles by user id.
 func (p *Community) GetArticlesByUid(ctx context.Context, uid string, from string, limit int) (items []*ArticleEntry, next string, err error) {
-	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover from article where user_id = ? order by ctime desc limit ? offset ?"
-	return p.getPageArticles(sqlStr, from, limit, uid)
+	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label from article where user_id = ? and label like ? order by ctime desc limit ? offset ?"
+	return p.getPageArticles(sqlStr, from, limit, uid, "%")
 }
 
 func casdoorConfigInit() *CasdoorConfig {
