@@ -13,13 +13,31 @@
     <div id="app" class="h-full w-full" style="padding: 0 30px;">
         <n-breadcrumb>
             <n-breadcrumb-item href="/">
-                Home
+                <div class="flex items-center">
+                    <div>
+                        <span></span>
+                        <i class="ph-duotone ph-house" style="font-size: 18px; margin-right: 5px;"></i>
+                    </div>
+                    Home
+                </div>
             </n-breadcrumb-item>
             <n-breadcrumb-item href="/user/{{.User.Id}}">
-                ${ userProfile.name }
+                <div class="flex items-center">
+                    <div>
+                        <span></span>
+                        <i class="ph-duotone ph-user" style="font-size: 18px; margin-right: 5px;"></i>
+                    </div>
+                    ${ userProfile.name }
+                </div>
             </n-breadcrumb-item>
             <n-breadcrumb-item>
-                <span style="font-weight: 600;">Edit Profile</span>
+                <div class="flex items-center">
+                    <div>
+                        <span></span>
+                        <i class="ph-duotone ph-pencil-line" style="font-size: 18px; margin-right: 5px;"></i>
+                    </div>
+                    <span style="font-weight: 600;">Edit Profile</span>
+                </div>
             </n-breadcrumb-item>
         </n-breadcrumb>
 

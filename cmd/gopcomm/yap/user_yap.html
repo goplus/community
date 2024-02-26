@@ -35,10 +35,22 @@
         <div id="app" class="h-full w-full">
             <n-breadcrumb style="margin: 10px 20px;">
                 <n-breadcrumb-item href="/">
-                    Home
+                    <div class="flex items-center">
+                        <div>
+                            <span></span>
+                            <i class="ph-duotone ph-house" style="font-size: 18px; margin-right: 5px;"></i>
+                        </div>
+                        Home
+                    </div>
                 </n-breadcrumb-item>
-                <n-breadcrumb-item>
-                    <span class="font-semibold">${ CurrentUser.name }</span>
+                <n-breadcrumb-item href="/user/{{.User.Id}}">
+                    <div class="flex items-center">
+                        <div>
+                            <span></span>
+                            <i class="ph-duotone ph-user" style="font-size: 18px; margin-right: 5px;"></i>
+                        </div>
+                        <span class="font-semibold">${ CurrentUser.name }</span>
+                    </div>
                 </n-breadcrumb-item>
             </n-breadcrumb>
 
