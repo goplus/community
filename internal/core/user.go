@@ -64,7 +64,7 @@ func (p *Community) GetUserClaim(uid string) (claim *casdoorsdk.User, err error)
 		p.xLog.Error(err)
 		return &casdoorsdk.User{}, ErrNotExist
 	}
-	claim.Properties["oauth_Wechat_extra"] = ""
+	// claim.Properties["oauth_Wechat_extra"] = ""
 	return
 }
 
@@ -93,8 +93,8 @@ func (p *Community) GetUserById(uid string) (user *User, err error) {
 }
 
 // UpdateUserById update user by uid
-func (p *Community) UpdateUserById(uid string, user *casdoorsdk.User) (res bool, err error) {
-	res, err = casdoorsdk.UpdateUserById(uid, user)
+func (p *Community) UpdateUserById(uid string, user *UserInfo) (res bool, err error) {
+	casdoorsdk.UpdateUserById(uid, (*casdoorsdk.User)(user))
 	return
 }
 

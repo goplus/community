@@ -347,28 +347,6 @@ func (p *Community) DeleteArticle(ctx context.Context, uid, id string) (err erro
 	return
 }
 
-// // DeleteArticles delete the articles by uid.
-// func (p *Community) DeleteArticles(ctx context.Context, uid string) (err error) {
-// 	// get htmlIds
-// 	var htmlIds []string
-// 	sqlStr := "select html_id from article where user_id=?"
-// 	rows, err := p.db.Query(sqlStr, uid)
-// 	defer rows.Close()
-// 	for rows.Next() {
-// 		var htmlId string
-// 		err = rows.Scan(&htmlId)
-// 		if err != nil {
-// 			return
-// 		}
-// 		htmlIds = append(htmlIds, htmlId)
-// 	}
-// 	sqlStr = "delete from article where user_id=?"
-// 	_, err = p.db.Exec(sqlStr, uid)
-// 	// delete the media
-// 	err = p.DelMedias(ctx, uid, htmlIds)
-// 	return
-// }
-
 const (
 	MarkBegin = ""
 	MarkEnd   = "eof"

@@ -39,7 +39,7 @@
                         <h3 class="text-2xl font-bold text-gray-900 mb-1">User Profile</h3>
                         <p class="mb-2">Complete your profile for display on your personal homepage.</p>
                     </div>
-                    <n-button @click="editProfile(userProfile)" color="#3182ce"
+                    <n-button @click="editProfile" color="#3182ce" :loading="!canSubmit" :disabled="!canSubmit"
                         style="--n-border-radius: 7px; background-color: #3182ce;">
                         <!-- :theme-overrides="buttonThemeOverrides -->
                         <template #icon>
@@ -50,7 +50,7 @@
                 </div>
 
                 <div class="bg-white rounded-lg w-full flex" style="padding: 20px 30px;">
-                    <n-form :model="userProfile" inline>
+                    <n-form :model="userProfile" inline ref="formRef" :rules="rules">
                         <!-- TODO: Avatar -->
                         <n-form-item path="avatar" show-require-mark require-mark-placement="right-hanging"
                             style="width: 10%;">
@@ -71,7 +71,7 @@
                                 <template #label>
                                     <p class="font-semibold text-gray-900 truncate">Nick Name</p>
                                 </template>
-                                <n-input v-model:value="userProfile.name" placeholder="Input Nick Name"
+                                <n-input v-model:value="userProfile.name" placeholder="Input Nick Name" disabled
                                     style="--n-caret-color: #3182ce; --n-border-hover: 1px solid #ecf5fe; 
                                     --n-border-focus: 1px solid #2a82e4; --n-box-shadow-focus: 0 0 0 2px #cee1f5;" :rule="{
                                         required: true,
@@ -97,12 +97,12 @@
                                     <p class="font-semibold text-gray-900 truncate">Birthday</p>
                                 </template>
                                 <n-date-picker v-model:formatted-value="userProfile.birthday"
-                                    value-format="yyyy-MM-dd" type="date">
+                                    type="date">
                                 </n-date-picker>
                             </n-form-item-gi>
 
                             <!-- Email -->
-                            <n-form-item-gi :span="2" path="name">
+                            <n-form-item-gi :span="2" path="email">
                                 <template #label>
                                     <p class="font-semibold text-gray-900 truncate">Email</p>
                                 </template>
@@ -117,7 +117,7 @@
                             </n-form-item-gi>
 
                             <!-- Phone -->
-                            <n-form-item-gi :span="2" path="name">
+                            <n-form-item-gi :span="2" path="phone">
                                 <template #label>
                                     <p class="font-semibold text-gray-900 truncate">Phone Number</p>
                                 </template>
@@ -196,18 +196,11 @@
         const { reactive, toRefs, ref, h } = Vue;
 
         /*======= user =======*/
-        // ODO: @Bai let CurrentUser = ref(JSON.parse("{{.CurrentUser}}"))
-        const currentUser = ref({
-            // avatar: '',
-            name: 'Nick_1977',
-            gender: 'Female',
-            birthday: '2000-01-01',
-            email: 'nick1977@gmail.com',
-            phone: '12312341234'
-        })
-        // const UserId = ref("{{.UserId}}")
-        // TODO: @Bai 编辑表单的数据（初始化为CurrentUser）
-        const userProfile = currentUser
+        const userProfile = ref(JSON.parse("{{.CurrentUser}}"))
+        if (userProfile.value.birthday === "" || userProfile.value.birthday === "undefined"){
+            userProfile.value.birthday = undefined
+        }
+        console.log(userProfile)
         const genderOptions = [
             {
                 label: "Male",
@@ -219,16 +212,115 @@
             }
         ]
         const fileList = ref([{
-            id: "avatarr",
+            id: "avatar",
             status: "finished",
-            // url: CurrentUser.avatar,
+            url: userProfile.value.avatar,
         }])
+        const formRef = ref(null);
+        const rules = {
+            email: [
+                {
+                    validator(rule, value) {
+                        if (value === ""){
+                            return true
+                        }
+                        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                            return new Error("please input a vaild email");
+                        } 
+                        return true;
+                    },
+                    trigger: ["input", "blur"]
+                }
+            ],
+            phone: [
+                {
+                    validator(rule, value) {
+                        if (value === ""){
+                            return true
+                        }
+                        if (!/^[1][3-9][0-9]{9}$/.test(value)) {
+                            return new Error("please input a vaild phone");
+                        } 
+                        return true;
+                    },
+                    trigger: ["input", "blur"]
+                }
+            ],
+        }
+        let avatarUrl = userProfile.value.avatar
+
+        const canSubmit  = ref(true)
+        function customRequest(option) {
+            canSubmit.value = false
+            console.log("option", option)
+            const file = option.file
+            const avatarData = new FormData();
+            avatarData.append('file', file.file);
+
+            const options = {
+                method: 'POST',
+                body: avatarData,
+            }
+            fetch("/upload", options)
+                .then(res => {
+                    return res.json();
+                })
+                .then(todos => {
+                    fetch('/getMediaUrl/' + todos)
+                        .then(resUrl => {
+                            return resUrl.json();
+                        })
+                        .then(todosUrl => {
+                            if (todosUrl.code === 200) {
+                                avatarUrl = todosUrl.url
+                            }
+                            canSubmit.value = true
+                        });
+
+                });
+        }
+
+
         function onlyAllowNumber(value) {
             return !value || /^\d+$/.test(value);
         }
 
-        function editProfile(user) {
-            // TODO: @Bai 更改个人资料接口
+        function objectToFormData(obj) {
+            const formData = new FormData();
+
+            for (const key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                formData.append(key, obj[key]);
+                }
+            }
+
+            return formData;
+        }
+
+        function editProfile() {
+            this.$refs.formRef?.validate((errors) => {
+                if (!errors) {
+                    console.log(userProfile.value)
+                    userProfile.value.avatar = avatarUrl
+                    const formData = objectToFormData(userProfile.value);
+
+                    const requestOptions = {
+                        method: "POST",
+                        body: formData
+                    };
+
+                    fetch("/update/user", requestOptions)
+                        .then(res => {
+                            return res.json();
+                        })
+                        .then(todos => {
+                            console.log("todos", todos)
+                            if (todos.code === 200) {
+                                window.location.href = "/user/" + userProfile.value.id
+                            }
+                        });
+                }
+            })
         }
 
         /*======= account =======*/
@@ -880,6 +972,9 @@
         const app = Vue.createApp({
             data() {
                 return {
+                    formRef,
+                    rules,
+                    canSubmit,
                     selectThemeOverrides,
                     buttonThemeOverrides,
                     userProfile,
@@ -924,7 +1019,9 @@
             methods: {
                 onlyAllowNumber,
                 openBindPage,
-                openUnbindPage
+                openUnbindPage,
+                editProfile,
+                customRequest,
             },
         });
 

@@ -150,15 +150,45 @@ get "/userEdit", ctx => {
 	if err != nil {
 		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
 	}
+	fullUser, _ := gac.GetUser()
 	appInfo, _ := community.GetApplicationInfo()
 	appInfoStr, _ := json.Marshal(*appInfo)
 	binds, _ := json.Marshal(gac.GetProviderBindStatus())
+	currentUser, _ := json.Marshal(fullUser)
 	user := gac.GetUserSimple()
 	ctx.yap "user_edit", {
 		"UserId":      user.Id,
 		"User":        user,
+		"CurrentUser": string(currentUser),
 		"Application": string(appInfoStr),
 		"Binds":       string(binds),
+	}
+}
+
+post "/update/user", ctx => {
+	token, err := core.GetToken(ctx)
+	uid, err := community.ParseJwtToken(token.Value)
+	user := &core.UserInfo{
+		Id: uid,
+		Name:     ctx.param("name"),
+		Birthday: ctx.param("birthday"),
+		Gender:   ctx.param("gender"),
+		Phone:    ctx.param("phone"),
+		Email:    ctx.param("email"),
+		Avatar:   ctx.param("avatar"),
+		Owner: ctx.param("owner"),
+		DisplayName: ctx.param("name"),
+	}
+	_, err = community.UpdateUserById(fmt.Sprintf("%s/%s", user.Owner, user.Name), user)
+	if err != nil {
+		xLog.Info(err)
+		ctx.json {
+			"code": 0,
+			"msg":  "update failed",
+		}
+	}
+	ctx.json {
+		"code": 200,
 	}
 }
 
