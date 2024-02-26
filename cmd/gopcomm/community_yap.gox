@@ -206,34 +206,33 @@ get "/delete", ctx => {
 }
 
 get "/medias", ctx => {
-	format := ctx.param("format")
-	uid := ctx.param("uid")
-	page := ctx.param("page")
-	limit := ctx.param("limit")
-	limitInt, err := strconv.Atoi(limit)
-	if err != nil {
-		limitInt = limitConst
-	}
-	pageInt, err := strconv.Atoi(page)
-	if err != nil {
-		pageInt = 1
-	}
-	files, total, err := community.ListMediaByUserId(todo, uid, format, pageInt, limitInt)
-	if err != nil {
-		ctx.json {
-			"code":  0,
-			"total": total,
-			"err":   err.Error(),
-		}
-	} else {
-		ctx.json {
-			"code":  200,
-			"total": total,
-			"items": files,
-		}
-	}
+    format := ctx.param("format")
+    uid := ctx.param("uid")
+    page := ctx.param("page")
+    pageInt, err := strconv.Atoi(page)
+    if err != nil {
+       pageInt = 1
+    }
+    limit := ctx.param("limit")
+    limitInt, err := strconv.Atoi(limit)
+    if err != nil {
+        limitInt = limitConst
+    }
+    files,count,err := community.ListMediaByUserId(todo, uid, format,pageInt,limitInt)
+    if err != nil {
+       ctx.json {
+          "code": 0,
+          "count": count,
+          "err":  err.Error(),
+       }
+    } else {
+       ctx.json {
+          "code":  200,
+          "count": count,
+          "items": files,
+       }
+    }
 }
-
 get "/delMedia", ctx => {
 	id := ctx.param("id")
 	token, err := core.GetToken(ctx)
