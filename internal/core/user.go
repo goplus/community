@@ -94,7 +94,7 @@ func (p *Community) GetUserById(uid string) (user *User, err error) {
 
 // UpdateUserById update user by uid
 func (p *Community) UpdateUserById(uid string, user *UserInfo) (res bool, err error) {
-	casdoorsdk.UpdateUserById(uid, (*casdoorsdk.User)(user))
+	res, err = casdoorsdk.UpdateUserById(uid, (*casdoorsdk.User)(user))
 	return
 }
 
