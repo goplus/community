@@ -13,24 +13,40 @@
     <div id="app" class="h-full w-full" style="padding: 0 30px;">
         <n-breadcrumb>
             <n-breadcrumb-item href="/">
-                Home
+                <div class="flex items-center">
+                    <div>
+                        <span></span>
+                        <i class="ph-duotone ph-house" style="font-size: 18px; margin-right: 5px;"></i>
+                    </div>
+                    Home
+                </div>
             </n-breadcrumb-item>
             <n-breadcrumb-item href="/user/{{.User.Id}}">
-                <!-- ${ CurrentUser.name } -->
-                User
+                <div class="flex items-center">
+                    <div>
+                        <span></span>
+                        <i class="ph-duotone ph-user" style="font-size: 18px; margin-right: 5px;"></i>
+                    </div>
+                    ${ userProfile.name }
+                </div>
             </n-breadcrumb-item>
             <n-breadcrumb-item>
-                <span style="font-weight: 600;">Edit Profile</span>
+                <div class="flex items-center">
+                    <div>
+                        <span></span>
+                        <i class="ph-duotone ph-pencil-line" style="font-size: 18px; margin-right: 5px;"></i>
+                    </div>
+                    <span style="font-weight: 600;">Edit Profile</span>
+                </div>
             </n-breadcrumb-item>
         </n-breadcrumb>
 
-        <n-tabs default-value="profile" animated type="card" placement="left" size="large" style="--n-bar-color: #3182ce; --n-tab-text-color-active: #3182ce; --n-tab-text-color-hover: #3182ce;
-        --n-tab-font-weight-active: 600; --n-tab-color: #f3f4f6; --n-tab-border-radius: 5px; 
-        --n-tab-border-color: #e5e7eb; margin-top: 20px;">
+        <n-tabs default-value="profile" animated type="card" placement="left" size="large" 
+        :theme-overrides="tabsTheme" style="margin-top: 20px;">
             <!-- Profile -->
-            <n-tab-pane name="profile">
+            <n-tab-pane name="profile" style="height: 80vh;">
                 <template #tab>
-                    <i class="ph-duotone ph-identification-card" style="font-size: 22px; margin-right: 8px;"></i>
+                    <i class="ph-duotone ph-identification-card" style="font-size: 22px; margin-right: 12px;"></i>
                     Profile
                 </template>
 
@@ -71,9 +87,9 @@
                                 <template #label>
                                     <p class="font-semibold text-gray-900 truncate">Nick Name</p>
                                 </template>
-                                <n-input v-model:value="userProfile.name" placeholder="Input Nick Name" disabled
-                                    style="--n-caret-color: #3182ce; --n-border-hover: 1px solid #ecf5fe; 
-                                    --n-border-focus: 1px solid #2a82e4; --n-box-shadow-focus: 0 0 0 2px #cee1f5;" :rule="{
+                                <n-input v-model:value="userProfile.name" placeholder="Input Nick Name" 
+                                :theme-overrides="inputTheme"
+                                :rule="{
                                         required: true,
                                         message: 'Please input your nick name',
                                         trigger: ['input', 'blur']
@@ -86,8 +102,8 @@
                                 <template #label>
                                     <p class="font-semibold text-gray-900 truncate">Gender</p>
                                 </template>
-                                <n-select v-model:value="userProfile.gender" :options="genderOptions"
-                                    :theme-overrides="selectThemeOverrides">
+                                <n-select v-model:value="userProfile.gender" placeholder="Select Gender"
+                                :options="genderOptions" :theme-overrides="selectTheme">
                                 </n-select>
                             </n-form-item-gi>
 
@@ -97,7 +113,7 @@
                                     <p class="font-semibold text-gray-900 truncate">Birthday</p>
                                 </template>
                                 <n-date-picker v-model:formatted-value="userProfile.birthday"
-                                    type="date">
+                                    type="date" :theme-overrides="datePickerTheme">
                                 </n-date-picker>
                             </n-form-item-gi>
 
@@ -107,8 +123,8 @@
                                     <p class="font-semibold text-gray-900 truncate">Email</p>
                                 </template>
                                 <n-input v-model:value="userProfile.email" placeholder="Input Email"
-                                    style="--n-caret-color: #3182ce; --n-border-hover: 1px solid #ecf5fe; 
-                                    --n-border-focus: 1px solid #2a82e4; --n-box-shadow-focus: 0 0 0 2px #cee1f5;" :rule="{
+                                :theme-overrides="inputTheme"
+                                :rule="{
                                         required: true,
                                         message: 'Please input your email',
                                         trigger: ['input', 'blur']
@@ -123,8 +139,8 @@
                                 </template>
                                 <n-input v-model:value="userProfile.phone" placeholder="Input Phone Number"
                                     :allow-input="onlyAllowNumber"
-                                    style="--n-caret-color: #3182ce; --n-border-hover: 1px solid #ecf5fe; 
-                                    --n-border-focus: 1px solid #2a82e4; --n-box-shadow-focus: 0 0 0 2px #cee1f5;" :rule="{
+                                    :theme-overrides="inputTheme"
+                                    :rule="{
                                         required: true,
                                         message: 'Please input your phone number',
                                         trigger: ['input', 'blur']
@@ -137,9 +153,9 @@
             </n-tab-pane>
 
             <!-- Account -->
-            <n-tab-pane name="account">
+            <n-tab-pane name="account" style="height: 80vh;">
                 <template #tab>
-                    <i class="ph-duotone ph-users" style="font-size: 22px; margin-right: 8px;"></i>
+                    <i class="ph-duotone ph-users" style="font-size: 22px; margin-right: 12px;"></i>
                     Account
                 </template>
 
@@ -166,10 +182,7 @@
 
                             <div class="text-base font-semibold text-gray-900">
                                 <!-- Bind Button -->
-                                <n-button v-if="!accountItem.bind" @click="openBindPage(accountItem.url)" style="--n-border-radius: 7px; --n-ripple-color: #7ba7d3; 
-                                --n-text-color-hover: #3182ce; --n-text-color-pressed: #3182ce;
-                                --n-text-color-focus: #3182ce; --n-border-hover: 1px solid #3182ce;
-                                --n-border-pressed: 1px solid #3182ce; --n-border-focus: 1px solid #3182ce;">
+                                <n-button v-if="!accountItem.bind" @click="openBindPage(accountItem.url)" :theme-overrides="buttonTheme">
                                     <template #icon>
                                         <i class="ph-bold ph-lock-key"></i>
                                     </template>
@@ -279,7 +292,6 @@
 
                 });
         }
-
 
         function onlyAllowNumber(value) {
             return !value || /^\d+$/.test(value);
@@ -940,43 +952,96 @@
         /*======= change theme =======*/
         const themeOverrides = {
             common: {
-                primaryColor: '#3182ce'
+                primaryColor: '#3182ce',
+                primaryColorHover: '#3d82d1',
+                primaryColorPressed: '#3182ce',
             },
             Tab: {
                 backgroundColor: '#3182ce',
-            },
-            Button: {
-                textColor: '#3182ce',
-                color: '#3182ce',
-            },
-            Input: {
-                caretColor: '#3182ce',
-                borderColor: '#3182ce',
             }
         }
-        const selectThemeOverrides = {
-            menuBoxShadow:
-                '0 6px 16px -9px rgba(0, 0, 0, .08), 0 9px 28px 0 rgba(0, 0, 0, .05), 0 12px 48px 16px rgba(0, 0, 0, .03)',
+        const buttonTheme = {
+            borderRadiusMedium: '7px',
+            rippleColor: '#7ba7d3',
+            textColorHover: '#3182ce',
+            textColorFocus: '#3182ce',
+            textColorPressed: '#3d82d1',
+            borderHover: '1px solid #3182ce',
+            borderFocus: '1px solid #3182ce',
+            borderPressed: '1px solid #3d82d1',
+            colorInfo: '#3182ce',
+            colorHoverInfo: '#7ba7d3',
+            colorFocusInfo: '#3182ce',
+            colorPressedInfo: '#3d82d1',
+        }
+        const inputTheme =  {
+            caretColor: '#3182ce',
+            borderHover: '1px solid #3182ce',
+            borderFocus: '1px solid #3182ce',
+            boxShadowFocus: '0 0 0 2px #cee1f5'
+        }
+        const selectTheme = {
             peers: {
                 InternalSelection: {
-                    textColor: '#FF0000',
+                    caretColor: '#3182ce',
+                    borderHover: '1px solid #3182ce',
+                    borderFocus: '1px solid #3182ce',
+                    borderActive: '1px solid #3182ce',
+                    boxShadowFocus: '0 0 0 2px #cee1f5',
+                    boxShadowActive: '0 0 0 2px #cee1f5'
+                },
+                
+                InternalSelectMenu: {
+                    optionTextColorPressed: '#3182ce',
+                    optionTextColorActive: '#3182ce',
+                    optionCheckColor: '#3182ce'
+                },
+            }
+        }
+        const datePickerTheme = {
+            itemTextColorCurrent: '#3182ce',
+            itemColorActive: '#3182ce',
+            itemColorHover: '#cee1f5',
+            peers: {
+                Input: {
+                    caretColor: '#3182ce',
+                    borderHover: '1px solid #3182ce',
+                    borderFocus: '1px solid #3182ce',
+                    boxShadowFocus: '0 0 0 2px #cee1f5'
+                },
+                Button: {
+                    rippleColor: '#7ba7d3',
+                    textColorHover: '#3182ce',
+                    textColorFocus: '#3182ce',
+                    textColorPressed: '#3d82d1',
+                    borderHover: '1px solid #3182ce',
+                    borderFocus: '1px solid #3182ce',
+                    borderPressed: '1px solid #3d82d1',
                 }
             }
         }
-        const buttonThemeOverrides = {
-            heightMedium: '40px',
-            textColor: '#00ff00'
+        const tabsTheme = {
+            tabFontWeightActive: '600',
+            tabBorderRadius: '5px',
+            tabTextColorHoverCard: '#3182ce',
+            tabTextColorActiveCard: '#3182ce',
+            tabColor: '#d5e5f6',
+            tabBorderColor: '#cee1f5',
+            tabGapMediumCard: '20px',
         }
 
         /*======= register vue component =======*/
         const app = Vue.createApp({
             data() {
                 return {
+                    buttonTheme,
+                    inputTheme,
+                    selectTheme,
+                    datePickerTheme,
+                    tabsTheme,
                     formRef,
                     rules,
                     canSubmit,
-                    selectThemeOverrides,
-                    buttonThemeOverrides,
                     userProfile,
                     genderOptions,
                     fileList,
@@ -1032,3 +1097,13 @@
 </body>
 
 </html>
+
+<style>
+    .n-tabs .n-tabs-nav.n-tabs-nav--card-type .n-tabs-tab {
+        border: 2px solid var(--n-tab-border-color);
+    }
+
+    .n-tabs .n-tabs-nav.n-tabs-nav--left.n-tabs-nav--card-type .n-tabs-pad {
+        border-right: 1.5px solid var(--n-tab-border-color);
+    }
+</style>

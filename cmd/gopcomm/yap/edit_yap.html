@@ -61,7 +61,7 @@
     <div id="app" class="h-full w-full" style="background: url('/static/img/editor-background.svg') top no-repeat;
             background-size: 100% auto;">
         <!-- Header -->
-        <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center justify-between mb-2 px-2">
             <!-- Back Button -->
             <n-button quaternary color="#808080" @click="goBack">
                 <template #icon>
@@ -78,14 +78,11 @@
 
             <!-- Title Input -->
             <n-input v-model:value="articleForm.title" placeholder="Input the article title" clearable size="large"
-                maxlength="50" show-count style="width: 60%; 
-                    --n-caret-color: #3182ce; --n-border: 1px solid #ecf5fe;
-                    --n-border-hover: 1px solid #ecf5fe; --n-border-focus: 1px solid #2a82e4; 
-                    --n-box-shadow-focus: 0 0 0 2.5px #cee1f5;">
+                maxlength="50" show-count :theme-overrides="inputTheme">
             </n-input>
 
             <!-- TODO: Export Button -->
-            <n-button class="ml-2" style="--n-border-radius: 7px; --n-ripple-color: #7ba7d3; 
+            <!-- <n-button class="ml-2" style="--n-border-radius: 7px; --n-ripple-color: #7ba7d3; 
                     --n-text-color-hover: #2a82e4; --n-text-color-pressed: #3182ce;
                     --n-text-color-focus: #2a82e4; --n-border-hover: 1px solid #2a82e4;
                     --n-border-pressed: 1px solid #3182ce; --n-border-focus: 1px solid #2a82e4;">
@@ -93,15 +90,12 @@
                     <i class="ph-bold ph-export"></i>
                 </template>
                 <span style="font-weight: 600;">Export</span>
-            </n-button>
+            </n-button> -->
 
             <!-- Translate Button -->
             <n-tooltip trigger="hover" placement="bottom">
                 <template #trigger>
-                    <n-button @click="showTranNotice=true" class="ml-2" style="--n-border-radius: 7px; --n-ripple-color: #7ba7d3; 
-                            --n-text-color-hover: #2a82e4; --n-text-color-pressed: #3182ce;
-                            --n-text-color-focus: #2a82e4; --n-border-hover: 1px solid #2a82e4;
-                            --n-border-pressed: 1px solid #3182ce; --n-border-focus: 1px solid #2a82e4;">
+                    <n-button @click="showTranNotice=true" class="ml-2" :theme-overrides="buttonTheme">
                         <template #icon>
                             <i class="ph-bold ph-translate"></i>
                         </template>
@@ -119,6 +113,7 @@
                 </template>
                 <span style="font-weight: 600;">Submit</span>
             </n-button>
+
             <!-- Submit Form -->
             <n-modal v-model:show="showModal" preset="card" size="huge" :bordered="false" :segmented="true"
                 style="width: 60%; height: 75vh; overflow-y: auto;">
@@ -130,8 +125,13 @@
 
                 <n-form ref="formRef" :label-width="200" :model="articleForm" :rules="rules">
                     <!-- Tags -->
-                    <n-form-item label="Tags" path="tags">
-                        <n-dynamic-tags v-model:value="articleForm.tags" :rule="{
+                    <n-form-item path="tags">
+                        <template #label>
+                            <p class="font-semibold text-gray-900 truncate">Tags</p>
+                        </template>
+                        <n-dynamic-tags v-model:value="articleForm.tags" 
+                        :theme-overrides="dynamicTagsTheme"
+                        :rule="{
                                 required: true,
                                 message: 'Please input at least one tag',
                                 trigger: ['change']
@@ -139,11 +139,14 @@
                     </n-form-item>
 
                     <!-- Abstract -->
-                    <n-form-item label="Abstract" path="abstract">
+                    <n-form-item path="abstract">
+                        <template #label>
+                            <p class="font-semibold text-gray-900 truncate">Abstract</p>
+                        </template>
                         <n-input v-model:value="articleForm.abstract" type="textarea" show-count :min-length="15"
-                            placeholder="write an abstract for your article" style="--n-caret-color: #3182ce; --n-border: 1px solid #ecf5fe;
-                                --n-border-hover: 1px solid #ecf5fe; --n-border-focus: 1px solid #2a82e4; 
-                                --n-box-shadow-focus: 0 0 0 2px #cee1f5;" :rule="{
+                            placeholder="write an abstract for your article" 
+                            :theme-overrides="inputTheme"
+                            :rule="{
                                 required: true,
                                 message: 'Please input abstract',
                                 trigger: ['input', 'blur']
@@ -151,8 +154,12 @@
                     </n-form-item>
 
                     <!-- Translate to en -->
-                    <n-form-item label="Translate into English" path="translate">
-                        <n-switch v-model:value="articleForm.trans" @update:value="changeTrans" />
+                    <n-form-item path="translate">
+                        <template #label>
+                            <p class="font-semibold text-gray-900 truncate">Translated into English</p>
+                        </template>
+                        <n-switch v-model:value="articleForm.trans" @update:value="changeTrans" 
+                        :theme-overrides="switchTheme"></n-switch>
                     </n-form-item>
 
                     <!-- Label -->
@@ -167,8 +174,10 @@
                     </n-form-item>
 
                     <!-- Cover -->
-                    <n-form-item label="Cover" path="cover">
-
+                    <n-form-item path="cover">
+                        <template #label>
+                            <p class="font-semibold text-gray-900 truncate">Cover</p>
+                        </template>
                         <!-- TODO: @Shi 预览封面 -->
                         <n-upload :max="1" directory-dnd @change="changeCover"
                             :custom-request="customRequest" :default-file-list="fileList" list-type="image-card">
@@ -187,10 +196,7 @@
                 <template #footer>
                     <div class="w-full flex justify-end">
                         <!-- Cancel Button -->
-                        <n-button @click="showModal = false" style="--n-border-radius: 5px; --n-ripple-color: #7ba7d3; 
-                            --n-text-color-hover: #2a82e4; --n-text-color-pressed: #3182ce;
-                            --n-text-color-focus: #2a82e4; --n-border-hover: 1px solid #2a82e4;
-                            --n-border-pressed: 1px solid #3182ce; --n-border-focus: 1px solid #2a82e4;">
+                        <n-button @click="showModal = false" :theme-overrides="buttonTheme">
                             <span>Cancel</span>
                         </n-button>
 
@@ -202,6 +208,7 @@
                     </div>
                 </template>
             </n-modal>
+
             <!-- Message Prompts -->
             <transition enter-active-class="ease-out duration-300 transform"
                 leave-active-class="ease-in duration-300 transform" enter-class="scale-50 opacity-0"
@@ -523,6 +530,65 @@
             articleForm.value.trans = value
         }
 
+        /*======= change theme =======*/
+        const buttonTheme = {
+            borderRadiusMedium: '7px',
+            rippleColor: '#7ba7d3',
+            textColorHover: '#3182ce',
+            textColorFocus: '#3182ce',
+            textColorPressed: '#3d82d1',
+            borderHover: '1px solid #3182ce',
+            borderFocus: '1px solid #3182ce',
+            borderPressed: '1px solid #3d82d1',
+        }
+        const inputTheme =  {
+            caretColor: '#3182ce',
+            borderHover: '1px solid #3182ce',
+            borderFocus: '1px solid #3182ce',
+            boxShadowFocus: '0 0 0 2px #cee1f5'
+        }
+        const selectTheme = {
+            peers: {
+                InternalSelection: {
+                    caretColor: '#3182ce',
+                    borderHover: '1px solid #3182ce',
+                    borderFocus: '1px solid #3182ce',
+                    borderActive: '1px solid #3182ce',
+                    boxShadowFocus: '0 0 0 2px #cee1f5',
+                    boxShadowActive: '0 0 0 2px #cee1f5'
+                },
+                
+                InternalSelectMenu: {
+                    optionTextColorPressed: '#3182ce',
+                    optionTextColorActive: '#3182ce',
+                    optionCheckColor: '#3182ce'
+                },
+            }
+        }
+        const dynamicTagsTheme = {
+            peers: {
+                Input: {
+                    caretColor: '#3182ce',
+                    borderHover: '1px solid #3182ce',
+                    borderFocus: '1px solid #3182ce',
+                    boxShadowFocus: '0 0 0 2px #cee1f5'
+                },
+                Button: {
+                    rippleColor: '#7ba7d3',
+                    textColorHover: '#3182ce',
+                    textColorFocus: '#3182ce',
+                    textColorPressed: '#3d82d1',
+                    borderHover: '1px solid #3182ce',
+                    borderFocus: '1px solid #3182ce',
+                    borderPressed: '1px solid #3d82d1',
+                }
+            }
+        }
+        const switchTheme = {
+            railColorActive: '#3182ce',
+            boxShadowFocus: '0 0 0 2px #cee1f5'
+        }
+
         /*======= register vue component =======*/
         const app = Vue.createApp({
             data() {
@@ -532,13 +598,19 @@
                     showContentNotice,
                     showTranNotice,
                     showModal,
+
                     articleForm,
                     isAdd,
                     fileList,
                     rules,
                     formRef,
                     canSubmit,
-                    labels
+
+                    buttonTheme,
+                    inputTheme,
+                    selectTheme,
+                    dynamicTagsTheme,
+                    switchTheme
                 }
             },
             methods: {
