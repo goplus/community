@@ -314,8 +314,7 @@ func (c *Community) RetryCaptionGenerate(ctx context.Context, userId, videoId st
 	return nil
 }
 
-//	func (c *Community) ListMediaByUserId(ctx context.Context, userId string, format string) ([]File, error) {
-//		sqlStr := "select * from file where user_id = ?"
+// func (c *Community) ListMediaByUserId(ctx context.Context, userId string, format string) ([]File, error) {
 func (c *Community) ListMediaByUserId(ctx context.Context, userId string, format string, page, limitInt int) ([]File, int, error) {
 	sqlStr := "select * from file where user_id = ? "
 	var args []any

@@ -1,153 +1,1034 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
+<html>
+
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>user info edit</title>
-  </head>
-  <body>
+    <title>Edit Profile</title>
+</head>
+
+<body>
     {{ template "header" .}}
-    <div id="app" style="width: 80%; margin: 20px auto">
+
+    <div id="app" class="h-full w-full" style="padding: 0 30px;">
         <n-breadcrumb>
-            <n-breadcrumb-item>
-                <a href="/"><i class="ph-duotone ph-house" style="font-size: 18px; margin-right: 5px;"></i>
-                Home</a>
+            <n-breadcrumb-item href="/">
+                Home
+            </n-breadcrumb-item>
+            <n-breadcrumb-item href="/user/{{.User.Id}}">
+                <!-- ${ CurrentUser.name } -->
+                User
             </n-breadcrumb-item>
             <n-breadcrumb-item>
-                <a href="/user/{{.User.Id}}"><i class="ph ph-user" style="font-size: 18px; margin-right: 5px;"></i>
-                User</a>
-            </n-breadcrumb-item>
-            <n-breadcrumb-item>
-                <i class="ph ph-article-medium"
-                    style="font-size: 18px; margin-right: -15px; color: transparent;"></i>
-                <span style="font-weight: 600;">Edit</span>
+                <span style="font-weight: 600;">Edit Profile</span>
             </n-breadcrumb-item>
         </n-breadcrumb>
-      <div class="md:flex" style="margin-top: 10px;">
-        <ul
-          class="flex-column space-y space-y-4 text-sm font-medium text-gray-500 dark:text-gray-400 md:me-4 mb-4 md:mb-0"
-        >
-          <li>
-            <a
-              href="#"
-              class="inline-flex items-center px-4 py-3 rounded-lg hover:text-gray-900 bg-white hover:bg-gray-100 w-full dark:bg-gray-800 dark:hover:bg-gray-700 dark:hover:text-white"
-              aria-current="page"
-            >
-              <svg
-                class="w-4 h-4 me-2 text-gray-500 dark:text-gray-400"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  d="M10 0a10 10 0 1 0 10 10A10.011 10.011 0 0 0 10 0Zm0 5a3 3 0 1 1 0 6 3 3 0 0 1 0-6Zm0 13a8.949 8.949 0 0 1-4.951-1.488A3.987 3.987 0 0 1 9 13h2a3.987 3.987 0 0 1 3.951 3.512A8.949 8.949 0 0 1 10 18Z"
-                />
-              </svg>
-              Profile
-            </a>
-          </li>
-          <li>
-            <a
-              href="#"
-              class="inline-flex items-center px-4 py-3 text-white bg-blue-700 rounded-lg active w-full dark:bg-blue-600"
-            >
-              <svg
-                class="w-4 h-4 me-2 white"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="currentColor"
-                viewBox="0 0 18 18"
-              >
-                <path
-                  d="M6.143 0H1.857A1.857 1.857 0 0 0 0 1.857v4.286C0 7.169.831 8 1.857 8h4.286A1.857 1.857 0 0 0 8 6.143V1.857A1.857 1.857 0 0 0 6.143 0Zm10 0h-4.286A1.857 1.857 0 0 0 10 1.857v4.286C10 7.169 10.831 8 11.857 8h4.286A1.857 1.857 0 0 0 18 6.143V1.857A1.857 1.857 0 0 0 16.143 0Zm-10 10H1.857A1.857 1.857 0 0 0 0 11.857v4.286C0 17.169.831 18 1.857 18h4.286A1.857 1.857 0 0 0 8 16.143v-4.286A1.857 1.857 0 0 0 6.143 10Zm10 0h-4.286A1.857 1.857 0 0 0 10 11.857v4.286c0 1.026.831 1.857 1.857 1.857h4.286A1.857 1.857 0 0 0 18 16.143v-4.286A1.857 1.857 0 0 0 16.143 10Z"
-                />
-              </svg>
-              Accounts
-            </a>
-          </li>
-        </ul>
-        <div
-          class="p-6 bg-white text-medium text-gray-500 dark:text-gray-400 dark:bg-gray-800 rounded-lg w-full"
-        >
-          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">
-            Accounts Tab
-          </h3>
-          <p class="mb-2">
-            Bind with your mainstream platform account to make login easier
-          </p>
 
-          <ul class="max-w-md divide-y divide-gray-200 dark:divide-gray-700">
-            <li class="py-3 sm:py-4" v-for="accountItem in accountList">
-              <div class="flex items-center space-x-4 rtl:space-x-reverse">
-                <div class="flex-shrink-0">
-                  <img
-                    class="w-8 h-8 rounded-full"
-                    :src="accountItem.img"
-                    alt="Neil image"
-                  />
+        <n-tabs default-value="profile" animated type="card" placement="left" size="large" style="--n-bar-color: #3182ce; --n-tab-text-color-active: #3182ce; --n-tab-text-color-hover: #3182ce;
+        --n-tab-font-weight-active: 600; --n-tab-color: #f3f4f6; --n-tab-border-radius: 5px; 
+        --n-tab-border-color: #e5e7eb; margin-top: 20px;">
+            <!-- Profile -->
+            <n-tab-pane name="profile">
+                <template #tab>
+                    <i class="ph-duotone ph-identification-card" style="font-size: 22px; margin-right: 8px;"></i>
+                    Profile
+                </template>
+
+                <div class="w-full flex items-center justify-between">
+                    <div class="px-6 py-2 text-medium text-gray-500 w-full">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-1">User Profile</h3>
+                        <p class="mb-2">Complete your profile for display on your personal homepage.</p>
+                    </div>
+                    <n-button @click="editProfile" color="#3182ce" :loading="!canSubmit" :disabled="!canSubmit"
+                        style="--n-border-radius: 7px; background-color: #3182ce;">
+                        <!-- :theme-overrides="buttonThemeOverrides -->
+                        <template #icon>
+                            <i class="ph ph-floppy-disk"></i>
+                        </template>
+                        <span style="font-weight: 600;">Save changes</span>
+                    </n-button>
                 </div>
-                <div class="flex-1 min-w-0">
-                  <p
-                    class="text-sm font-medium text-gray-900 truncate dark:text-white"
-                  >
-                    ${accountItem.platform}
-                  </p>
-                  <p class="text-sm text-gray-500 truncate dark:text-gray-400">
-                    ${accountItem.desc}
-                  </p>
+
+                <div class="bg-white rounded-lg w-full flex" style="padding: 20px 30px;">
+                    <n-form :model="userProfile" inline ref="formRef" :rules="rules">
+                        <!-- TODO: Avatar -->
+                        <n-form-item path="avatar" show-require-mark require-mark-placement="right-hanging"
+                            style="width: 10%;">
+                            <template #label>
+                                <p class="font-semibold text-gray-900 truncate">Avatar</p>
+                            </template>
+                            <n-upload :max="1" directory-dnd accept="image/png, image/jpg, image/jpeg"
+                                @change="changeCover" :custom-request="customRequest" list-type="image-card"
+                                :default-file-list="fileList" style="width: 80%; height: 80%;">
+                                <n-upload-dragger></n-upload-dragger>
+                            </n-upload>
+                        </n-form-item>
+
+                        <n-grid :cols="2" :x-gap="20" style="width: 60%; margin-left: 40px;">
+                            <!-- Name -->
+                            <n-form-item-gi :span="2" path="name" show-require-mark
+                                require-mark-placement="right-hanging">
+                                <template #label>
+                                    <p class="font-semibold text-gray-900 truncate">Nick Name</p>
+                                </template>
+                                <n-input v-model:value="userProfile.name" placeholder="Input Nick Name" disabled
+                                    style="--n-caret-color: #3182ce; --n-border-hover: 1px solid #ecf5fe; 
+                                    --n-border-focus: 1px solid #2a82e4; --n-box-shadow-focus: 0 0 0 2px #cee1f5;" :rule="{
+                                        required: true,
+                                        message: 'Please input your nick name',
+                                        trigger: ['input', 'blur']
+                                    }">
+                                </n-input>
+                            </n-form-item-gi>
+
+                            <!-- Gender -->
+                            <n-form-item-gi :span="1" path="gender">
+                                <template #label>
+                                    <p class="font-semibold text-gray-900 truncate">Gender</p>
+                                </template>
+                                <n-select v-model:value="userProfile.gender" :options="genderOptions"
+                                    :theme-overrides="selectThemeOverrides">
+                                </n-select>
+                            </n-form-item-gi>
+
+                            <!-- Birthday -->
+                            <n-form-item-gi :span="1" path="birthday">
+                                <template #label>
+                                    <p class="font-semibold text-gray-900 truncate">Birthday</p>
+                                </template>
+                                <n-date-picker v-model:formatted-value="userProfile.birthday"
+                                    type="date">
+                                </n-date-picker>
+                            </n-form-item-gi>
+
+                            <!-- Email -->
+                            <n-form-item-gi :span="2" path="email">
+                                <template #label>
+                                    <p class="font-semibold text-gray-900 truncate">Email</p>
+                                </template>
+                                <n-input v-model:value="userProfile.email" placeholder="Input Email"
+                                    style="--n-caret-color: #3182ce; --n-border-hover: 1px solid #ecf5fe; 
+                                    --n-border-focus: 1px solid #2a82e4; --n-box-shadow-focus: 0 0 0 2px #cee1f5;" :rule="{
+                                        required: true,
+                                        message: 'Please input your email',
+                                        trigger: ['input', 'blur']
+                                    }">
+                                </n-input>
+                            </n-form-item-gi>
+
+                            <!-- Phone -->
+                            <n-form-item-gi :span="2" path="phone">
+                                <template #label>
+                                    <p class="font-semibold text-gray-900 truncate">Phone Number</p>
+                                </template>
+                                <n-input v-model:value="userProfile.phone" placeholder="Input Phone Number"
+                                    :allow-input="onlyAllowNumber"
+                                    style="--n-caret-color: #3182ce; --n-border-hover: 1px solid #ecf5fe; 
+                                    --n-border-focus: 1px solid #2a82e4; --n-box-shadow-focus: 0 0 0 2px #cee1f5;" :rule="{
+                                        required: true,
+                                        message: 'Please input your phone number',
+                                        trigger: ['input', 'blur']
+                                    }">
+                                </n-input>
+                            </n-form-item-gi>
+                        </n-grid>
+                    </n-form>
                 </div>
-                <div
-                  class="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white"
-                >
-                  <a
-                  :href="accountItem.url"
-                  v-if="!accountItem.bind"
-                    type="button"
-                    class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-2.5 py-1.5 text-center inline-flex items-center me-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                  >
-                    <svg
-                      class="w-3.5 h-3.5 me-2"
-                      t="1707241952090"
-                      class="icon"
-                      viewBox="0 0 1024 1024"
-                      version="1.1"
-                      xmlns="http://www.w3.org/2000/svg"
-                      p-id="1449"
-                    >
-                      <path
-                        d="M748.8 864 275.2 864c-32 0-57.6-25.6-57.6-57.6L217.6 512c0-32 32-57.6 57.6-57.6l467.2 0c38.4 0 57.6 25.6 57.6 57.6l0 294.4C806.4 838.4 780.8 864 748.8 864z"
-                        fill="#ffffff"
-                        p-id="1450"
-                      ></path>
-                      <path
-                        d="M364.8 422.4 364.8 339.2c0-70.4 51.2-121.6 121.6-121.6l51.2 0c64 0 121.6 51.2 121.6 121.6l0 83.2 57.6 0L716.8 339.2c0-102.4-83.2-179.2-179.2-179.2L486.4 160c-102.4 0-179.2 83.2-179.2 179.2l0 83.2L364.8 422.4z"
-                        fill="#ffffff"
-                        p-id="1451"
-                      ></path>
-                    </svg>
-                    Bind 
-                  </a>
-                  <a
-                  :href="`/userUnlink?pv=${accountItem.platform}`"
-                  v-else
-                    type="button"
-                    class="text-white bg-gray-800 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-2.5 py-1.5 text-center inline-flex items-center me-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                  ><svg  class="w-3.5 h-3.5 me-2 text-white-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-                    <path fill-rule="evenodd" d="M15 7a2 2 0 1 1 4 0v4a1 1 0 1 0 2 0V7a4 4 0 0 0-8 0v3H5a2 2 0 0 0-2 2v7c0 1.1.9 2 2 2h10a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2V7Zm-5 6c.6 0 1 .4 1 1v3a1 1 0 1 1-2 0v-3c0-.6.4-1 1-1Z" clip-rule="evenodd"/>
-                  </svg>
-                  unLink</a>
+            </n-tab-pane>
+
+            <!-- Account -->
+            <n-tab-pane name="account">
+                <template #tab>
+                    <i class="ph-duotone ph-users" style="font-size: 22px; margin-right: 8px;"></i>
+                    Account
+                </template>
+
+                <div class="px-6 py-2 text-medium text-gray-500 w-full">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-1">Bind accounts</h3>
+                    <p class="mb-2">Bind with your mainstream platform account to make login easier.</p>
                 </div>
-              </div>
-            </li>
-          </ul>
-        </div>
-      </div>
+
+                <div class="bg-white rounded-lg w-full" style="padding: 10px 30px;">
+                    <ul class="divide-y divide-gray-200 w-full">
+                        <li class="px-4 py-3 w-full flex items-center justify-between"
+                            v-for="accountItem in accountList">
+                            <div class="flex items-center">
+                                <img class="w-8 h-8 rounded-full" :src="accountItem.img" alt="Platform Logo" />
+                                <div style="margin-left: 30px;">
+                                    <p class="font-semibold text-gray-900 truncate">
+                                        ${ accountItem.platform }
+                                    </p>
+                                    <p class="text-sm text-gray-500 truncate">
+                                        ${ accountItem.desc }
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="text-base font-semibold text-gray-900">
+                                <!-- Bind Button -->
+                                <n-button v-if="!accountItem.bind" @click="openBindPage(accountItem.url)" style="--n-border-radius: 7px; --n-ripple-color: #7ba7d3; 
+                                --n-text-color-hover: #3182ce; --n-text-color-pressed: #3182ce;
+                                --n-text-color-focus: #3182ce; --n-border-hover: 1px solid #3182ce;
+                                --n-border-pressed: 1px solid #3182ce; --n-border-focus: 1px solid #3182ce;">
+                                    <template #icon>
+                                        <i class="ph-bold ph-lock-key"></i>
+                                    </template>
+                                    <span style="font-weight: 600;">Bind</span>
+                                </n-button>
+
+                                <!-- Unbind Button -->
+                                <n-button v-else @click="openUnbindPage(accountItem.platform)" color="#3182ce"
+                                    style="--n-border-radius: 7px; background-color: #3182ce;">
+                                    <template #icon>
+                                        <i class="ph ph-lock-key-open"></i>
+                                    </template>
+                                    <span style="font-weight: 600;">Unbind</span>
+                                </n-button>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </n-tab-pane>
+        </n-tabs>
     </div>
-    <script >
-      const application = JSON.parse("{{ .Application }}")
-      const accountBinds = JSON.parse("{{ .Binds }}")
+
+    <script>
+        const { reactive, toRefs, ref, h } = Vue;
+
+        /*======= user =======*/
+        const userProfile = ref(JSON.parse("{{.CurrentUser}}"))
+        if (userProfile.value.birthday === "" || userProfile.value.birthday === "undefined"){
+            userProfile.value.birthday = undefined
+        }
+        console.log(userProfile)
+        const genderOptions = [
+            {
+                label: "Male",
+                value: "male"
+            },
+            {
+                label: "Female",
+                value: "female"
+            }
+        ]
+        const fileList = ref([{
+            id: "avatar",
+            status: "finished",
+            url: userProfile.value.avatar,
+        }])
+        const formRef = ref(null);
+        const rules = {
+            email: [
+                {
+                    validator(rule, value) {
+                        if (value === ""){
+                            return true
+                        }
+                        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                            return new Error("please input a vaild email");
+                        } 
+                        return true;
+                    },
+                    trigger: ["input", "blur"]
+                }
+            ],
+            phone: [
+                {
+                    validator(rule, value) {
+                        if (value === ""){
+                            return true
+                        }
+                        if (!/^[1][3-9][0-9]{9}$/.test(value)) {
+                            return new Error("please input a vaild phone");
+                        } 
+                        return true;
+                    },
+                    trigger: ["input", "blur"]
+                }
+            ],
+        }
+        let avatarUrl = userProfile.value.avatar
+
+        const canSubmit  = ref(true)
+        function customRequest(option) {
+            canSubmit.value = false
+            console.log("option", option)
+            const file = option.file
+            const avatarData = new FormData();
+            avatarData.append('file', file.file);
+
+            const options = {
+                method: 'POST',
+                body: avatarData,
+            }
+            fetch("/upload", options)
+                .then(res => {
+                    return res.json();
+                })
+                .then(todos => {
+                    fetch('/getMediaUrl/' + todos)
+                        .then(resUrl => {
+                            return resUrl.json();
+                        })
+                        .then(todosUrl => {
+                            if (todosUrl.code === 200) {
+                                avatarUrl = todosUrl.url
+                            }
+                            canSubmit.value = true
+                        });
+
+                });
+        }
+
+
+        function onlyAllowNumber(value) {
+            return !value || /^\d+$/.test(value);
+        }
+
+        function objectToFormData(obj) {
+            const formData = new FormData();
+
+            for (const key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                formData.append(key, obj[key]);
+                }
+            }
+
+            return formData;
+        }
+
+        function editProfile() {
+            this.$refs.formRef?.validate((errors) => {
+                if (!errors) {
+                    console.log(userProfile.value)
+                    userProfile.value.avatar = avatarUrl
+                    const formData = objectToFormData(userProfile.value);
+
+                    const requestOptions = {
+                        method: "POST",
+                        body: formData
+                    };
+
+                    fetch("/update/user", requestOptions)
+                        .then(res => {
+                            return res.json();
+                        })
+                        .then(todos => {
+                            console.log("todos", todos)
+                            if (todos.code === 200) {
+                                window.location.href = "/user/" + userProfile.value.id
+                            }
+                        });
+                }
+            })
+        }
+
+        /*======= account =======*/
+        const application = JSON.parse("{{.Application}}")
+        const accountBinds = JSON.parse("{{.Binds}}")
+
+        const authInfo = {
+            Google: {
+                scope: "profile+email",
+                endpoint: "https://accounts.google.com/signin/oauth",
+            },
+            GitHub: {
+                scope: "user:email+read:user",
+                endpoint: "https://github.com/login/oauth/authorize",
+            },
+            QQ: {
+                scope: "get_user_info",
+                endpoint: "https://graph.qq.com/oauth2.0/authorize",
+            },
+            WeChat: {
+                scope: "snsapi_login",
+                endpoint: "https://open.weixin.qq.com/connect/qrconnect",
+                mpScope: "snsapi_userinfo",
+                mpEndpoint: "https://open.weixin.qq.com/connect/oauth2/authorize",
+            },
+            WeChatMiniProgram: {
+                endpoint: "https://mp.weixin.qq.com/",
+            },
+            Facebook: {
+                scope: "email,public_profile",
+                endpoint: "https://www.facebook.com/dialog/oauth",
+            },
+            DingTalk: {
+                scope: "openid",
+                endpoint: "https://login.dingtalk.com/oauth2/auth",
+            },
+            Weibo: {
+                scope: "email",
+                endpoint: "https://api.weibo.com/oauth2/authorize",
+            },
+            Gitee: {
+                scope: "user_info%20emails",
+                endpoint: "https://gitee.com/oauth/authorize",
+            },
+            LinkedIn: {
+                scope: "r_liteprofile%20r_emailaddress",
+                endpoint: "https://www.linkedin.com/oauth/v2/authorization",
+            },
+            WeCom: {
+                scope: "snsapi_userinfo",
+                endpoint: "https://open.work.weixin.qq.com/wwopen/sso/3rd_qrConnect",
+                silentEndpoint: "https://open.weixin.qq.com/connect/oauth2/authorize",
+                internalEndpoint: "https://open.work.weixin.qq.com/wwopen/sso/qrConnect",
+            },
+            Lark: {
+                // scope: "email",
+                endpoint: "https://open.feishu.cn/open-apis/authen/v1/index",
+            },
+            GitLab: {
+                scope: "read_user+profile",
+                endpoint: "https://gitlab.com/oauth/authorize",
+            },
+            ADFS: {
+                scope: "openid",
+                endpoint: "http://example.com",
+            },
+            Baidu: {
+                scope: "basic",
+                endpoint: "http://openapi.baidu.com/oauth/2.0/authorize",
+            },
+            Alipay: {
+                scope: "basic",
+                endpoint: "https://openauth.alipay.com/oauth2/publicAppAuthorize.htm",
+            },
+            Casdoor: {
+                scope: "openid%20profile%20email",
+                endpoint: "http://example.com",
+            },
+            Infoflow: {
+                endpoint: "https://xpc.im.baidu.com/oauth2/authorize",
+            },
+            Apple: {
+                scope: "name%20email",
+                endpoint: "https://appleid.apple.com/auth/authorize",
+            },
+            AzureAD: {
+                scope: "user.read",
+                endpoint: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+            },
+            AzureADB2C: {
+                scope: "openid",
+                endpoint: "https://tenant.b2clogin.com/tenant.onmicrosoft.com/userflow/oauth2/v2.0/authorize",
+            },
+            Slack: {
+                scope: "users:read",
+                endpoint: "https://slack.com/oauth/authorize",
+            },
+            Steam: {
+                endpoint: "https://steamcommunity.com/openid/login",
+            },
+            Okta: {
+                scope: "openid%20profile%20email",
+                endpoint: "http://example.com",
+            },
+            Douyin: {
+                scope: "user_info",
+                endpoint: "https://open.douyin.com/platform/oauth/connect",
+            },
+            Custom: {
+                endpoint: "https://example.com/",
+            },
+            Bilibili: {
+                endpoint: "https://passport.bilibili.com/register/pc_oauth2.html",
+            },
+            Line: {
+                scope: "profile%20openid%20email",
+                endpoint: "https://access.line.me/oauth2/v2.1/authorize",
+            },
+            Amazon: {
+                scope: "profile",
+                endpoint: "https://www.amazon.com/ap/oa",
+            },
+            Auth0: {
+                scope: "openid%20profile%20email",
+                endpoint: "http://auth0.com/authorize",
+            },
+            BattleNet: {
+                scope: "openid",
+                endpoint: "https://oauth.battlenet.com.cn/authorize",
+            },
+            Bitbucket: {
+                scope: "account",
+                endpoint: "https://bitbucket.org/site/oauth2/authorize",
+            },
+            Box: {
+                scope: "root_readwrite",
+                endpoint: "https://account.box.com/api/oauth2/authorize",
+            },
+            CloudFoundry: {
+                scope: "cloud_controller.read",
+                endpoint: "https://login.cloudfoundry.org/oauth/authorize",
+            },
+            Dailymotion: {
+                scope: "userinfo",
+                endpoint: "https://api.dailymotion.com/oauth/authorize",
+            },
+            Deezer: {
+                scope: "basic_access",
+                endpoint: "https://connect.deezer.com/oauth/auth.php",
+            },
+            DigitalOcean: {
+                scope: "read",
+                endpoint: "https://cloud.digitalocean.com/v1/oauth/authorize",
+            },
+            Discord: {
+                scope: "identify%20email",
+                endpoint: "https://discord.com/api/oauth2/authorize",
+            },
+            Dropbox: {
+                scope: "account_info.read",
+                endpoint: "https://www.dropbox.com/oauth2/authorize",
+            },
+            EveOnline: {
+                scope: "publicData",
+                endpoint: "https://login.eveonline.com/oauth/authorize",
+            },
+            Fitbit: {
+                scope: "activity%20heartrate%20location%20nutrition%20profile%20settings%20sleep%20social%20weight",
+                endpoint: "https://www.fitbit.com/oauth2/authorize",
+            },
+            Gitea: {
+                scope: "user:email",
+                endpoint: "https://gitea.com/login/oauth/authorize",
+            },
+            Heroku: {
+                scope: "global",
+                endpoint: "https://id.heroku.com/oauth/authorize",
+            },
+            InfluxCloud: {
+                scope: "read:org",
+                endpoint: "https://cloud2.influxdata.com/oauth/authorize",
+            },
+            Instagram: {
+                scope: "user_profile",
+                endpoint: "https://api.instagram.com/oauth/authorize",
+            },
+            Intercom: {
+                scope: "user.read",
+                endpoint: "https://app.intercom.com/oauth",
+            },
+            Kakao: {
+                scope: "account_email",
+                endpoint: "https://kauth.kakao.com/oauth/authorize",
+            },
+            Lastfm: {
+                scope: "user_read",
+                endpoint: "https://www.last.fm/api/auth",
+            },
+            Mailru: {
+                scope: "userinfo",
+                endpoint: "https://oauth.mail.ru/login",
+            },
+            Meetup: {
+                scope: "basic",
+                endpoint: "https://secure.meetup.com/oauth2/authorize",
+            },
+            MicrosoftOnline: {
+                scope: "openid%20profile%20email",
+                endpoint: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+            },
+            Naver: {
+                scope: "profile",
+                endpoint: "https://nid.naver.com/oauth2.0/authorize",
+            },
+            Nextcloud: {
+                scope: "openid%20profile%20email",
+                endpoint: "https://cloud.example.org/apps/oauth2/authorize",
+            },
+            OneDrive: {
+                scope: "offline_access%20onedrive.readonly",
+                endpoint: "https://login.live.com/oauth20_authorize.srf",
+            },
+            Oura: {
+                scope: "personal",
+                endpoint: "https://cloud.ouraring.com/oauth/authorize",
+            },
+            Patreon: {
+                scope: "identity",
+                endpoint: "https://www.patreon.com/oauth2/authorize",
+            },
+            PayPal: {
+                scope: "openid%20profile%20email",
+                endpoint: "https://www.sandbox.paypal.com/connect",
+            },
+            SalesForce: {
+                scope: "openid%20profile%20email",
+                endpoint: "https://login.salesforce.com/services/oauth2/authorize",
+            },
+            Shopify: {
+                scope: "read_products",
+                endpoint: "https://myshopify.com/admin/oauth/authorize",
+            },
+            Soundcloud: {
+                scope: "non-expiring",
+                endpoint: "https://api.soundcloud.com/connect",
+            },
+            Spotify: {
+                scope: "user-read-email",
+                endpoint: "https://accounts.spotify.com/authorize",
+            },
+            Strava: {
+                scope: "read",
+                endpoint: "https://www.strava.com/oauth/authorize",
+            },
+            Stripe: {
+                scope: "read_only",
+                endpoint: "https://connect.stripe.com/oauth/authorize",
+            },
+            TikTok: {
+                scope: "user.info.basic",
+                endpoint: "https://www.tiktok.com/auth/authorize/",
+            },
+            Tumblr: {
+                scope: "email",
+                endpoint: "https://www.tumblr.com/oauth2/authorize",
+            },
+            Twitch: {
+                scope: "user_read",
+                endpoint: "https://id.twitch.tv/oauth2/authorize",
+            },
+            Twitter: {
+                scope: "users.read%20tweet.read",
+                endpoint: "https://twitter.com/i/oauth2/authorize",
+            },
+            Typetalk: {
+                scope: "my",
+                endpoint: "https://typetalk.com/oauth2/authorize",
+            },
+            Uber: {
+                scope: "profile",
+                endpoint: "https://login.uber.com/oauth/v2/authorize",
+            },
+            VK: {
+                scope: "email",
+                endpoint: "https://oauth.vk.com/authorize",
+            },
+            Wepay: {
+                scope: "manage_accounts%20view_user",
+                endpoint: "https://www.wepay.com/v2/oauth2/authorize",
+            },
+            Xero: {
+                scope: "openid%20profile%20email",
+                endpoint: "https://login.xero.com/identity/connect/authorize",
+            },
+            Yahoo: {
+                scope: "openid%20profile%20email",
+                endpoint: "https://api.login.yahoo.com/oauth2/request_auth",
+            },
+            Yammer: {
+                scope: "user",
+                endpoint: "https://www.yammer.com/oauth2/authorize",
+            },
+            Yandex: {
+                scope: "login:email",
+                endpoint: "https://oauth.yandex.com/authorize",
+            },
+            Zoom: {
+                scope: "user:read",
+                endpoint: "https://zoom.us/oauth/authorize",
+            },
+            MetaMask: {
+                scope: "",
+                endpoint: "",
+            },
+            Web3Onboard: {
+                scope: "",
+                endpoint: "",
+            },
+        };
+
+        const providers = [
+            {
+                "owner": "admin",
+                "name": "provider_github",
+                "createdTime": "2024-01-22T11:15:22+08:00",
+                "displayName": "New Provider - github",
+                "category": "OAuth",
+                "type": "GitHub",
+                "subType": "",
+                "method": "Normal",
+                "clientId": "Iv1.de7a592b6cc33131",
+                "clientSecret": "***",
+                "clientId2": "",
+                "clientSecret2": "",
+                "cert": "",
+                "customAuthUrl": "",
+                "customTokenUrl": "",
+                "customUserInfoUrl": "",
+                "customLogo": "",
+                "scopes": "",
+                "userMapping": {},
+                "host": "",
+                "port": 0,
+                "disableSsl": false,
+                "title": "",
+                "content": "",
+                "receiver": "",
+                "regionId": "",
+                "signName": "",
+                "templateCode": "",
+                "appId": "",
+                "endpoint": "",
+                "intranetEndpoint": "",
+                "domain": "",
+                "bucket": "",
+                "pathPrefix": "",
+                "metadata": "",
+                "idP": "",
+                "issuerUrl": "",
+                "enableSignAuthnRequest": false,
+                "providerUrl": "https://github.com/organizations/xxx/settings/applications/1234567"
+            },
+            {
+                "owner": "admin",
+                "name": "provider_twitter",
+                "createdTime": "2024-01-22T11:20:19+08:00",
+                "displayName": "New Provider - twitter",
+                "category": "OAuth",
+                "type": "Twitter",
+                "subType": "",
+                "method": "Normal",
+                "clientId": "VmNJS2otVTlZYUVLNEVVZ0ZJc2w6MTpjaQ",
+                "clientSecret": "***",
+                "clientId2": "",
+                "clientSecret2": "",
+                "cert": "",
+                "customAuthUrl": "",
+                "customTokenUrl": "",
+                "customUserInfoUrl": "",
+                "customLogo": "",
+                "scopes": "",
+                "userMapping": {},
+                "host": "",
+                "port": 0,
+                "disableSsl": false,
+                "title": "",
+                "content": "",
+                "receiver": "",
+                "regionId": "",
+                "signName": "",
+                "templateCode": "",
+                "appId": "",
+                "endpoint": "",
+                "intranetEndpoint": "",
+                "domain": "",
+                "bucket": "",
+                "pathPrefix": "",
+                "metadata": "",
+                "idP": "",
+                "issuerUrl": "",
+                "enableSignAuthnRequest": false,
+                "providerUrl": "https://github.com/organizations/xxx/settings/applications/1234567"
+            },
+            {
+                "owner": "admin",
+                "name": "provider_facebook",
+                "createdTime": "2024-01-22T11:19:03+08:00",
+                "displayName": "New Provider - facebook",
+                "category": "OAuth",
+                "type": "Facebook",
+                "subType": "",
+                "method": "Normal",
+                "clientId": "927083362474156",
+                "clientSecret": "***",
+                "clientId2": "",
+                "clientSecret2": "",
+                "cert": "",
+                "customAuthUrl": "",
+                "customTokenUrl": "",
+                "customUserInfoUrl": "",
+                "customLogo": "",
+                "scopes": "",
+                "userMapping": {},
+                "host": "",
+                "port": 0,
+                "disableSsl": false,
+                "title": "",
+                "content": "",
+                "receiver": "",
+                "regionId": "",
+                "signName": "",
+                "templateCode": "",
+                "appId": "",
+                "endpoint": "",
+                "intranetEndpoint": "",
+                "domain": "",
+                "bucket": "",
+                "pathPrefix": "",
+                "metadata": "",
+                "idP": "",
+                "issuerUrl": "",
+                "enableSignAuthnRequest": false,
+                "providerUrl": "https://github.com/organizations/xxx/settings/applications/1234567"
+            },
+            {
+                "owner": "admin",
+                "name": "provider_wechat",
+                "createdTime": "2024-01-25T10:20:42+08:00",
+                "displayName": "wechat",
+                "category": "OAuth",
+                "type": "WeChat",
+                "subType": "",
+                "method": "Normal",
+                "clientId": "wxf6fad0f92d9e8313",
+                "clientSecret": "***",
+                "clientId2": "wxf6fad0f92d9e8313",
+                "clientSecret2": "***",
+                "cert": "",
+                "customAuthUrl": "",
+                "customTokenUrl": "",
+                "customUserInfoUrl": "",
+                "customLogo": "",
+                "scopes": "",
+                "userMapping": {},
+                "host": "",
+                "port": 0,
+                "disableSsl": true,
+                "title": "",
+                "content": "iVBORw0KGgoAAAANSUhEUgAAAQAAAAEAAQMAAABmvDolAAAABlBMVEX///8AAABVwtN+AAAB+ElEQVR42uyYPfLrIAzE10NByRE4Cjfzx804CkegpGC8byQ8SZyX6l9ZHquK418jI1Yr4YknnvhbLCTZAFbMAMiy9CD/8V4AgKkhsWJiTY5l6iEfL+wAjtxazI5laZrmjJAlW4MA+8i2ezksq4AeDytcA3BHQGsyZlZ5Sh1xx4+ivTqg+hBzD2X2NbkWt18CcnFgRCQUGDfrR1wckJLjULkZgR2Rmma5FwDWtHrS1ShHKDXpmKf3zTIBLK4eNyuyhexaXF3F7rnaApjhC0iuCHQNU9fOBFtAxSK9KBTR6nFgSWzPvQAErohkjVsLlE8i8v7p5WwAeRH/IGlSzJBYOiCulgA4cvcFesEAeK5DH2AKQJDHpJUXCD23tPu3DN4GmD2lD+3aebkjcOJLBm0AfJ2dyIQOQfgUcxPA0rUQs9o3TXNTMX/rgwnA1bSRuYvY6RA0j0u23A7YMfyDDEGjJZ3mbguA6MMoxvmV5rfaXx9wYqjFjeoQJPrgaprOLsgCkIazEcHTJYJAJ8t6A+Bj1hP/wKaScmpJBoBjeZi6/pTxgT3kz+9gAjh2IB3qSDv+S9MEcOyjBBgqt43EbwloTbah4pS7ViwC+chP5m4Efq16rg+MrbtqhKTpxcuJr7YFHMtDnUKrcjJW80tArANPPPHEOf4FAAD//zp6rk3/kINSAAAAAElFTkSuQmCC",
+                "receiver": "",
+                "regionId": "",
+                "signName": "",
+                "templateCode": "",
+                "appId": "",
+                "endpoint": "",
+                "intranetEndpoint": "",
+                "domain": "",
+                "bucket": "",
+                "pathPrefix": "",
+                "metadata": "",
+                "idP": "",
+                "issuerUrl": "",
+                "enableSignAuthnRequest": false,
+                "providerUrl": "https://open.weixin.qq.com/connect/oauth2/authorize"
+            }
+        ]
+
+        function getStateFromQueryParams(applicationName, providerName, method, isShortState) {
+            let query = window.location.search;
+            query = `${query}&application=${encodeURIComponent(applicationName)}&provider=${encodeURIComponent(providerName)}&method=${method}`;
+            if (method === "link") {
+                query = `${query}&from=${window.location.href}`;
+            }
+
+            if (!isShortState) {
+                return btoa(query);
+            } else {
+                const state = providerName;
+                sessionStorage.setItem(state, query);
+                return state;
+            }
+        }
+
+        function getAuthUrl(provider, method, res) {
+            if (provider === null) {
+                return "";
+            }
+            let endpoint = authInfo[provider.type].endpoint;
+            let redirectUri = `https://casdoor-community.qiniu.io/callback`;
+            const scope = authInfo[provider.type].scope;
+
+            // rm (provider.type === "Twitter")
+            const isShortState = (provider.type === "WeChat" && navigator.userAgent.includes("MicroMessenger"));
+            const state = getStateFromQueryParams(application.name, provider.name, method, isShortState);
+            const codeChallenge = "P3S-a7dr8bgM4bF6vOyiKkKETDl16rcAzao9F8UIL1Y"; // SHA256(Base64-URL-encode("casdoor-verifier"))
+
+            if (provider.type === "AzureAD") {
+                if (provider.domain !== "") {
+                    endpoint = endpoint.replace("common", provider.domain);
+                }
+            } else if (provider.type === "Apple") {
+                redirectUri = `https://casdoor-community.qiniu.io/api/callback`;
+            }
+
+            if (provider.type === "Google" || provider.type === "GitHub" || provider.type === "QQ" || provider.type === "Facebook"
+                || provider.type === "Weibo" || provider.type === "Gitee" || provider.type === "LinkedIn" || provider.type === "GitLab" || provider.type === "AzureAD"
+                || provider.type === "Slack" || provider.type === "Line" || provider.type === "Amazon" || provider.type === "Auth0" || provider.type === "BattleNet"
+                || provider.type === "Bitbucket" || provider.type === "Box" || provider.type === "CloudFoundry" || provider.type === "Dailymotion"
+                || provider.type === "DigitalOcean" || provider.type === "Discord" || provider.type === "Dropbox" || provider.type === "EveOnline" || provider.type === "Gitea"
+                || provider.type === "Heroku" || provider.type === "InfluxCloud" || provider.type === "Instagram" || provider.type === "Intercom" || provider.type === "Kakao"
+                || provider.type === "MailRu" || provider.type === "Meetup" || provider.type === "MicrosoftOnline" || provider.type === "Naver" || provider.type === "Nextcloud"
+                || provider.type === "OneDrive" || provider.type === "Oura" || provider.type === "Patreon" || provider.type === "PayPal" || provider.type === "SalesForce"
+                || provider.type === "SoundCloud" || provider.type === "Spotify" || provider.type === "Strava" || provider.type === "Stripe" || provider.type === "Tumblr"
+                || provider.type === "Twitch" || provider.type === "Typetalk" || provider.type === "Uber" || provider.type === "VK" || provider.type === "Wepay"
+                || provider.type === "Xero" || provider.type === "Yahoo" || provider.type === "Yammer" || provider.type === "Yandex" || provider.type === "Zoom") {
+                return `${endpoint}?client_id=${provider.clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code&state=${state}`;
+            } else if (provider.type === "AzureADB2C") {
+                return `https://${provider.domain}.b2clogin.com/${provider.domain}.onmicrosoft.com/${provider.appId}/oauth2/v2.0/authorize?client_id=${provider.clientId}&nonce=defaultNonce&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&response_type=code&state=${state}&prompt=login`;
+            } else if (provider.type === "DingTalk") {
+                return `${endpoint}?client_id=${provider.clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code&prompt=consent&state=${state}`;
+            } else if (provider.type === "WeChat") {
+                if (provider.clientId !== "") {
+                    return `${endpoint}?appid=${provider.clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code&state=${state}#wechat_redirect`;
+                }
+                return `/callback?appid=${provider.clientId2}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code&state=${state}&code=${res?.data2 || ""}`;
+            } else if (provider.type === "WeCom") {
+                if (provider.subType === "Internal") {
+                    if (provider.method === "Silent") {
+                        endpoint = authInfo[provider.type].silentEndpoint;
+                        return `${endpoint}?appid=${provider.clientId}&redirect_uri=${redirectUri}&state=${state}&scope=${scope}&response_type=code#wechat_redirect`;
+                    } else if (provider.method === "Normal") {
+                        endpoint = authInfo[provider.type].internalEndpoint;
+                        return `${endpoint}?appid=${provider.clientId}&agentid=${provider.appId}&redirect_uri=${redirectUri}&state=${state}&usertype=member`;
+                    } else {
+                        return `https://error:not-supported-provider-method:${provider.method}`;
+                    }
+                } else if (provider.subType === "Third-party") {
+                    if (provider.method === "Silent") {
+                        endpoint = authInfo[provider.type].silentEndpoint;
+                        return `${endpoint}?appid=${provider.clientId}&redirect_uri=${redirectUri}&state=${state}&scope=${scope}&response_type=code#wechat_redirect`;
+                    } else if (provider.method === "Normal") {
+                        return `${endpoint}?appid=${provider.clientId}&redirect_uri=${redirectUri}&state=${state}&usertype=member`;
+                    } else {
+                        return `https://error:not-supported-provider-method:${provider.method}`;
+                    }
+                } else {
+                    return `https://error:not-supported-provider-sub-type:${provider.subType}`;
+                }
+            } else if (provider.type === "Lark") {
+                return `${endpoint}?app_id=${provider.clientId}&redirect_uri=${redirectUri}&state=${state}`;
+            } else if (provider.type === "ADFS") {
+                return `${provider.domain}/adfs/oauth2/authorize?client_id=${provider.clientId}&redirect_uri=${redirectUri}&state=${state}&response_type=code&nonce=casdoor&scope=openid`;
+            } else if (provider.type === "Baidu") {
+                return `${endpoint}?client_id=${provider.clientId}&redirect_uri=${redirectUri}&state=${state}&response_type=code&scope=${scope}&display=popup`;
+            } else if (provider.type === "Alipay") {
+                return `${endpoint}?app_id=${provider.clientId}&scope=auth_user&redirect_uri=${redirectUri}&state=${state}&response_type=code&scope=${scope}&display=popup`;
+            } else if (provider.type === "Casdoor") {
+                return `${provider.domain}/login/oauth/authorize?client_id=${provider.clientId}&redirect_uri=${redirectUri}&state=${state}&response_type=code&scope=${scope}`;
+            } else if (provider.type === "Infoflow") {
+                return `${endpoint}?appid=${provider.clientId}&redirect_uri=${redirectUri}?state=${state}`;
+            } else if (provider.type === "Apple") {
+                return `${endpoint}?client_id=${provider.clientId}&redirect_uri=${redirectUri}&state=${state}&response_type=code%20id_token&scope=${scope}&response_mode=form_post`;
+            } else if (provider.type === "Steam") {
+                return `${endpoint}?openid.claimed_id=http://specs.openid.net/auth/2.0/identifier_select&openid.identity=http://specs.openid.net/auth/2.0/identifier_select&openid.mode=checkid_setup&openid.ns=http://specs.openid.net/auth/2.0&openid.realm=https://casdoor-community.qiniu.io&openid.return_to=${redirectUri}?state=${state}`;
+            } else if (provider.type === "Okta") {
+                return `${provider.domain}/v1/authorize?client_id=${provider.clientId}&redirect_uri=${redirectUri}&state=${state}&response_type=code&scope=${scope}`;
+            } else if (provider.type === "Douyin" || provider.type === "TikTok") {
+                return `${endpoint}?client_key=${provider.clientId}&redirect_uri=${redirectUri}&state=${state}&response_type=code&scope=${scope}`;
+            } else if (provider.type === "Custom") {
+                return `${provider.customAuthUrl}?client_id=${provider.clientId}&redirect_uri=${redirectUri}&scope=${provider.scopes}&response_type=code&state=${state}`;
+            } else if (provider.type === "Bilibili") {
+                return `${endpoint}#/?client_id=${provider.clientId}&return_url=${redirectUri}&state=${state}&response_type=code`;
+            } else if (provider.type === "Deezer") {
+                return `${endpoint}?app_id=${provider.clientId}&redirect_uri=${redirectUri}&perms=${scope}`;
+            } else if (provider.type === "Lastfm") {
+                return `${endpoint}?api_key=${provider.clientId}&cb=${redirectUri}`;
+            } else if (provider.type === "Shopify") {
+                return `${endpoint}?client_id=${provider.clientId}&redirect_uri=${redirectUri}&scope=${scope}&state=${state}&grant_options[]=per-user`;
+            } else if (provider.type === "Twitter" || provider.type === "Fitbit") {
+                return `${endpoint}?client_id=${provider.clientId}&redirect_uri=${redirectUri}&state=${state}&response_type=code&scope=${scope}&code_challenge=${codeChallenge}&code_challenge_method=S256`;
+            } else if (provider.type === "MetaMask") {
+                return `${redirectUri}?state=${state}`;
+            } else if (provider.type === "Web3Onboard") {
+                return `${redirectUri}?state=${state}`;
+            }
+        }
+
+        function openBindPage(url) {
+            window.open(url, '_blank');
+        }
+
+        function openUnbindPage(url) {
+            let newUrl = "/userUnlink?pv=" + url;
+            window.open(newUrl, '_blank');
+        }
+
+        /*======= change theme =======*/
+        const themeOverrides = {
+            common: {
+                primaryColor: '#3182ce'
+            },
+            Tab: {
+                backgroundColor: '#3182ce',
+            },
+            Button: {
+                textColor: '#3182ce',
+                color: '#3182ce',
+            },
+            Input: {
+                caretColor: '#3182ce',
+                borderColor: '#3182ce',
+            }
+        }
+        const selectThemeOverrides = {
+            menuBoxShadow:
+                '0 6px 16px -9px rgba(0, 0, 0, .08), 0 9px 28px 0 rgba(0, 0, 0, .05), 0 12px 48px 16px rgba(0, 0, 0, .03)',
+            peers: {
+                InternalSelection: {
+                    textColor: '#FF0000',
+                }
+            }
+        }
+        const buttonThemeOverrides = {
+            heightMedium: '40px',
+            textColor: '#00ff00'
+        }
+
+        /*======= register vue component =======*/
+        const app = Vue.createApp({
+            data() {
+                return {
+                    formRef,
+                    rules,
+                    canSubmit,
+                    selectThemeOverrides,
+                    buttonThemeOverrides,
+                    userProfile,
+                    genderOptions,
+                    fileList,
+                    accountList: [
+                        {
+                            img: "static/img/social_github.png",
+                            platform: "GitHub",
+                            desc: "https://github.com",
+                            bind: accountBinds.Github,
+                            provider: authInfo.GitHub,
+                            url: getAuthUrl(providers[0], "link")
+                        },
+                        {
+                            img: "static/img/social_twitter.png",
+                            platform: "Twitter / X",
+                            desc: "https://twitter.com",
+                            bind: accountBinds.Twitter,
+                            provider: authInfo.Twitter,
+                            url: getAuthUrl(providers[1], "link")
+                        },
+                        {
+                            img: "static/img/social_facebook.png",
+                            platform: "Facebook",
+                            desc: "https://facebook.com",
+                            bind: accountBinds.Facebook,
+                            provider: authInfo.Facebook,
+                            url: getAuthUrl(providers[2], "link")
+                        },
+                        {
+                            img: "static/img/social_wechat.png",
+                            platform: "WeChat",
+                            desc: "https://weixin.qq.com",
+                            bind: accountBinds.WeChat,
+                            provider: authInfo.WeChat,
+                            url: getAuthUrl(providers[3], "link")
+                        }
+                    ]
+                }
+            },
+            methods: {
+                onlyAllowNumber,
+                openBindPage,
+                openUnbindPage,
+                editProfile,
+                customRequest,
+            },
+        });
+
+        app.use(naive)
+        app.config.compilerOptions.delimiters = ['${', '}']
+        app.mount('#app')
     </script>
-    <script src="static/js/user_edit.js"></script>
-  </body>
+</body>
+
 </html>

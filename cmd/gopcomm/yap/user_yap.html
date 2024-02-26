@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Go+ Community</title>
+    <title>User Profile</title>
 
     <!-- UI -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
@@ -30,22 +30,22 @@
 
 <body style="background-color: #f7fafc;">
     {{ template "header" .}}
+
     <n-config-provider>
         <div id="app" class="h-full w-full">
             <n-breadcrumb style="margin: 10px 20px;">
-                <n-breadcrumb-item>
-                    <a href="/"><i class="ph-duotone ph-house" style="font-size: 18px; margin-right: 5px;"></i>
-                        Home</a>
+                <n-breadcrumb-item href="/">
+                    <i class="ph ph-house" style="font-size: 18px; margin-right: 5px;"></i>
+                    Home
                 </n-breadcrumb-item>
                 <n-breadcrumb-item>
-                    <i class="ph ph-user" style="font-size: 18px; margin-right: 5px;"></i>
-                    ${ CurrentUser.name }
+                    <span class="font-semibold">${ CurrentUser.name }</span>
                 </n-breadcrumb-item>
             </n-breadcrumb>
 
             <div style="padding: 40px 40px; margin: 30px auto;" class="container px-5 py-3 mx-auto bg-white rounded-lg">
                 <!-- Personal Profile -->
-                <n-grid :x-gap="12" :cols="7" style="padding: 0 20px;">
+                <n-grid :x-gap="12" :cols="8" style="padding: 0 20px;">
                     <!-- Avatar -->
                     <n-gi :span="1" class="flex justify-center items-center">
                         <n-avatar v-if="CurrentUser.avatar" round :size="110" :src="CurrentUser.avatar"></n-avatar>
@@ -53,62 +53,77 @@
                     </n-gi>
 
                     <!-- Name & Description & Contact Info -->
-                    <n-gi :span="4" class="flex flex-col justify-center">
+                    <n-gi :span="5" class="flex flex-col justify-center">
                         <!-- Name & Description -->
-                        <span class="text-3xl font-semibold">
+                        <span class="text-3xl font-semibold mb-2">
                             ${ CurrentUser.name }
-                            <span class="text-xs text-neutral-700 font-normal ml-3">Description</span>
+                            <!-- TODO: <span class="text-xs text-neutral-700 font-normal ml-3">Description</span> -->
                         </span>
 
                         <!-- Contact Info  -->
-                        <n-grid :x-gap="1" :y-gap="3" :cols="2" class="mt-2">
-                            <!-- Gender & Birthday -->
-                            <n-gi class="flex items-center">
-                                <i class="ph-duotone ph-user-circle" style="color: #ef5028; font-size: 20px;"></i>
-                                <p v-if="CurrentUser.gender" class="ml-3 text-gray-400">
-                                    ${ CurrentUser.gender },
-                                </p>
-                                <p v-if="CurrentUser.birthday" class="text-gray-400"> born on ${ CurrentUser.birthday }
-                                </p>
-                                <p v-if="!CurrentUser.gender && !CurrentUser.birthday" class="ml-3 text-gray-400">
-                                    birthday is empty</p>
-                            </n-gi>
-
+                        <n-grid :x-gap="1" :y-gap="3" :cols="2" class="mt-3">
                             <!-- Created Time -->
                             <n-gi class="flex items-center">
-                                <i class="ph-duotone ph-calendar-check" style="color: #3182ce; font-size: 20px;"></i>
-                                <p class="ml-3 text-gray-400">${ CurrentUser.createdTime.slice(0,10) } Joined GoPlus
-                                    Community</p>
+                                <i class="ph ph-calendar-check" style="color: #0284c7; font-size: 20px;"></i>
+                                <div class="flex items-center">
+                                    <p class="ml-3">${ CurrentUser.createdTime.slice(0,10) }</p>
+                                    <p class="ml-1 text-gray-400">Joined Go+ Community</p>
+                                </div>
+                            </n-gi>
+
+                            <!-- Gender & Birthday -->
+                            <n-gi class="flex items-center">
+                                <i class="ph ph-cake" style="color: #0284c7; font-size: 20px;"></i>
+                                <div class="flex items-center">
+                                    <p class="ml-3 text-gray-400">Gender & Birthday:</p>
+                                    <p v-if="CurrentUser.gender" class="ml-1">
+                                        ${ CurrentUser.gender }，
+                                    </p>
+                                    <p v-if="CurrentUser.birthday" class="ml-1"> born on ${ CurrentUser.birthday }
+                                    </p>
+                                    <p v-if="!CurrentUser.gender && !CurrentUser.birthday" class="ml-1">null</p>
+                                </div>
                             </n-gi>
 
                             <!-- Email -->
                             <n-gi class="flex items-center">
-                                <i class="ph-duotone ph-envelope" style="color: #2191ad; font-size: 20px;"></i>
-                                <p v-if="CurrentUser.email === ''" class="ml-3 text-gray-400">email is empty</p>
-                                <p v-else class="ml-3 text-gray-400">${ CurrentUser.email}</p>
+                                <i class="ph ph-envelope-simple" style="color: #0284c7; font-size: 20px;"></i>
+                                <div class="flex items-center">
+                                    <p class="ml-3 text-gray-400">E-mail:</p>
+                                    <p v-if="CurrentUser.email" class="ml-1">
+                                        ${ CurrentUser.email}
+                                    </p>
+                                    <p v-else class="ml-1">null</p>
+                                </div>
                             </n-gi>
 
                             <!-- Phone -->
                             <n-gi class="flex items-center">
-                                <i class="ph-duotone ph-phone-call" style="color: #d88d01; font-size: 20px;"></i>
-
-                                <p v-if="CurrentUser.phone === ''" class="ml-3 text-gray-400">phone is empty</p>
-                                <p v-else class="ml-3 text-gray-400">${ CurrentUser.phone}</p>
+                                <i class="ph ph-phone-call" style="color: #0284c7; font-size: 20px;"></i>
+                                <div class="flex items-center">
+                                    <p class="ml-3 text-gray-400">Phone:</p>
+                                    <p v-if="CurrentUser.phone" class="ml-1">
+                                        ${ CurrentUser.phone}
+                                    </p>
+                                    <p v-else class="ml-1">null</p>
+                                </div>
                             </n-gi>
                         </n-grid>
                     </n-gi>
 
                     <!-- Edit Button & Followers -->
                     <n-gi :span="2" class="flex flex-col justify-center items-end">
+                        <!-- Edit Button -->
                         {{ if .UserId}}
                         <n-button v-if="UserId === CurrentUser.id" text color="#3182ce"
-                            onclick="window.location.href='/userEdit'">
+                            onclick="window.location.href='/userEdit'" class="mb-4">
                             <template #icon>
-                                <i class="ph-duotone ph-pencil-line" style="color: #3182ce;"></i>
+                                <i class="ph-duotone ph-gear" style="color: #3182ce;"></i>
                             </template>
-                            Edit Profile
+                            Settings
                         </n-button>
                         {{ end }}
+
                         <!-- Following & Followers -->
                         <div class="flex items-center mt-3">
                             <div class="flex flex-col items-center">
@@ -158,87 +173,96 @@
                         <n-list v-else>
                             <!-- Article List Item -->
                             <n-list-item v-for="(item,i) in articleList">
-                                <!-- left part -->
-                                <div style="width: 30%;padding: 0 20px;">
-                                    <!-- Image -->
-                                    <img class="w-full object-cover rounded" style="height: 15vh;" :src="item.Cover"
-                                        alt="">
+                                <!-- prefix -->
+                                <template #prefix>
+                                    <div style="height: 20vh; width: 32vh;">
+                                        <!-- Image -->
+                                        <img class="w-full object-cover rounded" :src="item.Cover" alt="">
 
-                                    <!-- Data -->
-                                    <div class="flex justify-center items-center mt-2" style="height: 2vh;">
-                                        <!-- Views -->
-                                        <div class="flex justify-center items-center" style="width: 40%;">
-                                            <i class="ph-duotone ph-eye"></i>
-                                            <!-- TODO @Bai: 浏览量 -->
-                                            <span class="ml-1 text-sm">368</span>
+                                        <!-- Data -->
+                                        <div class="flex justify-center items-center mt-2" style="height: 2vh;">
+                                            <!-- Views -->
+                                            <div class="flex justify-center items-center" style="width: 40%;">
+                                                <i class="ph-duotone ph-eye" style="color: #3182ce;"></i>
+                                                <!-- TODO: 浏览量 -->
+                                                <span class="ml-1 text-sm">368</span>
+                                            </div>
+
+                                            <!-- Likes -->
+                                            <div class="flex justify-center items-center" style="width: 40%;">
+                                                <i class="ph-duotone ph-thumbs-up" style="color: #3182ce;"></i>
+                                                <!-- TODO: 点赞数 -->
+                                                <span class="ml-1 text-sm">12</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <!-- content -->
+                                <div style="width: 70%;" class="flex flex-col items-start">
+                                    <div class="absolute top-4">
+                                        <!-- Title -->
+                                        <div class="text-2xl font-semibold text-gray-900 title-font mb-2">
+                                            <a :href="'/p/' + item.ID">
+                                                <p>${ item.Title }</p>
+                                            </a>
                                         </div>
 
-                                        <!-- Likes -->
-                                        <div class="flex justify-center items-center" style="width: 40%;">
-                                            <i class="ph-duotone ph-thumbs-up"></i>
-                                            <!-- TODO @Bai: 点赞数 -->
-                                            <span class="ml-1 text-sm">12</span>
+                                        <!-- Tags -->
+                                        <div class="flex flex-row items-center">
+                                            <span v-for="(tag, index) in item.Tags.split(';')" class="flex flex-row items-center">
+                                                <i class="ph-duotone ph-hash" style="color: #3182ce; font-size: 17px;"></i>
+                                                <p class="text-sm ml-1 mr-2 hover:text-blue-600">
+                                                    <a :href="'/search?value=' + tag">
+                                                        ${ tag }
+                                                    </a>
+                                                </p>
+                                            </span>
                                         </div>
+
+                                        <!-- Description -->
+                                        <p class="leading-7 mt-1 text-neutral-700" style="color: #6b7280; line-height: normal;">
+                                            ${ item.Abstract }
+                                        </p>
                                     </div>
-                                </div>
-
-                                <!-- left part -->
-                                <div style="width: 50%;">
-                                    <!-- Title -->
-                                    <div class="text-2xl font-semibold text-gray-900 title-font mb-2">
-                                        <a :href="'/p/' + item.ID">
-                                            <p>${ item.Title }</p>
-                                        </a>
-                                    </div>
-
-                                    <!-- Tags -->
-                                    <div class="flex flex-row items-center">
-                                        <span v-for="(tag, index) in item.Tags.split(';')" class="flex flex-row items-center">
-                                            <i class="ph-duotone ph-hash" style="color: #3182ce; font-size: 17px;"></i>
-                                            <p class="text-sm ml-1 mr-2 hover:text-blue-600">
-                                                <a :href="'/search?value=' + tag">
-                                                    ${ tag }
-                                                </a>
-                                            </p>
-                                        </span>
-                                    </div>
-
-                                    <!-- Description -->
-                                    <p class="leading-7 mt-1 text-neutral-700">
-                                        ${ item.Abstract }
-                                    </p>
-
+                                    
                                     <!-- Update Time -->
                                     <span class="text-xs absolute bottom-4" style="color: #A0AEC0;">
                                         ${ item.Ctime.slice(0,10) }
                                     </span>
                                 </div>
 
-                                <!-- right part -->
-                                <div style="width: 20%;">
-                                    <!-- Edit Button & Delete Button -->
-                                    <div v-if="UserId === item.UId"
-                                        class="grid grid-flow-row-dense grid-cols-2 grid-rows-1 items-center mb-5"
-                                        style="height: 2vh;">
-                                        <n-button text class="col-span-1"
-                                            style="--n-text-color-hover: #3182ce; --n-text-color-focus: #3182ce;">
+                                <!-- suffix -->
+                                <template #suffix>
+                                    {{if .User}}
+                                    <div class="flex">
+                                        <!-- Edit Button -->
+                                        <n-button 
+                                            tag="a"
+                                            :href="'/edit/' + item.ID"
+                                            style="--n-border-radius: 7px; --n-ripple-color: #7ba7d3; 
+                                            --n-text-color-hover: #3182ce; --n-text-color-pressed: #3182ce;
+                                            --n-text-color-focus: #3182ce; --n-border-hover: 1px solid #3182ce;
+                                            --n-border-pressed: 1px solid #3182ce; --n-border-focus: 1px solid #3182ce;">
                                             <template #icon>
-                                                <i class="ph-duotone ph-pencil-line" style="color: #3182ce;"></i>
+                                                <i class="ph-bold ph-pencil-line" style="color: #3182ce;"></i>
                                             </template>
-                                            <a :href="'/edit/' + item.ID">Edit</a>
+                                            Edit
                                         </n-button>
 
                                         <!-- Delete Button -->
                                         <n-popconfirm :show="deleteId === item.ID">
                                             <template #icon>
-                                                <i class="ph-fill ph-siren" style="color: #f25858;"></i>
+                                                <i class="ph-duotone ph-warning" style="color: #f25858;"></i>
                                             </template>
                                             <template #trigger>
-                                                <n-button @click="deleteId = item.ID" text class="col-span-1"
-                                                    style="--n-text-color-hover: #f25858; --n-text-color-focus: #f25858;">
+                                                <n-button @click="deleteId = item.ID" class="ml-2"
+                                                    style="--n-border-radius: 7px; --n-ripple-color: #fecaca; 
+                                                --n-text-color-hover: #f06464; --n-text-color-pressed: #f25858;
+                                                --n-text-color-focus: #f25858; --n-border-hover: 1px solid #f06464;
+                                                --n-border-pressed: 1px solid #f25858; --n-border-focus: 1px solid #f25858;">
                                                     <template #icon>
-                                                        <i class="ph-duotone ph-trash-simple"
-                                                            style="color: #f25858;"></i>
+                                                        <i class="ph-bold ph-trash" style="color: #f25858;"></i>
                                                     </template>
                                                     Delete
                                                 </n-button>
@@ -247,12 +271,14 @@
                                             <template #action>
                                                 <n-button @click="deleteId = 0" size="tiny" strong
                                                     secondary>Cancel</n-button>
-                                                <n-button @click="deleteArticle(item.ID)" size="tiny" strong secondary
-                                                    type="error">Delete</n-button>
+                                                <n-button @click="deleteArticle(item.ID)" size="tiny" strong
+                                                    secondary type="error">Delete</n-button>
                                             </template>
                                         </n-popconfirm>
                                     </div>
-                                </div>
+                                    {{end}}
+                                </template>
+                                
                             </n-list-item>
                         </n-list>
 
@@ -299,17 +325,16 @@
                                 <n-list-item v-for="(item,i) in videoList" :key="index" class="flex">
                                     <!-- prefix -->
                                     <template #prefix>
-                                        <!-- Video Cover -->
-                                        <!-- TODO: @Bai 视频封面src -->
+                                        <!-- TODO: bug Video Cover -->
                                         <img class="w-full object-cover rounded" style="height: 20vh; width: 32vh;"
-                                            src="" alt="">
+                                            :src="item.FileKey+'?vframe/jpg/offset/0'" alt="">
                                     </template>
 
                                     <!-- content -->
                                     <div style="width: 70%;" class="flex flex-col items-start">
                                         <div class="absolute top-4">
                                             <!-- Video Filename -->
-                                            <!-- TODO: @Bai 视频文件名${ item. } -->
+                                            <!-- TODO: 视频文件名${ item. } -->
                                             <p class="text-xl font-semibold mb-3">Video Name</p>
 
                                             <!-- TODO: 视频时长 -->
@@ -436,7 +461,7 @@
                             <!-- Image List -->
                             <n-grid x-gap="16" :cols="4">
                                 <n-gi :span="1" v-for="(item,index) in imageList" :key="index">
-                                    <n-card shadow="hover">
+                                    <n-card hoverable>
                                         <div class="image">
                                             <n-image :src="item.FileKey" class="image-item" fit="cover"></n-image>
                                         </div>
@@ -512,10 +537,10 @@
             // to change theme
             const themeOverrides = {
                 common: {
-                    primaryColor: '#3f83f8'
+                    primaryColor: '#3182ce'
                 },
                 Tab: {
-                    backgroundColor: '#3f83f8',
+                    backgroundColor: '#3182ce',
                 }
             }
 
@@ -716,15 +741,18 @@
 
     <!-- Footer -->
     <p class="fixed bottom-0 left-1/2 transform -translate-x-1/2" style="font-size: xx-small;">
-        ©2024, provided by
-        <a href="https://www.qiniu.com/" target="_blank" style="color: #3182ce;">Qiniu Tech</a>
+        ©2024, powered by
+        <a href="https://www.qiniu.com/" target="_blank" style="color: #3182ce;">Qiniu Cloud</a>
     </p>
-
 </body>
 
 </html>
 
 <style>
+    a:hover {
+        color: #3182ce;
+    }
+
     .n-list .n-list-item .n-list-item__main {
         display: flex;
         flex-direction: row;
@@ -758,13 +786,13 @@
             border-radius: 8px;
             overflow: hidden;
 
-            max-height: 300px;
+            max-height: 200px;
 
             .image-item {
                 transition: all 0.5s;
                 background-color: #000000;
                 width: 100%;
-                height: 250px;
+                height: 200px;
             }
 
             .image-item:hover {
@@ -778,12 +806,12 @@
             flex-flow: row nowrap;
             justify-content: space-between;
             color: gray;
-            margin: 0 10px 10px 10px;
+            margin: 10px;
             border-radius: 8px;
 
             .image-time {
                 font-size: 14px;
-                color: gray;
+                color: #A0AEC0;
                 margin-top: 4px;
             }
         }
