@@ -35,7 +35,6 @@
         <div id="app" class="h-full w-full">
             <n-breadcrumb style="margin: 10px 20px;">
                 <n-breadcrumb-item href="/">
-                    <i class="ph ph-house" style="font-size: 18px; margin-right: 5px;"></i>
                     Home
                 </n-breadcrumb-item>
                 <n-breadcrumb-item>
@@ -112,20 +111,20 @@
                     </n-gi>
 
                     <!-- Edit Button & Followers -->
-                    <n-gi :span="2" class="flex flex-col justify-center items-end">
+                    <n-gi :span="2" class="flex flex-col justify-between items-end">
                         <!-- Edit Button -->
-                        {{ if .UserId}}
-                        <n-button v-if="UserId === CurrentUser.id" text color="#3182ce"
+                        {{ if .UserId }}
+                        <n-button v-if="UserId === CurrentUser.id" text color="#3182ce" size="large"
                             onclick="window.location.href='/userEdit'" class="mb-4">
                             <template #icon>
-                                <i class="ph-duotone ph-gear" style="color: #3182ce;"></i>
+                                <i class="ph ph-gear" style="color: #3182ce;"></i>
                             </template>
                             Settings
                         </n-button>
                         {{ end }}
 
                         <!-- Following & Followers -->
-                        <div class="flex items-center mt-3">
+                        <!-- <div class="flex items-center mt-3">
                             <div class="flex flex-col items-center">
                                 <p class="text-gray-400">Following</p>
                                 <p class="text-xl font-medium">123</p>
@@ -135,7 +134,7 @@
                                 <p class="text-gray-400">Followers</p>
                                 <p class="text-xl font-medium">123</p>
                             </div>
-                        </div>
+                        </div> -->
                     </n-gi>
                 </n-grid>
             </div>
