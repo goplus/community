@@ -155,12 +155,23 @@
                         <n-switch v-model:value="articleForm.trans" @update:value="changeTrans" />
                     </n-form-item>
 
+                    <!-- Label -->
+                    <n-form-item label="Label" path="label">
+                        <n-radio-group v-model:value="articleForm.label" name="radiogroup">
+                            <n-space>
+                              <n-radio v-for="label in labels" :key="label.value" :value="label.value">
+                                ${ label.label }
+                              </n-radio>
+                            </n-space>
+                          </n-radio-group>
+                    </n-form-item>
+
                     <!-- Cover -->
                     <n-form-item label="Cover" path="cover">
 
                         <!-- TODO: @Shi 预览封面 -->
-                        <n-upload :max="1" directory-dnd accept="image/png, image/jpg, image/jpeg" @change="changeCover"
-                            :custom-request="customRequest" :default-file-list="fileList">
+                        <n-upload :max="1" directory-dnd @change="changeCover"
+                            :custom-request="customRequest" :default-file-list="fileList" list-type="image-card">
                             <n-upload-dragger
                                 style="--n-dragger-border-hover: 1.5px dashed #3182ce; border-radius: 7px;">
                                 <div class="mb-1">
@@ -325,7 +336,8 @@
             title: '',
             tags: [],
             abstract: '',
-            trans: false
+            trans: false,
+            label: 'article',
         });
         let coverUrl = "";
 
@@ -338,9 +350,25 @@
             },
         }
 
+        const labels = [
+            {
+                value: "article",
+                label: "blog"
+            },
+            {
+                value: 'video',
+                label: 'video'
+            },
+            {
+                value: 'stem',
+                label: 'stem'
+            },
+        ]
+
         // edit
         const isAdd = window.location.href.indexOf("edit") !== -1 ? ref(false) : ref(true)
         const article = isAdd.value ? {} : JSON.parse("{{.Article}}")
+        // article.Cover = "https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg"
         const fileList = isAdd.value ? ref([]) : ref([{
             id: "cover",
             status: "finished",
@@ -368,7 +396,7 @@
                         if (Array.isArray(articleForm.value.tags) && articleForm.value.tags.length > 0) {
                             tags.value = articleForm.value.tags.join(';');
                         } else {
-                            tags.value = null;
+                            tags.value = "";
                         }
                         console.log('tags:', tags.value);
 
@@ -380,6 +408,7 @@
                         formData.append("title", articleForm.value.title);
                         formData.append("tags", tags.value);
                         formData.append("abstract", articleForm.value.abstract);
+                        formData.append("label", articleForm.value.label);
                         formData.append("cover", coverUrl);
                         formData.append("content", window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown())
                         formData.append("trans", articleForm.value.trans)
@@ -508,7 +537,8 @@
                     fileList,
                     rules,
                     formRef,
-                    canSubmit
+                    canSubmit,
+                    labels
                 }
             },
             methods: {
@@ -528,6 +558,7 @@
                     articleForm.value.title = article.Title
                     articleForm.value.tags = article.Tags.split(";")
                     articleForm.value.abstract = article.Abstract
+                    articleForm.value.label = article.Label
                     articleForm.value.trans = article.Trans
                     coverUrl = article.Cover
                     window.GoplusMarkdown.MarkdownEditor.methods.setMarkdown(article.Content)

@@ -23,6 +23,7 @@ var (
 const (
 	layoutUS   = "January 2, 2006"
 	limitConst = 10
+	labelConst = "article"
 )
 
 todo := context.TODO()
@@ -51,8 +52,8 @@ get "/error", ctx => {
 		}
 	}
 	ctx.yap "4xx", {
-		"UserId":  userId,
-		"User":    user,
+		"UserId": userId,
+		"User":   user,
 	}
 }
 
@@ -69,8 +70,8 @@ get "/failed", ctx => {
 		}
 	}
 	ctx.yap "5xx", {
-		"UserId":  userId,
-		"User":    user,
+		"UserId": userId,
+		"User":   user,
 	}
 }
 
@@ -197,14 +198,14 @@ post "/update/user", ctx => {
 	token, err := core.GetToken(ctx)
 	uid, err := community.ParseJwtToken(token.Value)
 	user := &core.UserInfo{
-		Id: uid,
-		Name:     ctx.param("name"),
-		Birthday: ctx.param("birthday"),
-		Gender:   ctx.param("gender"),
-		Phone:    ctx.param("phone"),
-		Email:    ctx.param("email"),
-		Avatar:   ctx.param("avatar"),
-		Owner: ctx.param("owner"),
+		Id:          uid,
+		Name:        ctx.param("name"),
+		Birthday:    ctx.param("birthday"),
+		Gender:      ctx.param("gender"),
+		Phone:       ctx.param("phone"),
+		Email:       ctx.param("email"),
+		Avatar:      ctx.param("avatar"),
+		Owner:       ctx.param("owner"),
 		DisplayName: ctx.param("name"),
 	}
 	_, err = community.UpdateUserById(fmt.Sprintf("%s/%s", user.Owner, user.Name), user)
@@ -264,32 +265,32 @@ get "/delete", ctx => {
 }
 
 get "/medias", ctx => {
-    format := ctx.param("format")
-    uid := ctx.param("uid")
-    page := ctx.param("page")
-    pageInt, err := strconv.Atoi(page)
-    if err != nil {
-       pageInt = 1
-    }
-    limit := ctx.param("limit")
-    limitInt, err := strconv.Atoi(limit)
-    if err != nil {
-        limitInt = limitConst
-    }
-    files, count, err := community.ListMediaByUserId(todo, uid, format,pageInt,limitInt)
-    if err != nil {
-       ctx.json {
-          "code": 0,
-          "total": count,
-          "err":  err.Error(),
-       }
-    } else {
-       ctx.json {
-          "code":  200,
-          "total": count,
-          "items": files,
-       }
-    }
+	format := ctx.param("format")
+	uid := ctx.param("uid")
+	page := ctx.param("page")
+	pageInt, err := strconv.Atoi(page)
+	if err != nil {
+		pageInt = 1
+	}
+	limit := ctx.param("limit")
+	limitInt, err := strconv.Atoi(limit)
+	if err != nil {
+		limitInt = limitConst
+	}
+	files, count, err := community.ListMediaByUserId(todo, uid, format, pageInt, limitInt)
+	if err != nil {
+		ctx.json {
+			"code":  0,
+			"total": count,
+			"err":   err.Error(),
+		}
+	} else {
+		ctx.json {
+			"code":  200,
+			"total": count,
+			"items": files,
+		}
+	}
 }
 get "/delMedia", ctx => {
 	id := ctx.param("id")
@@ -330,7 +331,7 @@ get "/", ctx => {
 		}
 	}
 	// Get Article Info
-	articles, next, _ := community.ListArticle(todo, core.MarkBegin, limitConst, "")
+	articles, next, _ := community.ListArticle(todo, core.MarkBegin, limitConst, "", labelConst)
 	articlesJson, _ := json.Marshal(&articles)
 	ctx.yap "home", {
 		"UserId": userId,
@@ -344,13 +345,14 @@ get "/get", ctx => {
 	from := ctx.param("from")
 	limit := ctx.param("limit")
 	searchValue := ctx.param("value")
+	label := ctx.param("label")
 
 	limitInt, err := strconv.Atoi(limit)
 	if err != nil {
 		limitInt = limitConst
 	}
 	// Get Article Info
-	articles, next, _ := community.ListArticle(todo, from, limitInt, searchValue)
+	articles, next, _ := community.ListArticle(todo, from, limitInt, searchValue, label)
 	ctx.json {
 		"code":  200,
 		"items": articles,
@@ -378,12 +380,10 @@ get "/userArticles", ctx => {
 
 get "/search", ctx => {
 	searchValue := ctx.param("value")
-	// if searchValue == "" {
-	// 	ctx.json {
-	// 		"code": 400,
-	// 		"err":  "value can not be ''.",
-	// 	}
-	// }
+	label := ctx.param("label")
+	if label == "" {
+		label = "article"
+	}
 
 	// todo middleware
 	var user *core.User
@@ -398,7 +398,7 @@ get "/search", ctx => {
 		}
 	}
 
-	articles, next, _ := community.ListArticle(todo, core.MarkBegin, limitConst, searchValue)
+	articles, next, _ := community.ListArticle(todo, core.MarkBegin, limitConst, searchValue, label)
 	articlesJson, _ := json.Marshal(&articles)
 	ctx.yap "home", {
 		"UserId": userId,
@@ -406,6 +406,7 @@ get "/search", ctx => {
 		"Items":  string(articlesJson),
 		"Value":  searchValue,
 		"Next":   next,
+		"Tab":    label,
 	}
 }
 
@@ -461,6 +462,7 @@ post "/commit", ctx => {
 	title := ctx.param("title")
 	tags := ctx.param("tags")
 	abstract := ctx.param("abstract")
+	label := ctx.param("label")
 	trans, _ := strconv.ParseBool(ctx.param("trans"))
 	// get user id
 	token, err := core.GetToken(ctx)
@@ -487,6 +489,7 @@ post "/commit", ctx => {
 			Cover:    ctx.param("cover"),
 			Tags:     tags,
 			Abstract: abstract,
+			Label:    label,
 		},
 		Content: content,
 		Trans:   trans,
