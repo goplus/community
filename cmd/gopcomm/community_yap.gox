@@ -39,11 +39,39 @@ get "/success", ctx => {
 }
 
 get "/error", ctx => {
-	ctx.yap "4xx", {}
+	var user *core.User
+	userId := ""
+	token, err := core.GetToken(ctx)
+	if err == nil {
+		user, err = community.GetUser(token.Value)
+		if err != nil {
+			xLog.Error("get user error:", err)
+		} else {
+			userId = user.Id
+		}
+	}
+	ctx.yap "4xx", {
+		"UserId":  userId,
+		"User":    user,
+	}
 }
 
 get "/failed", ctx => {
-	ctx.yap "5xx", {}
+	var user *core.User
+	userId := ""
+	token, err := core.GetToken(ctx)
+	if err == nil {
+		user, err = community.GetUser(token.Value)
+		if err != nil {
+			xLog.Error("get user error:", err)
+		} else {
+			userId = user.Id
+		}
+	}
+	ctx.yap "5xx", {
+		"UserId":  userId,
+		"User":    user,
+	}
 }
 
 get "/demo", ctx => {
