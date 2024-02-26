@@ -107,7 +107,7 @@
 
                         <!-- TODO: 评论事件和评论数 -->
                         <!-- <n-badge :value="article.comments"> -->
-                        <n-button type="tertiary" style="--n-text-color-hover: #2191ad;
+                        <!-- <n-button type="tertiary" style="--n-text-color-hover: #2191ad;
                                     --n-text-color-pressed: #2191ad;
                                     --n-text-color-focus: #2191ad;
                                     --n-ripple-color: #66bdd3;
@@ -117,12 +117,12 @@
                                     height: 7vh; width: 7vh;
                                     --n-padding: 0; --n-border-radius: 5px;">
                             <i class="ph-duotone ph-chat-circle-dots" style="font-size: 22px;"></i>
-                        </n-button>
+                        </n-button> -->
                         <!-- </n-badge> -->
 
                         <!-- TODO: 收藏事件和收藏数 -->
                         <!-- <n-badge :value="article.stars"> -->
-                        <n-button type="tertiary" style="--n-text-color-hover: #e97257;
+                        <!-- <n-button type="tertiary" style="--n-text-color-hover: #e97257;
                                     --n-text-color-pressed: #e97257;
                                     --n-text-color-focus: #e97257;
                                     --n-ripple-color: #e98a74;
@@ -132,21 +132,8 @@
                                     height: 7vh; width: 7vh;
                                     --n-padding: 0; --n-border-radius: 5px;">
                             <i class="ph-duotone ph-star" style="font-size: 22px;"></i>
-                        </n-button>
+                        </n-button> -->
                         <!-- </n-badge> -->
-
-                        <!-- Share Button -->
-                        <!-- <n-button type="tertiary" style="--n-text-color-hover: #3182ce;
-                                    --n-text-color-pressed: #3182ce;
-                                    --n-text-color-focus: #3182ce;
-                                    --n-ripple-color: #659fd6;
-                                    --n-border-hover: 1.5px solid #3182ce;
-                                    --n-border-pressed: 1.5px solid #3182ce;
-                                    --n-border-focus: 1.5px solid #3182ce;
-                                    height: 7vh; width: 7vh;
-                                    --n-padding: 0; --n-border-radius: 5px;">
-                                <i class="ph-duotone ph-share-network" style="font-size: 22px;"></i>
-                            </n-button> -->
                     </n-gi>
 
                     <!-- Article -->
@@ -158,8 +145,10 @@
                                 <!-- Tags -->
                                 <div class="flex flex-row items-center">
                                     <span v-for="(item, index) in article.Tags.split(';')"
-                                        class="mr-3 inline-flex items-center bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300">
-                                        <span class="w-2 h-2 me-1 bg-blue-500 rounded-full"></span>
+                                        style="background-color: #cee1f5;"
+                                        class="mr-3 inline-flex items-center font-medium px-2.5 py-0.5 rounded-full">
+                                        <span class="w-2 h-2 me-1 rounded-full"
+                                            style="background-color: #3182ce;"></span>
                                         <a class="text-sm" :href="'/search?value=' + item">
                                             ${ item }
                                         </a>
@@ -182,27 +171,27 @@
                                 </n-dropdown>
                             </div>
 
-
                             <!-- Title -->
-                            <h1 class="my-4 text-4xl font-extrabold leading-tight text-gray-900">
+                            <h1 class="my-2 text-3xl font-extrabold leading-tight text-gray-900">
                                 ${ article.Title }
                             </h1>
 
-                            <!-- Update Time -->
+                            <!-- Update Time & Views -->
                             <address class="flex items-center mb-1">
-                                <div class="inline-flex items-center text-sm text-gray-900">
+                                <div class="inline-flex items-center text-sm">
                                     <p class="text-sm" style="color: #a0aec0;">
                                         <time pubdate>
                                             Updated on ${ article.Mtime.slice(0,10) }
                                         </time>
                                     </p>
                                 </div>
-                            </address>
 
-                            <!-- Description -->
-                            <!-- <p class="text-gray-500">
-                                    ${ article.Abstract }
-                                </p> -->
+                                <div class="inline-flex items-center text-sm" style="margin-left: 30px;">
+                                    <i class="ph-duotone ph-eye" style="font-size: 18px; color: #a0aec0;"></i>
+                                    <!-- TODO: @Bai <p>${ article.Views }</p> -->
+                                    <p class="ml-1 text-sm" style="color: #a0aec0;">123</p>
+                                </div>
+                            </address>
 
                             <!-- TODO: Cover -->
                         </header>
@@ -252,14 +241,12 @@
                                         <i class="ph-fill ph-wechat-logo" style="font-size: 20px;"></i>
                                     </n-button>
                                 </template>
-                                <template #header>
-                                    <div class="flex flex-col items-center">
-                                        <span class="mb-1">WeChat</span>
-                                        <n-qr-code :value="currentHref" error-correction-level="H" class="mb-1">
-                                        </n-qr-code>
-                                        <span style="font-size: x-small;">scan the QR Code</span>
-                                    </div>
-                                </template>
+                                <div class="flex flex-col items-center">
+                                    <span class="mb-1">WeChat</span>
+                                    <n-qr-code :value="currentHref" error-correction-level="H" class="mb-1">
+                                    </n-qr-code>
+                                    <span style="font-size: x-small;">scan the QR Code</span>
+                                </div>
                             </n-tooltip>
                         </div>
                     </n-gi>
@@ -271,42 +258,45 @@
                 <!-- Creator Profile -->
                 <div class="creator-info">
                     <!-- Avatar & Nick Name -->
-                    <div class="flex flex-row items-center">
-                        <!-- Avatar -->
-                        <a :href="'/user/'+article.User.Id">
+                    <a :href="'/user/'+article.User.Id">
+                        <div class="flex flex-row items-center mb-4">
+                            <!-- Avatar -->
                             <img class="w-12 h-12 rounded-full ml-3 mr-2" :src="article.User.Avatar"
                                 alt="Rounded avatar">
-                        </a>
 
-                        <!-- Nick Name -->
-                        <div>
-                            <span class="creator-name">${ article.User.Name }<br></span>
-                            <span class="creator-desc">GoPlus Developer</span>
+                            <!-- Nick Name -->
+                            <div>
+                                <span class="creator-name">${ article.User.Name }<br></span>
+                                <span class="creator-desc">GoPlus Developer</span>
+                            </div>
                         </div>
-                    </div>
+                    </a>
 
                     <!-- Creator Info -->
-                    <div class="m-4 flex flex-row items-center justify-between">
+                    <div class="mx-4 flex flex-row items-center justify-between">
                         <div class="text-center">
-                            <span class="creator-dataname">Blogs<br></span>
+                            <span class="creator-dataname">Articles<br></span>
+                            <!-- TODO: @Bai -->
                             <span class="creator-data">18</span>
                         </div>
                         <div class="text-center">
                             <span class="creator-dataname">Views<br></span>
+                            <!-- TODO: @Bai -->
                             <span class="creator-data">1.3k</span>
                         </div>
                         <div class="text-center">
                             <span class="creator-dataname">Likes<br></span>
+                            <!-- TODO: @Bai -->
                             <span class="creator-data">279</span>
                         </div>
-                        <div class="text-center">
+                        <!-- TODO: <div class="text-center">
                             <span class="creator-dataname">Followers<br></span>
                             <span class="creator-data">161</span>
-                        </div>
+                        </div> -->
                     </div>
 
-                    <!-- Follow Button -->
-                    <button class="mt-1 relative inline-flex items-center justify-center p-0.5 overflow-hidden 
+                    <!-- TODO: Follow Button -->
+                    <!-- <button class="mt-1 relative inline-flex items-center justify-center p-0.5 overflow-hidden 
                 font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-cyan-500 to-blue-500 
                 group-hover:from-cyan-500 group-hover:to-blue-500 hover:text-white dark:text-white 
                 focus:ring-4 focus:outline-none focus:ring-cyan-200 dark:focus:ring-cyan-800 
@@ -315,18 +305,18 @@
                             class="relative px-5 py-1 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
                             + Follow
                         </span>
-                    </button>
+                    </button> -->
                 </div>
 
-                <!-- Article Catalogue -->
-                <div class="article-catalogue">
-                    TODO: 文章目录 Anchor
-                </div>
+                <!-- TODO: Article Catalogue -->
+                <!-- <div class="article-catalogue">
+                    文章目录 Anchor
+                </div> -->
 
-                <!-- Article Catalogue -->
-                <div class="article-catalogue">
-                    TODO: 其他文章
-                </div>
+                <!-- TODO: Article Catalogue -->
+                <!-- <div class="article-catalogue">
+                    其他文章
+                </div> -->
             </n-gi>
         </n-grid>
 
