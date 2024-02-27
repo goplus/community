@@ -156,51 +156,89 @@
                                     </span>
                                 </div>
 
-                                <!-- Translate Button -->
-                                <n-dropdown :options="transOptions" trigger="click" width="150" @select="selectDropdown"
-                                    style="margin-left: auto">
-                                    <n-button @click="translateMd" class="ml-2"
-                                        style="--n-border-radius: 7px; --n-ripple-color: #7ba7d3; 
-                                            --n-text-color-hover: #2a82e4; --n-text-color-pressed: #3182ce;
-                                            --n-text-color-focus: #2a82e4; --n-border-hover: 1px solid #2a82e4;
-                                            --n-border-pressed: 1px solid #3182ce; --n-border-focus: 1px solid #2a82e4;">
-                                        <template #icon>
-                                            <i class="ph-bold ph-translate" style="color: #2a82e4;"></i>
-                                        </template>
-                                        <span style="font-weight: 600; color: #2a82e4;">Translate</span>
-                                    </n-button>
-                                </n-dropdown>
-                            </div>
+                        <!-- Translate Button -->
+                        <n-dropdown :options="transOptions" trigger="hover" width="150" @select="selectDropdown"
+                            style="margin-left: auto">
+                            <n-button @click="translateMd" class="ml-2"
+                                style="--n-border-radius: 7px; --n-ripple-color: #7ba7d3; 
+                                    --n-text-color-hover: #3182ce; --n-text-color-pressed: #3182ce;
+                                    --n-text-color-focus: #3182ce; --n-border-hover: 1px solid #3182ce;
+                                    --n-border-pressed: 1px solid #3182ce; --n-border-focus: 1px solid #3182ce;">
+                                <template #icon>
+                                    <i class="ph-bold ph-translate" style="color: #3182ce;"></i>
+                                </template>
+                                <span style="font-weight: 600; color: #3182ce;">Translate</span>
+                            </n-button>
+                        </n-dropdown>
+                    </div>
 
-                            <!-- Title -->
-                            <h1 class="my-2 text-3xl font-extrabold leading-tight text-gray-900">
-                                ${ article.Title }
-                            </h1>
+                    <!-- Title -->
+                    <h1 class="my-4 text-3xl font-extrabold leading-tight text-gray-900">
+                        ${ article.Title }
+                    </h1>
 
-                            <!-- Update Time & Views -->
-                            <address class="flex items-center mb-1">
-                                <div class="inline-flex items-center text-sm">
-                                    <p class="text-sm" style="color: #a0aec0;">
+                    <!-- Avatar & Nick Name -->
+                    <a :href="'/user/'+article.User.Id">
+                        <div class="flex flex-row items-center" style="margin: 20px 0;">
+                            <!-- Avatar -->
+                            <img class="w-12 h-12 rounded-full mr-2" :src="article.User.Avatar"
+                                alt="Rounded avatar">
+
+                            <div>
+                                <!-- Nick Name -->
+                                <span style="font-size: 18px; margin-left: 10px; font-weight: 600;">${ article.User.Name }<br></span>
+                                
+                                <div class="flex items-center">
+                                    <!-- Update Time -->
+                                    <p class="text-sm" style="color: #a0aec0; margin-left: 10px;">
                                         <time pubdate>
-                                            Updated on ${ article.Mtime.slice(0,10) }
+                                            Updated this article on ${ article.Mtime.slice(0,10) }
                                         </time>
                                     </p>
+    
+                                    <!-- Views -->
+                                    <div class="inline-flex items-center text-sm" style="margin-left: 30px;">
+                                        <i class="ph-duotone ph-eye" style="font-size: 18px; color: #a0aec0;"></i>
+                                        <!-- TODO: @Bai <p>${ article.Views }</p> -->
+                                        <p class="ml-1 text-sm" style="color: #a0aec0;">123</p>
+                                    </div>
                                 </div>
+                            </div>
+                        </div>
+                    </a>
+                    
+                    <!-- Button Group -->
+                    <div class="flex items-center justify-between">
+                        <!-- TODO: Like Button -->
+                        <div class="flex items-center">
+                            <!-- TODO: Like Button -->
+                            <n-tooltip trigger="hover" placement="bottom" v-if="!isLiked">
+                                <template #trigger>
+                                    <n-button quaternary circle @click="likeArticle(article.Id)">
+                                        <template #icon>
+                                            <i class="ph-bold ph-heart" style="color: #ef4444; font-size: 20px;"></i>
+                                        </template>
+                                    </n-button>
+                                </template>
+                                Like this article
+                            </n-tooltip>
 
-                                <div class="inline-flex items-center text-sm" style="margin-left: 30px;">
-                                    <i class="ph-duotone ph-eye" style="font-size: 18px; color: #a0aec0;"></i>
-                                    <!-- TODO: @Bai <p>${ article.Views }</p> -->
-                                    <p class="ml-1 text-sm" style="color: #a0aec0;">123</p>
-                                </div>
-                            </address>
+                            <!-- TODO: Unlike Button -->
+                            <n-tooltip trigger="hover" placement="bottom" v-else>
+                                <template #trigger>
+                                    <n-button quaternary circle @click="unlikeArticle(article.Id)">
+                                        <template #icon>
+                                            <i class="ph-fill ph-heart" style="color: #ef4444; font-size: 20px;"></i>
+                                        </template>
+                                    </n-button>
+                                </template>
+                                Unlike this article
+                            </n-tooltip>
 
-                            <!-- TODO: Cover -->
-                        </header>
-
-                        <!-- Content -->
-                        <n-divider style="margin: 10px 0 18px 0;"></n-divider>
-                        <markdown-viewer :md="article.Content"></markdown-viewer>
-                        <n-divider style="margin: 18px 0 10px 0;"></n-divider>
+                            <!-- TODO: Like numbers -->
+                            <!-- <n-badge :value="article.LikeNum" color="transparent" style="margin-left: -5px;"></n-badge> -->
+                            <n-badge value="3" color="transparent" style="margin-left: -5px; --n-font-size: 15px;"></n-badge>
+                        </div>
 
                         <!-- Quick Sharing -->
                         <div class="flex items-center">
@@ -244,82 +282,28 @@
                                 </template>
                                 <div class="flex flex-col items-center">
                                     <span class="mb-1">WeChat</span>
-                                    <n-qr-code :value="currentHref" error-correction-level="H" class="mb-1">
-                                    </n-qr-code>
+                                    <n-qr-code :value="currentHref" class="mb-1"></n-qr-code>
                                     <span style="font-size: x-small;">scan the QR Code</span>
                                 </div>
                             </n-tooltip>
                         </div>
-                    </n-gi>
-                </n-grid>
-            </n-gi>
-
-            <!-- Right Content -->
-            <n-gi :span="1" class="h-full w-full justify-center items-center">
-                <!-- Creator Profile -->
-                <div class="creator-info">
-                    <!-- Avatar & Nick Name -->
-                    <a :href="'/user/'+article.User.Id">
-                        <div class="flex flex-row items-center mb-4">
-                            <!-- Avatar -->
-                            <img class="w-12 h-12 rounded-full ml-3 mr-2" :src="article.User.Avatar"
-                                alt="Rounded avatar">
-
-                            <!-- Nick Name -->
-                            <div>
-                                <span class="creator-name">${ article.User.Name }<br></span>
-                                <span class="creator-desc">GoPlus Developer</span>
-                            </div>
-                        </div>
-                    </a>
-
-                    <!-- Creator Info -->
-                    <div class="mx-4 flex flex-row items-center justify-between">
-                        <div class="text-center">
-                            <span class="creator-dataname">Articles<br></span>
-                            <!-- TODO: @Bai -->
-                            <span class="creator-data">18</span>
-                        </div>
-                        <div class="text-center">
-                            <span class="creator-dataname">Views<br></span>
-                            <!-- TODO: @Bai -->
-                            <span class="creator-data">1.3k</span>
-                        </div>
-                        <div class="text-center">
-                            <span class="creator-dataname">Likes<br></span>
-                            <!-- TODO: @Bai -->
-                            <span class="creator-data">279</span>
-                        </div>
-                        <!-- TODO: <div class="text-center">
-                            <span class="creator-dataname">Followers<br></span>
-                            <span class="creator-data">161</span>
-                        </div> -->
                     </div>
 
-                    <!-- TODO: Follow Button -->
-                    <!-- <button class="mt-1 relative inline-flex items-center justify-center p-0.5 overflow-hidden 
-                font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-cyan-500 to-blue-500 
-                group-hover:from-cyan-500 group-hover:to-blue-500 hover:text-white dark:text-white 
-                focus:ring-4 focus:outline-none focus:ring-cyan-200 dark:focus:ring-cyan-800 
-                left-1/2 transform -translate-x-1/2" style="width: 70%;">
-                        <span style="width: 100%;"
-                            class="relative px-5 py-1 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
-                            + Follow
-                        </span>
-                    </button> -->
-                </div>
+                    <hr class="hr-edge-weak" style="margin: 15px 0;">
+                </header>
 
-                <!-- TODO: Article Catalogue -->
-                <!-- <div class="article-catalogue">
-                    文章目录 Anchor
+                <!-- Cover -->
+                <!-- <div class="img-container">
+                    <img class="w-12 h-12" :src="article.Cover" alt="Article Cover" />
                 </div> -->
 
-                <!-- TODO: Article Catalogue -->
-                <!-- <div class="article-catalogue">
-                    其他文章
-                </div> -->
-            </n-gi>
-        </n-grid>
+                <!-- Content -->
+                <markdown-viewer :md="article.Content"></markdown-viewer>
+            </div>
+        </div>
+
+        <!-- The End -->
+        <p class="text-xs text-center mt-3" style="color: #a0aec0;">- THE END -</p>
 
         <!-- Back Top -->
         <n-back-top :right="50" style="--n-icon-color: #3182ce; --n-icon-color-hover: #d3dfe9;
@@ -379,6 +363,16 @@
             }
         };
 
+        const isLiked = ref(false)
+
+        function likeArticle(id) {
+            isLiked.value = true;
+        }
+
+        function unlikeArticle(id) {
+            isLiked.value = false
+        }
+
         /*======= share related functions =======*/
         const currentHref = ref(window.location.href);
 
@@ -429,13 +423,16 @@
                     currentHref,
                     article,
                     isOrigin,
-                    transOptions
+                    transOptions,
+                    isLiked
                 }
             },
             methods: {
                 shareToFacebook,
                 shareToTwitter,
-                selectDropdown
+                selectDropdown,
+                likeArticle,
+                unlikeArticle
             },
             components: {
                 MarkdownViewer: window.GoplusMarkdown.MarkdownViewer
@@ -465,41 +462,30 @@
         flex-direction: row;
         align-items: center;
     }
-
-    .creator-info {
-        padding: 20px;
-        border-radius: 10px;
-        background: rgba(255, 255, 255, 1);
-        box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05);
+    
+    .img-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 50vh;
+        background-color: #f4f4f5d1;
+        margin-bottom: 10px;
     }
 
-    .creator-name {
-        font-size: 17px;
-        margin-left: 10px;
-        font-weight: 600;
+    .img-container img {
+        height: 100%;
+        width: 100%;
+        object-fit: contain;
     }
 
-    .creator-desc {
-        font-size: 13px;
-        color: #a0aec0;
-        margin-left: 10px;
+    .n-badge .n-badge-sup {
+        color: black;
     }
 
-    .creator-dataname {
-        font-size: 13px;
-        color: #a0aec0;
-    }
-
-    .creator-data {
-        font-size: 15px;
-    }
-
-    .article-catalogue {
-        height: 55vh;
-        margin: 15px 0 0 0;
-        padding: 20px;
-        border-radius: 10px;
-        background: rgba(255, 255, 255, 1);
-        box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05);
+    .hr-edge-weak {
+        border: 0;
+        padding-top: 1.5px;
+        background: linear-gradient(to right, transparent, #e0e0e6, transparent);
     }
 </style>
