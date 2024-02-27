@@ -200,7 +200,7 @@
                                     <div class="inline-flex items-center text-sm" style="margin-left: 30px;">
                                         <i class="ph-duotone ph-eye" style="font-size: 18px; color: #a0aec0;"></i>
                                         <!-- TODO: @Bai <p>${ article.Views }</p> -->
-                                        <p class="ml-1 text-sm" style="color: #a0aec0;">123</p>
+                                        <p class="ml-1 text-sm" style="color: #a0aec0;">${ article.ViewCount }</p>
                                     </div>
                                 </div>
                             </div>
@@ -336,9 +336,10 @@
             }
         ];
         const isOrigin = ref(true)
-        const likeStatus =ref({{.LikeState}})
+        const isLiked =ref({{.LikeState}})
+       
         const likeCount =ref(article.value.LikeCount)
-        console.log("likeCount:"+likeCount)
+        
         function selectDropdown(key) {
             if (key === 'original' && !isOrigin.value) {
                 console.log("origin")
@@ -367,7 +368,7 @@
             }
         };
 
-        const isLiked = ref(false)
+        
 
         function likeArticle(id) {
             console.log(article.value.ID)
@@ -377,11 +378,7 @@
             fetch("/api/article/like?articleId="+article.value.ID, options)
                 .then(res=> res.json())
                 .then(todos => {
-                    if(todos.data){
-                        likeCount.value = likeCount.value +1
-                    }else{
-                        likeCount.value = likeCount.value -1
-                    }
+                    likeCount.value = likeCount.value + (todos.data ? 1 : -1)
                     isLiked.value = todos.data                    
                 });
         }
@@ -427,7 +424,7 @@
             fetch("/api/article/like?articleId="+article.value.ID, options)
                 .then(res=> res.json())
                 .then(todos => {
-                    likeStatus.value = todos.data
+                    isLiked.value = todos.data
                 });
         }
 
@@ -452,7 +449,6 @@
                     transOptions,
                     isLiked,
                     articleLike,
-                    likeStatus,
                     likeCount,
                 }
             },
