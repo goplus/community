@@ -74,10 +74,10 @@
                         <i class="ph-duotone ph-house" style="font-size: 18px; margin-right: 5px;"></i>
                         Home
                     </n-breadcrumb-item>
-                    <n-breadcrumb-item>
+                    <!-- <n-breadcrumb-item>
                         <i class="ph ph-article-medium" style="font-size: 18px; margin-right: 5px;"></i>
                         Article
-                    </n-breadcrumb-item>
+                    </n-breadcrumb-item> -->
                     <n-breadcrumb-item>
                         <i class="ph ph-article-medium"
                             style="font-size: 18px; margin-right: -15px; color: transparent;"></i>
@@ -141,9 +141,10 @@
                         box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05); padding: 20px 30px;">
                         <!-- Tags & Title & Update Time -->
                         <header class="mb-4 not-format">
-                            <div class="flex flex-row" style="justify-content: space-between">
+                            <!-- <div class="flex flex-row" style="justify-content: space-between"> -->
+                            <div class="flex flex-row" :style="{ 'justify-content': article.Tags ? 'space-between': 'right' }">
                                 <!-- Tags -->
-                                <div class="flex flex-row items-center">
+                                <div class="flex flex-row items-center" v-if="article.Tags">
                                     <span v-for="(item, index) in article.Tags.split(';')"
                                         style="background-color: #cee1f5;"
                                         class="mr-3 inline-flex items-center font-medium px-2.5 py-0.5 rounded-full">
