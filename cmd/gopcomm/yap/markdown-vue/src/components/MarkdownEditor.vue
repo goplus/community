@@ -44,7 +44,6 @@ function fileUpload(file) {
         }
     })
         .then(response => {
-            console.log('文件上传成功！', type);
             console.log(response.data); // 输出服务器返回的数据（可选） 获取 返回的ID  
             // 根据类型执行不同的请求
             if(type.includes("video")) {
@@ -52,11 +51,11 @@ function fileUpload(file) {
                     method: 'get',
                     url: '/getVideoAndSubtitle/'+response.data,
                 }).then(response => {
-                    console.log("请求视频")
+                    console.log("get video")
                     let url = response.data.url.fileKey
                     let stitle = response.data.url.subtitle
                     vtt_src = stitle
-                    console.log("视频URL", url)
+                    console.log("URL", url)
                     // 返回文件地址的话需要
                     onloadCallback(type, url)                        
                 })
@@ -65,9 +64,8 @@ function fileUpload(file) {
                     method: 'get',
                     url: '/getMediaUrl/'+response.data,
                 }).then(response => {
-                    console.log("请求media成功")
                     let url = response.data.url
-                    console.log("图片", url)
+                    console.log(url)
                     // 返回文件地址的话需要
                     onloadCallback(type, url)                        
                 })
@@ -115,9 +113,6 @@ function urlProcessor(url, srcType) {
         
 function afterChange(text, html) {
     this.content = text
-
-    console.log("markdown", getCherryContent())
-    console.log("html", getCherryHtml())
     const p = new Plyr('video', {captions: {active: true}});
 
     // this.$emit('mdChange', html, text)
@@ -621,7 +616,10 @@ export default {
     methods: {    
          getMarkdown() {
             return getCherryContent()
-        },         
+        },      
+        getCherryHtml() {
+            return getCherryHtml()
+        },   
         // 弹窗关闭事件
         // handleOk(e) {
         //     console.log(e);
@@ -666,104 +664,6 @@ export default {
             
         },
         
-        submit_markdown() {
-            let formData = new FormData()
-            let title = getToc()
-            if (title.length > 0) {
-                title = title[0].text
-            } else {
-                title = "Default Title"
-            }
-
-            if(this.input_title != "") {
-                title = this.input_title
-            }
-
-            formData.append("title",title)
-            formData.append("content",getCherryContent())
-            formData.append("html",getCherryHtml())
-
-
-            let trans = ""
-            
-            if (this.content_id > 0) {
-                trans = "translate"
-                formData.append("id",this.content_id)
-            }
-            // 添加内容 标题修改 ----hxy
-            
-            let r = this.resources[this.formState.resource]
-            console.log("resource", r)
-            // 结束
-            formData.append("trans", r)
-            // 上传了一张图片
-            formData.append("cover", "")
-            formData.append("tags",this.formState.tags)
-            formData.append("abstract",this.formState.abs)
-
-            axios({
-                method: 'post',
-                // url: '/api/commit', // 后端接口地址，需要根据实际情况修改
-                url: '/commit', // 后端接口地址，需要根据实际情况修改
-                data: formData,
-                headers: {
-                }
-            })
-                .then(response => {
-                    console.log('内容发送成功');
-                    // console.log(response.data); // 输出服务器返回的数据（可选） 获取 返回的ID
-
-                    // let id = response.data.article.id
-                    // let md = response.data.article.content
-                    // alert("文章提交成功")
-                    this.req_suc = true
-                    setTimeout(() => {
-                        this.req_suc = false
-                    }, 2000)
-                    window.location.href="http://localhost:8080/p/" + response.data.data; 
-                })
-                .catch(error => {
-                    console.error('内容发送失败');
-                    console.error(error);
-                });
-
-        },
-        tranlate_md() {
-            let formData = new FormData()
-            formData.append("content",getCherryContent())
-            formData.append("html",getCherryHtml())
-
-            if (this.content_id > 0) {
-                formData.append("id",this.content_id) 
-            }
-            axios({
-                method: 'post',
-                url: '/translate', // 后端接口地址，需要根据实际情况修改
-                // url: '/api/translate', // 后端接口地址，需要根据实际情况修改
-                data: formData,
-                headers: {
-                }
-            })
-                .then(response => {
-                    console.log('内容发送成功');
-                    console.log(response.data.id); // 输出服务器返回的数据（可选） 获取 返回的ID
-                    let trans_content = response.data.data
-                    console.log(trans_content)
-                    setMarkdown(trans_content.content)
-                    this.content_id = trans_content.id
-                })
-                .catch(error => {
-                    console.error('内容发送失败');
-                    console.error(error);
-                });
-        },  
-
-        setSubmit(sub) {
-            sub()
-        },
-        setTrans(tran) {
-            tran()
-        },
         insertMarkdown(content) {
             setMarkdown(content)
         },  
@@ -797,7 +697,8 @@ export default {
 //         },
 //         getMarkdown: function() {
 //             console.log("Get Markdown")
-//             return getCherryContent()
+//             return getCherryConte
+nt()
 //         },
 //         setInitValue: function(content) {
 //             setMarkdown()
