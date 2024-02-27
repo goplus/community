@@ -148,7 +148,7 @@
                                         </div>
 
                                         <!-- Tags -->
-                                        <div class="flex flex-row items-center">
+                                        <div class="flex flex-row items-center" v-if="item.Tags">
                                             <!-- A Tag -->
                                             <div class="flex flex-row items-center mr-2" v-for="(tag, i) in item.Tags.split(';')">
                                                 <i class="ph-duotone ph-hash" style="color: #3182ce; font-size: 17px;"></i>
@@ -186,7 +186,7 @@
                                     <div style="width: 20%;">
                                         <!-- Image -->
                                         <!-- TODO: 封面图 -->
-                                        <img v-if="item.Cover" class="w-full object-cover rounded-lg" style="height: 15vh;" :src="item.Cover" alt="">
+                                        <img class="w-full object-cover rounded-lg" style="height: 15vh;" :src="item.Cover || './static/img/default-cover.jpg'" alt="">
 
                                         <!-- Data -->
                                         <div class="flex justify-center items-center mt-2" style="height: 2vh;">
@@ -266,7 +266,7 @@
                                         </div>
 
                                         <!-- Tags -->
-                                        <div class="flex flex-row items-center">
+                                        <div class="flex flex-row items-center" v-if="item.Tags">
                                             <!-- A Tag -->
                                             <div class="flex flex-row items-center mr-2" v-for="(tag, i) in item.Tags.split(';')">
                                                 <i class="ph-duotone ph-hash" style="color: #3182ce; font-size: 17px;"></i>
@@ -304,7 +304,7 @@
                                     <div style="width: 20%;">
                                         <!-- Image -->
                                         <!-- TODO: 封面图 -->
-                                        <img v-if="item.Cover" class="w-full object-cover rounded-lg" style="height: 15vh;" :src="item.Cover" alt="">
+                                        <img class="w-full object-cover rounded-lg" style="height: 15vh;" :src="item.Cover || './static/img/default-cover.jpg'" alt="">
 
                                         <!-- Data -->
                                         <div class="flex justify-center items-center mt-2" style="height: 2vh;">
@@ -385,7 +385,7 @@
                                         </div>
 
                                         <!-- Tags -->
-                                        <div class="flex flex-row items-center">
+                                        <div class="flex flex-row items-center" v-if="item.Tags">
                                             <!-- A Tag -->
                                             <div class="flex flex-row items-center mr-2" v-for="(tag, i) in item.Tags.split(';')">
                                                 <i class="ph-duotone ph-hash" style="color: #3182ce; font-size: 17px;"></i>
@@ -423,7 +423,7 @@
                                     <div style="width: 20%;">
                                         <!-- Image -->
                                         <!-- TODO: 封面图 -->
-                                        <img v-if="item.Cover" class="w-full object-cover rounded-lg" style="height: 15vh;" :src="item.Cover" alt="">
+                                        <img class="w-full object-cover rounded-lg" style="height: 15vh;" :src="item.Cover || './static/img/default-cover.jpg'" alt="">                                        
 
                                         <!-- Data -->
                                         <div class="flex justify-center items-center mt-2" style="height: 2vh;">

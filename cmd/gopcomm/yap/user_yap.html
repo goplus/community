@@ -220,7 +220,7 @@
                                         </div>
 
                                         <!-- Tags -->
-                                        <div class="flex flex-row items-center">
+                                        <div class="flex flex-row items-center" v-if="item.Tags">
                                             <span v-for="(tag, index) in item.Tags.split(';')" class="flex flex-row items-center">
                                                 <i class="ph-duotone ph-hash" style="color: #3182ce; font-size: 17px;"></i>
                                                 <p class="text-sm ml-1 mr-2 hover:text-blue-600">
