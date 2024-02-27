@@ -127,7 +127,7 @@
                         <!-- Edit Button -->
                         {{ if .UserId }}
                         <n-button v-if="UserId === CurrentUser.id" text color="#3182ce" size="large"
-                            onclick="window.location.href='/userEdit'" class="mb-4">
+                            onclick="window.location.href='/user/edit'" class="mb-4">
                             <template #icon>
                                 <i class="ph ph-gear" style="color: #3182ce;"></i>
                             </template>
@@ -214,7 +214,7 @@
                                     <div class="absolute top-4">
                                         <!-- Title -->
                                         <div class="text-2xl font-semibold text-gray-900 title-font mb-2">
-                                            <a :href="'/p/' + item.ID">
+                                            <a :href="'/article/' + item.ID">
                                                 <p>${ item.Title }</p>
                                             </a>
                                         </div>
@@ -563,17 +563,18 @@
             let delImageId = 0;
             function deleteArticle(id) {
                 if (id !== 0) {
-                    fetch("/delete?id=" + id)
-                        .then(res => {
-                            return res.json();
-                        })
-                        .then(todos => {
-                            if (todos.code === 200) {
-                                // success delete  articleList or get articleList
-                                articleList.value = articleList.value.filter(item => item.ID !== id)
-                            }
-                            deleteId = 0
-                        });
+                    fetch("/api/article/" + id, {
+                        method: "DELETE",
+                    }).then(res => {
+                        return res.json();
+                    })
+                    .then(todos => {
+                        if (todos.code === 200) {
+                            // success delete  articleList or get articleList
+                            articleList.value = articleList.value.filter(item => item.ID !== id)
+                        }
+                        deleteId = 0
+                    });
                 }
             };
 
@@ -596,7 +597,7 @@
             }
 
             function getMedias(format, curPage) {
-                fetch("/medias?uid=" + CurrentUser.value.id + "&format=" + format + "&page=" + curPage)
+                fetch("/api/user/"+ CurrentUser.value.id + "/medias" + "?format=" + format + "&page=" + curPage)
                     .then(res => {
                         return res.json();
                     })
@@ -637,21 +638,22 @@
             }
 
             function deleteMedia(id, format) {
-                fetch("/delMedia?id=" + id)
-                    .then(res => {
-                        return res.json();
-                    })
-                    .then(todos => {
-                        if (todos.code === 200) {
-                            if (format === "video") {
-                                videoList.value = videoList.value.filter(item => item.Id !== id)
-                            } else {
-                                imageList.value = imageList.value.filter(item => item.Id !== id)
-                            }
+                fetch("/api/media/" + id, {
+                    method: "DELETE",
+                }).then(res => {
+                    return res.json();
+                })
+                .then(todos => {
+                    if (todos.code === 200) {
+                        if (format === "video") {
+                            videoList.value = videoList.value.filter(item => item.Id !== id)
+                        } else {
+                            imageList.value = imageList.value.filter(item => item.Id !== id)
                         }
-                        delImageId = 0
-                        delVideoId = 0
-                    });
+                    }
+                    delImageId = 0
+                    delVideoId = 0
+                });
             }
 
             function listenBottom() {
@@ -671,7 +673,7 @@
                 if (next.value !== "eof") {
                     isBottom.value = false;
                     window.setTimeout(() => {
-                        let url = "/userArticles?from=" + next.value + "&id=" + CurrentUser.value.id
+                        let url = "/api/user/"+ CurrentUser.value.id + "/articles" + "?from=" + next.value;
                         console.log("url", url)
                         // load a new page of articles, and append it to the articleList
                         fetch(url)

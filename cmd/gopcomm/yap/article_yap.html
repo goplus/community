@@ -361,7 +361,7 @@
                 if (transArticle.Content) {
                     article.value = transArticle
                 } else {
-                    fetch("/tranArticle?id=" + article.value.ID)
+                    fetch("/api/translation/" + article.value.ID)
                         .then(res => {
                             return res.json();
                         })

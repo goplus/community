@@ -75,15 +75,41 @@ get "/failed", ctx => {
 	}
 }
 
-get "/demo", ctx => {
-	ctx.yap "demo", {}
+// Home
+get "/", ctx => {
+	// Get User Info
+	var user *core.User
+	userId := ""
+	token, err := core.GetToken(ctx)
+	if err == nil {
+		user, err = community.GetUser(token.Value)
+		if err != nil {
+			xLog.Error("get user error:", err)
+		} else {
+			userId = user.Id
+		}
+	}
+	// Get Article Info
+	articles, next, err := community.ListArticle(todo, core.MarkBegin, limitConst, "", labelConst)
+	if err != nil {
+		xLog.Error("get article error:", err)
+	}
+	articlesJson, err := json.Marshal(&articles)
+	if err != nil {
+		xLog.Error("json marshal error:", err)
+	}
+	ctx.yap "home", {
+		"UserId": userId,
+		"User":   user,
+		"Items":  string(articlesJson),
+		"Next":   next,
+	}
 }
 
-get "/signin", ctx => {
-	ctx.yap "signin", {}
-}
-
-get "/p/:id", ctx => {
+// Article
+//
+// Article pages
+get "/article/:id", ctx => {
 	// todo middleware
 	// Get User Info
 	var user *core.User
@@ -99,125 +125,18 @@ get "/p/:id", ctx => {
 	}
 
 	id := ctx.param("id")
-	article, _ := community.Article(todo, id)
-	articleJson, _ := json.Marshal(&article)
+	article, err := community.Article(todo, id)
+	if err != nil {
+		xLog.Error("get article error:", err)
+	}
+	articleJson, err := json.Marshal(&article)
+	if err != nil {
+		xLog.Error("json marshal error:", err)
+	}
 	ctx.yap "article", {
 		"UserId":  userId,
 		"User":    user,
 		"Article": string(articleJson),
-	}
-}
-
-get "/getArticle/:id", ctx => {
-	id := ctx.param("id")
-	article, _ := community.Article(todo, id)
-	ctx.json {
-		"code": 200,
-		"data": article,
-	}
-}
-
-get "/user/:id", ctx => {
-	id := ctx.param("id")
-	// Get current User Info by id
-	userClaim, err := community.GetUserClaim(id)
-	if err != nil {
-		xLog.Error("get current user error:", err)
-	}
-	// get user by token
-	var user *core.User
-	userId := ""
-	token, err := core.GetToken(ctx)
-	if err == nil {
-		user, err = community.GetUser(token.Value)
-		if err != nil {
-			xLog.Error("get user error:", err)
-		} else {
-			userId = user.Id
-		}
-	}
-	// get article list published by uid
-	items, next, _ := community.GetArticlesByUid(todo, id, core.MarkBegin, limitConst)
-	userClaimJson, _ := json.Marshal(&userClaim)
-	itemsJson, _ := json.Marshal(&items)
-	ctx.yap "user", {
-		"Id":          id,
-		"CurrentUser": string(userClaimJson),
-		"User":        user,
-		"Items":       string(itemsJson),
-		"UserId":      userId,
-		"Next":        next,
-	}
-}
-get "/userUnlink", ctx => {
-	pv := ctx.param("pv")
-	token, err := core.GetToken(ctx)
-	if err != nil {
-		http.Redirect(ctx.ResponseWriter, ctx.Request, "/login", http.StatusTemporaryRedirect)
-		return
-	}
-	switch pv {
-	case "Twitter":
-	case "Facebook":
-	case "Github":
-	case "WeChat":
-	default:
-		pv = ""
-	}
-	gac, err := gopaccountsdk.GetClient(token.Value)
-	if err == nil {
-		gac.UnLink(pv)
-	}
-	http.Redirect(ctx.ResponseWriter, ctx.Request, "/userEdit", http.StatusTemporaryRedirect)
-}
-get "/userEdit", ctx => {
-	token, err := core.GetToken(ctx)
-	if err != nil {
-		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
-	}
-	gac, err := gopaccountsdk.GetClient(token.Value)
-	if err != nil {
-		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
-	}
-	fullUser, _ := gac.GetUser()
-	appInfo, _ := community.GetApplicationInfo()
-	appInfoStr, _ := json.Marshal(*appInfo)
-	binds, _ := json.Marshal(gac.GetProviderBindStatus())
-	currentUser, _ := json.Marshal(fullUser)
-	user := gac.GetUserSimple()
-	ctx.yap "user_edit", {
-		"UserId":      user.Id,
-		"User":        user,
-		"CurrentUser": string(currentUser),
-		"Application": string(appInfoStr),
-		"Binds":       string(binds),
-	}
-}
-
-post "/update/user", ctx => {
-	token, err := core.GetToken(ctx)
-	uid, err := community.ParseJwtToken(token.Value)
-	user := &core.UserInfo{
-		Id:          uid,
-		Name:        ctx.param("name"),
-		Birthday:    ctx.param("birthday"),
-		Gender:      ctx.param("gender"),
-		Phone:       ctx.param("phone"),
-		Email:       ctx.param("email"),
-		Avatar:      ctx.param("avatar"),
-		Owner:       ctx.param("owner"),
-		DisplayName: ctx.param("name"),
-	}
-	_, err = community.UpdateUserById(fmt.Sprintf("%s/%s", user.Owner, user.Name), user)
-	if err != nil {
-		xLog.Info(err)
-		ctx.json {
-			"code": 0,
-			"msg":  "update failed",
-		}
-	}
-	ctx.json {
-		"code": 200,
 	}
 }
 
@@ -239,7 +158,107 @@ get "/add", ctx => {
 	}
 }
 
-get "/delete", ctx => {
+get "/edit/:id", ctx => {
+	var user *core.User
+	userId := ""
+	token, err := core.GetToken(ctx)
+	if err == nil {
+		user, err = community.GetUser(token.Value)
+		if err != nil {
+			xLog.Error("get user error:", err)
+		} else {
+			userId = user.Id
+		}
+	}
+
+	uid := user.Id
+	id := ctx.param("id")
+	if id != "" {
+		editable, err := community.CanEditable(todo, uid, id)
+		if err != nil {
+			xLog.Error("can editable error:", err)
+			http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
+		}
+		if !editable {
+			xLog.Error("no permissions")
+			http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
+		}
+		article, err := community.Article(todo, id)
+		if err != nil {
+			xLog.Error("get article error:", err)
+			http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
+		}
+		articleJson, err := json.Marshal(&article)
+		if err != nil {
+			xLog.Error("json marshal error:", err)
+			http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
+		}
+		ctx.yap "edit", {
+			"UserId":  userId,
+			"User":    user,
+			"Article": string(articleJson),
+		}
+	}
+}
+
+get "/search", ctx => {
+	searchValue := ctx.param("value")
+	label := ctx.param("label")
+	if label == "" {
+		label = "article"
+	}
+
+	// todo middleware
+	var user *core.User
+	userId := ""
+	token, err := core.GetToken(ctx)
+	if err == nil {
+		user, err = community.GetUser(token.Value)
+		if err != nil {
+			xLog.Error("get user error:", err)
+		} else {
+			userId = user.Id
+		}
+	}
+
+	articles, next, err := community.ListArticle(todo, core.MarkBegin, limitConst, searchValue, label)
+	if err != nil {
+		xLog.Error("get article error:", err)
+	}
+	articlesJson, err := json.Marshal(&articles)
+	if err != nil {
+		xLog.Error("json marshal error:", err)
+	}
+	ctx.yap "home", {
+		"UserId": userId,
+		"User":   user,
+		"Items":  string(articlesJson),
+		"Value":  searchValue,
+		"Next":   next,
+		"Tab":    label,
+	}
+}
+
+// Article
+//
+// Article apis
+get "/api/article/:id", ctx => {
+	id := ctx.param("id")
+	article, err := community.Article(todo, id)
+	if err != nil {
+		xLog.Error("get article error:", err)
+		ctx.json {
+			"code": 0,
+			"err":  "get article failed",
+		}
+	}
+	ctx.json {
+		"code": 200,
+		"data": article,
+	}
+}
+
+delete "/api/article/:id", ctx => {
 	id := ctx.param("id")
 	token, err := core.GetToken(ctx)
 	uid, err := community.ParseJwtToken(token.Value)
@@ -264,84 +283,7 @@ get "/delete", ctx => {
 	}
 }
 
-get "/medias", ctx => {
-	format := ctx.param("format")
-	uid := ctx.param("uid")
-	page := ctx.param("page")
-	pageInt, err := strconv.Atoi(page)
-	if err != nil {
-		pageInt = 1
-	}
-	limit := ctx.param("limit")
-	limitInt, err := strconv.Atoi(limit)
-	if err != nil {
-		limitInt = limitConst
-	}
-	files, count, err := community.ListMediaByUserId(todo, uid, format, pageInt, limitInt)
-	if err != nil {
-		ctx.json {
-			"code":  0,
-			"total": count,
-			"err":   err.Error(),
-		}
-	} else {
-		ctx.json {
-			"code":  200,
-			"total": count,
-			"items": files,
-		}
-	}
-}
-get "/delMedia", ctx => {
-	id := ctx.param("id")
-	token, err := core.GetToken(ctx)
-	uid, err := community.ParseJwtToken(token.Value)
-	if err != nil {
-		xLog.Error("token parse error")
-		ctx.json {
-			"code": 0,
-			"err":  err.Error(),
-		}
-	}
-	err = community.DelMedia(todo, uid, id)
-	if err != nil {
-		ctx.json {
-			"code": 0,
-			"err":  "delete failed",
-		}
-	} else {
-		ctx.json {
-			"code": 200,
-			"msg":  "delete success",
-		}
-	}
-}
-
-get "/", ctx => {
-	// Get User Info
-	var user *core.User
-	userId := ""
-	token, err := core.GetToken(ctx)
-	if err == nil {
-		user, err = community.GetUser(token.Value)
-		if err != nil {
-			xLog.Error("get user error:", err)
-		} else {
-			userId = user.Id
-		}
-	}
-	// Get Article Info
-	articles, next, _ := community.ListArticle(todo, core.MarkBegin, limitConst, "", labelConst)
-	articlesJson, _ := json.Marshal(&articles)
-	ctx.yap "home", {
-		"UserId": userId,
-		"User":   user,
-		"Items":  string(articlesJson),
-		"Next":   next,
-	}
-}
-
-get "/get", ctx => {
+get "/api/articles", ctx => {
 	from := ctx.param("from")
 	limit := ctx.param("limit")
 	searchValue := ctx.param("value")
@@ -352,7 +294,14 @@ get "/get", ctx => {
 		limitInt = limitConst
 	}
 	// Get Article Info
-	articles, next, _ := community.ListArticle(todo, from, limitInt, searchValue, label)
+	articles, next, err := community.ListArticle(todo, from, limitInt, searchValue, label)
+	if err != nil {
+		xLog.Error("get article error:", err)
+		ctx.json {
+			"code": 0,
+			"err":  "get article failed",
+		}
+	}
 	ctx.json {
 		"code":  200,
 		"items": articles,
@@ -361,109 +310,17 @@ get "/get", ctx => {
 	}
 }
 
-get "/userArticles", ctx => {
-	id := ctx.param("id")
-	from := ctx.param("from")
-	limit := ctx.param("limit")
-
-	limitInt, err := strconv.Atoi(limit)
-	if err != nil {
-		limitInt = limitConst
-	}
-	items, next, _ := community.GetArticlesByUid(todo, id, from, limitInt)
-	ctx.json {
-		"code":  200,
-		"items": items,
-		"next":  next,
-	}
-}
-
-get "/search", ctx => {
-	searchValue := ctx.param("value")
-	label := ctx.param("label")
-	if label == "" {
-		label = "article"
-	}
-
-	// todo middleware
-	var user *core.User
-	userId := ""
-	token, err := core.GetToken(ctx)
-	if err == nil {
-		user, err = community.GetUser(token.Value)
-		if err != nil {
-			xLog.Error("get user error:", err)
-		} else {
-			userId = user.Id
-		}
-	}
-
-	articles, next, _ := community.ListArticle(todo, core.MarkBegin, limitConst, searchValue, label)
-	articlesJson, _ := json.Marshal(&articles)
-	ctx.yap "home", {
-		"UserId": userId,
-		"User":   user,
-		"Items":  string(articlesJson),
-		"Value":  searchValue,
-		"Next":   next,
-		"Tab":    label,
-	}
-}
-
-get "/edit/:id", ctx => {
-	var user *core.User
-	userId := ""
-	token, err := core.GetToken(ctx)
-	if err == nil {
-		user, err = community.GetUser(token.Value)
-		if err != nil {
-			xLog.Error("get user error:", err)
-		} else {
-			userId = user.Id
-		}
-	}
-
-	uid := user.Id
-	id := ctx.param("id")
-	if id != "" {
-		if editable, _ := community.CanEditable(todo, uid, id); !editable {
-			xLog.Error("no permissions")
-			http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
-		}
-		article, _ := community.Article(todo, id)
-		articleJson, _ := json.Marshal(&article)
-		ctx.yap "edit", {
-			"UserId":  userId,
-			"User":    user,
-			"Article": string(articleJson),
-		}
-	}
-}
-
-get "/getTrans", ctx => {
-	id := ctx.param("id")
-	htmlUrl, err := community.TransHtmlUrl(todo, id)
-	if err != nil {
-		ctx.json {
-			"code": 500,
-			"err":  err.Error(),
-		}
-	}
-	ctx.json {
-		"code": 200,
-		"data": htmlUrl,
-	}
-}
-
-// click "submit" button
-post "/commit", ctx => {
+post "/api/article/commit", ctx => {
 	id := ctx.param("id")
 	content := ctx.param("content")
 	title := ctx.param("title")
 	tags := ctx.param("tags")
 	abstract := ctx.param("abstract")
 	label := ctx.param("label")
-	trans, _ := strconv.ParseBool(ctx.param("trans"))
+	trans, err := strconv.ParseBool(ctx.param("trans"))
+	if err != nil {
+		xLog.Error("parse bool error:", err)
+	}
 	// get user id
 	token, err := core.GetToken(ctx)
 	if err != nil {
@@ -513,9 +370,236 @@ post "/commit", ctx => {
 	}
 }
 
-get "/tranArticle", ctx => {
+// User
+//
+// User pages
+get "/user/:id", ctx => {
 	id := ctx.param("id")
+	// Get current User Info by id
+	userClaim, err := community.GetUserClaim(id)
+	if err != nil {
+		xLog.Error("get current user error:", err)
+	}
+	// get user by token
+	var user *core.User
+	userId := ""
+	token, err := core.GetToken(ctx)
+	if err == nil {
+		user, err = community.GetUser(token.Value)
+		if err != nil {
+			xLog.Error("get user error:", err)
+		} else {
+			userId = user.Id
+		}
+	}
+	// get article list published by uid
+	items, next, err := community.GetArticlesByUid(todo, id, core.MarkBegin, limitConst)
+	if err != nil {
+		xLog.Error("get article list error:", err)
+	}
+	userClaimJson, err := json.Marshal(&userClaim)
+	if err != nil {
+		xLog.Error("json marshal error:", err)
+	}
+	itemsJson, err := json.Marshal(&items)
+	if err != nil {
+		xLog.Error("json marshal error:", err)
+	}
+	ctx.yap "user", {
+		"Id":          id,
+		"CurrentUser": string(userClaimJson),
+		"User":        user,
+		"Items":       string(itemsJson),
+		"UserId":      userId,
+		"Next":        next,
+	}
+}
 
+get "/user/edit", ctx => {
+	token, err := core.GetToken(ctx)
+	if err != nil {
+		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
+	}
+	gac, err := gopaccountsdk.GetClient(token.Value)
+	if err != nil {
+		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
+	}
+	fullUser, err := gac.GetUser()
+	if err != nil {
+		xLog.Error("get user error:", err)
+		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
+	}
+	appInfo, err := community.GetApplicationInfo()
+	if err != nil {
+		xLog.Error("get application info error:", err)
+		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
+	}
+	appInfoStr, err := json.Marshal(*appInfo)
+	if err != nil {
+		xLog.Error("json marshal error:", err)
+		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
+	}
+	binds, err := json.Marshal(gac.GetProviderBindStatus())
+	if err != nil {
+		xLog.Error("json marshal error:", err)
+		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
+	}
+	currentUser, err := json.Marshal(fullUser)
+	if err != nil {
+		xLog.Error("json marshal error:", err)
+		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
+	}
+	user := gac.GetUserSimple()
+	ctx.yap "user_edit", {
+		"UserId":      user.Id,
+		"User":        user,
+		"CurrentUser": string(currentUser),
+		"Application": string(appInfoStr),
+		"Binds":       string(binds),
+	}
+}
+
+// User
+//
+// User apis
+put "/api/user", ctx => {
+	token, err := core.GetToken(ctx)
+	uid, err := community.ParseJwtToken(token.Value)
+	user := &core.UserInfo{
+		Id:          uid,
+		Name:        ctx.param("name"),
+		Birthday:    ctx.param("birthday"),
+		Gender:      ctx.param("gender"),
+		Phone:       ctx.param("phone"),
+		Email:       ctx.param("email"),
+		Avatar:      ctx.param("avatar"),
+		Owner:       ctx.param("owner"),
+		DisplayName: ctx.param("name"),
+	}
+	_, err = community.UpdateUserById(fmt.Sprintf("%s/%s", user.Owner, user.Name), user)
+	if err != nil {
+		xLog.Info(err)
+		ctx.json {
+			"code": 0,
+			"msg":  "update failed",
+		}
+	}
+	ctx.json {
+		"code": 200,
+	}
+}
+
+get "/api/user/unlink", ctx => {
+	pv := ctx.param("pv")
+	token, err := core.GetToken(ctx)
+	if err != nil {
+		http.Redirect(ctx.ResponseWriter, ctx.Request, "/login", http.StatusTemporaryRedirect)
+		return
+	}
+	switch pv {
+	case "Twitter":
+	case "Facebook":
+	case "Github":
+	case "WeChat":
+	default:
+		pv = ""
+	}
+	gac, err := gopaccountsdk.GetClient(token.Value)
+	if err == nil {
+		gac.UnLink(pv)
+	}
+	http.Redirect(ctx.ResponseWriter, ctx.Request, "/user/edit", http.StatusTemporaryRedirect)
+}
+
+get "/api/user/:id/articles", ctx => {
+	id := ctx.param("id")
+	from := ctx.param("from")
+	limit := ctx.param("limit")
+
+	limitInt, err := strconv.Atoi(limit)
+	if err != nil {
+		limitInt = limitConst
+	}
+	items, next, err := community.GetArticlesByUid(todo, id, from, limitInt)
+	if err != nil {
+		xLog.Error("get article list error:", err)
+		ctx.json {
+			"code":  0,
+			"err":   err.Error(),
+			"total": 0,
+		}
+	}
+	ctx.json {
+		"code":  200,
+		"items": items,
+		"next":  next,
+	}
+}
+
+get "/api/user/:id/medias", ctx => {
+	format := ctx.param("format")
+	uid := ctx.param("id")
+	page := ctx.param("page")
+	limit := ctx.param("limit")
+
+	limitInt, err := strconv.Atoi(limit)
+	if err != nil {
+		limitInt = limitConst
+	}
+	pageInt, err := strconv.Atoi(page)
+	if err != nil {
+		ctx.json {
+			"code":  400,
+			"total": 0,
+			"err":   err.Error(),
+		}
+	}
+	files, total, err := community.ListMediaByUserId(todo, uid, format, pageInt, limitInt)
+	if err != nil {
+		ctx.json {
+			"code":  0,
+			"total": total,
+			"err":   err.Error(),
+		}
+	} else {
+		ctx.json {
+			"code":  200,
+			"total": total,
+			"items": files,
+		}
+	}
+}
+
+// Media
+//
+// Media apis
+delete "/api/media/:id", ctx => {
+	id := ctx.param("id")
+	token, err := core.GetToken(ctx)
+	uid, err := community.ParseJwtToken(token.Value)
+	if err != nil {
+		xLog.Error("token parse error")
+		ctx.json {
+			"code": 0,
+			"err":  err.Error(),
+		}
+	}
+	err = community.DelMedia(todo, uid, id)
+	if err != nil {
+		ctx.json {
+			"code": 0,
+			"err":  "delete failed",
+		}
+	} else {
+		ctx.json {
+			"code": 200,
+			"msg":  "delete success",
+		}
+	}
+}
+
+get "/api/translation/:id", ctx => {
+	id := ctx.param("id")
 	article, err := community.GetTranslateArticle(todo, id)
 	if err != nil {
 		ctx.json {
@@ -530,8 +614,7 @@ get "/tranArticle", ctx => {
 	}
 }
 
-//  click "translate button"
-post "/translate", ctx => {
+post "/api/translation", ctx => {
 	mdData := ctx.param("content")
 	transData, err := community.TranslateMarkdownText(todo, mdData, "auto", language.English)
 	if err != nil {
@@ -544,18 +627,9 @@ post "/translate", ctx => {
 		"code": 200,
 		"data": transData, // translation markdown content
 	}
-
 }
 
-get "/getMedia/:id", ctx => {
-	mediaId := ctx.param("id")
-	// todo the err not empty return 404 for image
-	fileKey, _ := community.GetMediaUrl(context.Background(), mediaId)
-
-	http.Redirect(ctx.ResponseWriter, ctx.Request, domain+fileKey, http.StatusTemporaryRedirect)
-}
-
-get "/getMediaUrl/:id", ctx => {
+get "/api/media/:id/url", ctx => {
 	id := ctx.param("id")
 	fileKey, err := community.GetMediaUrl(todo, id)
 	htmlUrl := fmt.Sprintf("%s%s", domain, fileKey)
@@ -571,7 +645,7 @@ get "/getMediaUrl/:id", ctx => {
 	}
 }
 
-get "/getVideoAndSubtitle/:id", ctx => {
+get "/api/video/:id", ctx => {
 	id := ctx.param("id")
 	fileKey, err := community.GetMediaUrl(todo, id)
 	m := make(map[string]string, 2)
@@ -609,11 +683,11 @@ get "/getVideoAndSubtitle/:id", ctx => {
 	}
 }
 
-post "/upload", ctx => {
+post "/api/media", ctx => {
 	community.UploadFile(ctx)
 }
 
-post "/caption/task", ctx => {
+post "/api/caption/task", ctx => {
 	uid := ctx.param("uid")
 	vid := ctx.param("vid")
 
@@ -637,6 +711,9 @@ post "/caption/task", ctx => {
 	}
 }
 
+// Account
+//
+// Account apis
 get "/login", ctx => {
 	// Get URL from query string
 	// redirectURL := ctx.URL.Query().Get("redirect_url")
@@ -653,7 +730,7 @@ get "/login", ctx => {
 		refererPath = fmt.Sprintf("%s?%s", refererURL.Path, refererURL.RawQuery)
 	}
 
-	redirectURL := fmt.Sprintf("%s://%s/%s?origin_path=%s", refererURL.Scheme, refererURL.Host, "callback", url.QueryEscape(refererPath))
+	redirectURL := fmt.Sprintf("%s://%s/%s?origin_path=%s", refererURL.Scheme, refererURL.Host, "login/callback", url.QueryEscape(refererPath))
 
 	loginURL := community.RedirectToCasdoor(redirectURL)
 	ctx.Redirect loginURL, http.StatusFound
@@ -679,7 +756,7 @@ get "/logout", ctx => {
 	http.Redirect(ctx.ResponseWriter, ctx.Request, refererPath, http.StatusFound)
 }
 
-get "/callback", ctx => {
+get "/login/callback", ctx => {
 	err := core.SetToken(ctx)
 	if err != nil {
 		xLog.Error("set token error:", err)

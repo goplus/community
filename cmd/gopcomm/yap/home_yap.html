@@ -142,7 +142,7 @@
                                     <div style="width: 80%;">
                                         <!-- Title -->
                                         <div class="text-xl font-semibold text-gray-900 title-font mb-1">
-                                            <a :href="'/p/' + item.ID">
+                                            <a :href="'/article/' + item.ID">
                                                 <p>${ item.Title }</p>
                                             </a>
                                         </div>
@@ -260,7 +260,7 @@
                                     <div style="width: 80%;">
                                         <!-- Title -->
                                         <div class="text-xl font-semibold text-gray-900 title-font mb-1">
-                                            <a :href="'/p/' + item.ID">
+                                            <a :href="'/article/' + item.ID">
                                                 <p>${ item.Title }</p>
                                             </a>
                                         </div>
@@ -379,7 +379,7 @@
                                     <div style="width: 80%;">
                                         <!-- Title -->
                                         <div class="text-xl font-semibold text-gray-900 title-font mb-1">
-                                            <a :href="'/p/' + item.ID">
+                                            <a :href="'/article/' + item.ID">
                                                 <p>${ item.Title }</p>
                                             </a>
                                         </div>
@@ -568,7 +568,7 @@
                 if (next.value[tabName] !== "eof") {
                     isBottom.value[tabName] = false;
                     window.setTimeout(() => {
-                        let url = "/get?from=" + next.value[tabName] + "&label=" + tabName
+                        let url = "/api/articles?from=" + next.value[tabName] + "&label=" + tabName
                         if ("{{.Value}}") {
                             url = url + "&value=" + "{{.Value}}"
                         }
