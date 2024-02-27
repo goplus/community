@@ -374,6 +374,8 @@
             },
         ]
 
+        console.log("window.GoplusMarkdown.MarkdownEditor.methods",window.GoplusMarkdown.MarkdownEditor.methods)
+
         // edit
         const isAdd = window.location.href.indexOf("edit") !== -1 ? ref(false) : ref(true)
         const article = isAdd.value ? {} : JSON.parse("{{.Article}}")
@@ -521,7 +523,18 @@
                 showContentNotice.value = true;
                 return
             }
+
+            // Extract summaries automatically
+            const cherryHtml = window.GoplusMarkdown.MarkdownEditor.methods.getCherryHtml()
+            let template = document.createElement('div');
+            template.innerHTML = cherryHtml;
+            const firstParagraph = template.querySelector('p[data-type="p"]')
+            if (firstParagraph) {
+                articleForm.value.abstract = firstParagraph.innerText.trim() || "";
+            } 
+
             showModal.value = true;
+             
         }
 
         function goBack() {
