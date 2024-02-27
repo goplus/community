@@ -374,8 +374,6 @@
             },
         ]
 
-        console.log("window.GoplusMarkdown.MarkdownEditor.methods",window.GoplusMarkdown.MarkdownEditor.methods)
-
         // edit
         const isAdd = window.location.href.indexOf("edit") !== -1 ? ref(false) : ref(true)
         const article = isAdd.value ? {} : JSON.parse("{{.Article}}")
