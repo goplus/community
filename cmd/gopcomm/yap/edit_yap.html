@@ -163,7 +163,10 @@
                     </n-form-item>
 
                     <!-- Label -->
-                    <n-form-item label="Label" path="label">
+                    <n-form-item path="label">
+                        <template #label>
+                            <p class="font-semibold text-gray-900 truncate">Label</p>
+                        </template>
                         <n-radio-group v-model:value="articleForm.label" name="radiogroup">
                             <n-space>
                               <n-radio v-for="label in labels" :key="label.value" :value="label.value">
@@ -178,7 +181,6 @@
                         <template #label>
                             <p class="font-semibold text-gray-900 truncate">Cover</p>
                         </template>
-                        <!-- TODO: @Shi 预览封面 -->
                         <n-upload :max="1" directory-dnd @change="changeCover"
                             :custom-request="customRequest" :default-file-list="fileList" list-type="image-card">
                             <n-upload-dragger
@@ -605,6 +607,7 @@
                     rules,
                     formRef,
                     canSubmit,
+                    labels,
 
                     buttonTheme,
                     inputTheme,
