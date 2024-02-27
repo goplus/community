@@ -61,6 +61,14 @@ type ArticleEntry struct {
 	Label    string
 	Ctime    time.Time
 	Mtime    time.Time
+	ViewCount int
+	LikeCount int
+}
+
+type ArticleLike struct {
+	Id        int
+	ArticleId int
+	UserId    int
 }
 
 type Article struct {
@@ -189,8 +197,8 @@ func (p *Community) GetTranslateArticle(ctx context.Context, id string) (article
 func (p *Community) Article(ctx context.Context, id string) (article *Article, err error) {
 	article = &Article{}
 	// var htmlId string
-	sqlStr := "select id,title,user_id,cover,tags,abstract,content,ctime,mtime,label from article where id=?"
-	err = p.db.QueryRow(sqlStr, id).Scan(&article.ID, &article.Title, &article.UId, &article.Cover, &article.Tags, &article.Abstract, &article.Content, &article.Ctime, &article.Mtime, &article.Label)
+	sqlStr := "select id,title,user_id,cover,tags,abstract,content,ctime,mtime,label,like_count from article where id=?"
+	err = p.db.QueryRow(sqlStr, id).Scan(&article.ID, &article.Title, &article.UId, &article.Cover, &article.Tags, &article.Abstract, &article.Content, &article.Ctime, &article.Mtime, &article.Label,&article.LikeCount)
 	if err == sql.ErrNoRows {
 		p.xLog.Warn("not found the article")
 		return article, ErrNotExist
@@ -204,6 +212,19 @@ func (p *Community) Article(ctx context.Context, id string) (article *Article, e
 	}
 	article.User = *user
 	return
+}
+
+func (p *Community) ArticleLikeState(ctx context.Context, userId, articleId string) (bool, error) {
+	if userId == "" {
+		return false, nil
+	}
+	sqlStr := "select count(*) from article_like where article_id = ? and user_id = ?"
+	var count int64
+	if err := p.db.QueryRow(sqlStr, articleId, userId).Scan(&count); err != nil {
+		return false, err
+	}
+	p.xLog.Info(count)
+	return count == 1, nil
 }
 
 // TransHtmlUrl get translation html url
@@ -371,7 +392,7 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 	var rowLen int
 	for rows.Next() {
 		article := &ArticleEntry{}
-		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Abstract, &article.Cover, &article.Label)
+		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Abstract, &article.Cover, &article.Label,&article.LikeCount)
 		if err != nil {
 			return []*ArticleEntry{}, from, err
 		}
@@ -398,7 +419,7 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 
 // ListArticle lists articles from a position.
 func (p *Community) ListArticle(ctx context.Context, from string, limit int, searchValue string, label string) (items []*ArticleEntry, next string, err error) {
-	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label from article where title like ? and label like ? order by ctime desc limit ? offset ?"
+	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label,like_count from article where title like ? and label like ? order by ctime desc limit ? offset ?"
 	return p.getPageArticles(sqlStr, from, limit, "%"+searchValue+"%", "%"+label+"%")
 }
 
@@ -482,4 +503,35 @@ func (a *Community) GetApplicationInfo() (*casdoorsdk.Application, error) {
 		a.xLog.Error(err)
 	}
 	return a2, err
+}
+
+func (a *Community) ArticleLike(ctx context.Context, articleId int, userId string) (bool, error) {
+	db := a.db
+	tx, _ := db.Begin()
+	sqlStr := "insert into article_like (article_id,user_id) values (?,?)"
+	_, err := tx.Exec(sqlStr, articleId, userId)
+	var f bool = true
+	var num int = 1
+	if err != nil {
+		sqlStr = "delete from article_like where article_id = ? and user_id = ?"
+		_, err = tx.Exec(sqlStr, articleId, userId)
+		if err != nil {
+			if err := tx.Rollback(); err != nil {
+				return false, err
+			}
+			return false, err
+		}
+		f = false
+		num = -1
+	}
+	sqlStr = "update article set like_count = like_count+ ? where id=?"
+	_, err = tx.Exec(sqlStr, num, articleId)
+	if err != nil {
+		if err := tx.Rollback(); err != nil {
+			return false, err
+		}
+		return false, err
+	}
+	err = tx.Commit()
+	return f, err
 }
