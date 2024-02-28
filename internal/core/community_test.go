@@ -290,6 +290,16 @@ func TestGetArticlesByUid(t *testing.T) {
 		}
 	}
 }
+func TestArticleLView(t *testing.T) {
+	conf := &Config{}
+	todo := context.TODO()
+	community, err := New(todo, conf)
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	community.ArticleLView(todo, "14", "127.0.0.1", "73917397")
+}
 
 func TestArticleLike(t *testing.T) {
 	conf := &Config{}

@@ -125,14 +125,18 @@ get "/article/:id", ctx => {
 	}
 	id := ctx.param("id")
 	article, err := community.Article(todo, id)
-	likeState,_:= community.ArticleLikeState(todo,userId,id)
-	if err != nil {
+	if err!=nil {
 		xLog.Error("get article error:", err)
+		return
 	}
-	articleJson, err := json.Marshal(&article)
-	if err != nil {
-		xLog.Error("json marshal error:", err)
+	likeState,err := community.ArticleLikeState(todo,userId,id)
+	if err!=nil {
+		xLog.Error("article state err:", err)
+		return
 	}
+	ip := community.GetClientIP(ctx.Request)
+    community.ArticleLView(todo,id,ip,userId)
+	articleJson, _ := json.Marshal(&article)
 	ctx.yap "article", {
 		"UserId":  userId,
 		"User":    user,

@@ -21,6 +21,8 @@ import (
 	"database/sql"
 	"fmt"
 	"io"
+	"net"
+	"net/http"
 	"net/url"
 	"os"
 	"reflect"
@@ -197,8 +199,8 @@ func (p *Community) GetTranslateArticle(ctx context.Context, id string) (article
 func (p *Community) Article(ctx context.Context, id string) (article *Article, err error) {
 	article = &Article{}
 	// var htmlId string
-	sqlStr := "select id,title,user_id,cover,tags,abstract,content,ctime,mtime,label,like_count from article where id=?"
-	err = p.db.QueryRow(sqlStr, id).Scan(&article.ID, &article.Title, &article.UId, &article.Cover, &article.Tags, &article.Abstract, &article.Content, &article.Ctime, &article.Mtime, &article.Label,&article.LikeCount)
+	sqlStr := "select id,title,user_id,cover,tags,abstract,content,ctime,mtime,label,like_count,view_count from article where id=?"
+	err = p.db.QueryRow(sqlStr, id).Scan(&article.ID, &article.Title, &article.UId, &article.Cover, &article.Tags, &article.Abstract, &article.Content, &article.Ctime, &article.Mtime, &article.Label,&article.LikeCount, &article.ViewCount)
 	if err == sql.ErrNoRows {
 		p.xLog.Warn("not found the article")
 		return article, ErrNotExist
@@ -223,7 +225,6 @@ func (p *Community) ArticleLikeState(ctx context.Context, userId, articleId stri
 	if err := p.db.QueryRow(sqlStr, articleId, userId).Scan(&count); err != nil {
 		return false, err
 	}
-	p.xLog.Info(count)
 	return count == 1, nil
 }
 
@@ -392,7 +393,7 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 	var rowLen int
 	for rows.Next() {
 		article := &ArticleEntry{}
-		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Abstract, &article.Cover, &article.Label,&article.LikeCount)
+		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Abstract, &article.Cover, &article.Label,&article.LikeCount, &article.ViewCount)
 		if err != nil {
 			return []*ArticleEntry{}, from, err
 		}
@@ -419,7 +420,7 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 
 // ListArticle lists articles from a position.
 func (p *Community) ListArticle(ctx context.Context, from string, limit int, searchValue string, label string) (items []*ArticleEntry, next string, err error) {
-	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label,like_count from article where title like ? and label like ? order by ctime desc limit ? offset ?"
+	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label,like_count,view_count from article where title like ? and label like ? order by ctime desc limit ? offset ?"
 	return p.getPageArticles(sqlStr, from, limit, "%"+searchValue+"%", "%"+label+"%")
 }
 
@@ -503,6 +504,49 @@ func (a *Community) GetApplicationInfo() (*casdoorsdk.Application, error) {
 		a.xLog.Error(err)
 	}
 	return a2, err
+}
+func (a *Community) ArticleLView(ctx context.Context, articleId, ip, userId string) {
+	go func(articleId, ip, userId string) {
+		userIdInt, err := strconv.Atoi(userId)
+		if err != nil {
+			userIdInt = 0
+		}
+		articleIdInt, err := strconv.Atoi(articleId)
+		if err != nil {
+			a.xLog.Error(err.Error())
+			return
+		}
+		sqlStr := "INSERT INTO article_view (ip,user_id,article_id,created_at,`index`) values (?,?,?,?,?)"
+		index := articleId + userId + ip
+		if _, err = a.db.Exec(sqlStr, ip, userIdInt, articleIdInt, time.Now(), index); err == nil {
+			// success article views incr
+			sqlStr = "update article set view_count = view_count + 1 where id=?"
+			_, err = a.db.Exec(sqlStr, articleId)
+			if err != nil {
+				a.xLog.Fatalln(err.Error())
+				return
+			}
+		}
+
+	}(articleId, ip, userId)
+}
+
+func (a *Community) GetClientIP(r *http.Request) string {
+	ip := strings.TrimSpace(strings.Split(r.Header.Get("X-Forwarded-For"), ",")[0])
+	if ip != "" {
+		return ip
+	}
+
+	ip = strings.TrimSpace(r.Header.Get("X-Real-Ip"))
+	if ip != "" {
+		return ip
+	}
+
+	if ip, _, err := net.SplitHostPort(strings.TrimSpace(r.RemoteAddr)); err == nil {
+		return ip
+	}
+
+	return ""
 }
 
 func (a *Community) ArticleLike(ctx context.Context, articleId int, userId string) (bool, error) {
