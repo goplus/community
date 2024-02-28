@@ -51,7 +51,7 @@ func (p *Community) GetUser(token string) (user *User, err error) {
 func (p *Community) ParseJwtToken(token string) (userId string, err error) {
 	claim, err := casdoorsdk.ParseJwtToken(token)
 	if err != nil {
-		p.xLog.Error(err)
+		p.xLog.Error("parse token err:", token)
 		return "", ErrNotExist
 	}
 	return claim.Id, nil

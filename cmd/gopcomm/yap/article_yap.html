@@ -92,7 +92,7 @@
                     <n-gi :span="1" class="flex flex-col justify-between items-center" style="height: 37vh;">
                         <!-- TODO: 点赞事件和点赞数 -->
                         <!-- <n-badge :value="article.likes"> -->
-                        <n-button type="tertiary" style="--n-text-color-hover: #d7266e;
+                        <!-- <n-button @click="articleLike" type="tertiary" style="--n-text-color-hover: #d7266e;
                                 --n-text-color-pressed: #d7266e;
                                 --n-text-color-focus: #d7266e;
                                 --n-ripple-color: #df7ba3;
@@ -101,8 +101,8 @@
                                 --n-border-focus: 1.5px solid #d7266e;
                                 height: 7vh; width: 7vh;
                                 --n-padding: 0; --n-border-radius: 5px;">
-                            <i class="ph-duotone ph-thumbs-up" style="font-size: 22px;"></i>
-                        </n-button>
+                            <i :class="`${likeStatus?'ph-fill':'ph-duotone'} ph-thumbs-up`" style="font-size: 22px;"></i>
+                        </n-button> -->
                         <!-- </n-badge> -->
 
                         <!-- TODO: 评论事件和评论数 -->
@@ -226,7 +226,7 @@
                             <!-- TODO: Unlike Button -->
                             <n-tooltip trigger="hover" placement="bottom" v-else>
                                 <template #trigger>
-                                    <n-button quaternary circle @click="unlikeArticle(article.Id)">
+                                    <n-button quaternary circle @click="likeArticle(article.Id)">
                                         <template #icon>
                                             <i class="ph-fill ph-heart" style="color: #ef4444; font-size: 20px;"></i>
                                         </template>
@@ -237,7 +237,7 @@
 
                             <!-- TODO: Like numbers -->
                             <!-- <n-badge :value="article.LikeNum" color="transparent" style="margin-left: -5px;"></n-badge> -->
-                            <n-badge value="3" color="transparent" style="margin-left: -5px; --n-font-size: 15px;"></n-badge>
+                            <n-badge :value="likeCount" color="transparent" style="margin-left: -5px; --n-font-size: 15px;"></n-badge>
                         </div>
 
                         <!-- Quick Sharing -->
@@ -316,7 +316,9 @@
         const { reactive, toRefs, ref, h } = Vue;
 
         /*======= article related =======*/
+
         const article = ref(JSON.parse("{{.Article}}"));
+        
         const originArticle = JSON.parse("{{.Article}}");
         let transArticle = {}
         const transOptions = [
@@ -334,7 +336,9 @@
             }
         ];
         const isOrigin = ref(true)
-
+        const likeStatus =ref({{.LikeState}})
+        const likeCount =ref(article.value.LikeCount)
+        console.log("likeCount:"+likeCount)
         function selectDropdown(key) {
             if (key === 'original' && !isOrigin.value) {
                 console.log("origin")
@@ -366,13 +370,23 @@
         const isLiked = ref(false)
 
         function likeArticle(id) {
-            isLiked.value = true;
+            console.log(article.value.ID)
+            const options = {
+                method: 'POST',
+            }
+            fetch("/api/article/like?articleId="+article.value.ID, options)
+                .then(res=> res.json())
+                .then(todos => {
+                    if(todos.data){
+                        likeCount.value = likeCount.value +1
+                    }else{
+                        likeCount.value = likeCount.value -1
+                    }
+                    isLiked.value = todos.data                    
+                });
         }
 
-        function unlikeArticle(id) {
-            isLiked.value = false
-        }
-
+    
         /*======= share related functions =======*/
         const currentHref = ref(window.location.href);
 
@@ -405,6 +419,18 @@
             }
         }
 
+        function articleLike(){
+            console.log(article.value.ID)
+            const options = {
+                method: 'POST',
+            }
+            fetch("/api/article/like?articleId="+article.value.ID, options)
+                .then(res=> res.json())
+                .then(todos => {
+                    likeStatus.value = todos.data
+                });
+        }
+
         function shareToTwitter() {
             // var url = encodeURIComponent('http://8.130.26.238/animation/fb.html');
             // var text = encodeURIComponent('Linz');
@@ -424,7 +450,10 @@
                     article,
                     isOrigin,
                     transOptions,
-                    isLiked
+                    isLiked,
+                    articleLike,
+                    likeStatus,
+                    likeCount,
                 }
             },
             methods: {
@@ -432,7 +461,6 @@
                 shareToTwitter,
                 selectDropdown,
                 likeArticle,
-                unlikeArticle
             },
             components: {
                 MarkdownViewer: window.GoplusMarkdown.MarkdownViewer

@@ -290,3 +290,19 @@ func TestGetArticlesByUid(t *testing.T) {
 		}
 	}
 }
+
+func TestArticleLike(t *testing.T) {
+	conf := &Config{}
+	todo := context.TODO()
+	community, err := New(todo, conf)
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	like, err := community.ArticleLike(todo, 14, "73917396")
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	t.Log(like)
+}
