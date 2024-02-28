@@ -122,7 +122,7 @@
                                     </div>
 
                                     <div class="mt-8 text-center">
-                                        <h1 class="text-4xl"> Have no data!</h1>
+                                        <h1 v-else class="text-4xl"> Have no data!</h1>
                                     </div>
 
                                     <button
@@ -214,8 +214,8 @@
                             </n-back-top>
                             <!-- Loading Status -->
                             <div class="mt-2 text-center" key="span">
-                                <n-spin v-if="!isBottom.video" :key="spin" size="small" stroke="#3182ce"></n-spin>
-                                <span v-if="!haveMoreData.video" class="text-xs text-gray-400">No more data🙌</span>
+                                <n-spin v-if="!isBottom.article" :key="spin" size="small" stroke="#3182ce"></n-spin>
+                                <span v-if="!haveMoreData.article" class="text-xs text-gray-400">No more data🙌</span>
                             </div>
                         </div>
                     </n-tab-pane>
@@ -240,7 +240,8 @@
                                     </div>
 
                                     <div class="mt-8 text-center">
-                                        <h1 class="text-4xl"> Have no data!</h1>
+                                        <h1 v-if="!isBottom.video" class="text-4xl"> Loading data...</h1>
+                                        <h1 v-else class="text-4xl"> Have no data!</h1>
                                     </div>
 
                                     <button
@@ -359,7 +360,8 @@
                                     </div>
 
                                     <div class="mt-8 text-center">
-                                        <h1 class="text-4xl"> Have no data!</h1>
+                                        <h1 v-if="!isBottom.stem" class="text-4xl"> Loading data...</h1>
+                                        <h1 v-else class="text-4xl"> Have no data!</h1>
                                     </div>
 
                                     <button

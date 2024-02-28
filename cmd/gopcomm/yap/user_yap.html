@@ -188,7 +188,7 @@
                                 <template #prefix>
                                     <div style="height: 20vh; width: 32vh;">
                                         <!-- Image -->
-                                        <img class="w-full object-cover rounded" :src="item.Cover" alt="">
+                                        <img class="w-full object-cover rounded" :src="item.Cover || '/static/img/default-cover.jpg'" alt="">
 
                                         <!-- Data -->
                                         <div class="flex justify-center items-center mt-2" style="height: 2vh;">
@@ -196,14 +196,14 @@
                                             <div class="flex justify-center items-center" style="width: 40%;">
                                                 <i class="ph-duotone ph-eye" style="color: #3182ce;"></i>
                                                 <!-- TODO: 浏览量 -->
-                                                <span class="ml-1 text-sm">368</span>
+                                                <span class="ml-1 text-sm">${ item.ViewCount }</span>
                                             </div>
 
                                             <!-- Likes -->
                                             <div class="flex justify-center items-center" style="width: 40%;">
                                                 <i class="ph-duotone ph-thumbs-up" style="color: #3182ce;"></i>
                                                 <!-- TODO: 点赞数 -->
-                                                <span class="ml-1 text-sm">12</span>
+                                                <span class="ml-1 text-sm">${ item.LikeCount }</span>
                                             </div>
                                         </div>
                                     </div>
@@ -474,7 +474,7 @@
                                 <n-gi :span="1" v-for="(item,index) in imageList" :key="index">
                                     <n-card hoverable>
                                         <div class="image">
-                                            <n-image :src="item.FileKey" class="image-item" fit="cover"></n-image>
+                                            <n-image :src="item.FileKey || '/static/img/default-cover.jpg'" class="image-item" fit="cover"></n-image>
                                         </div>
                                         <div class="delete">
                                             <div class="image-time">${ item.CreateAt.slice(0,10) }</div>

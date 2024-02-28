@@ -20,7 +20,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"io"
 	"net"
 	"net/http"
 	"net/url"
@@ -53,16 +52,16 @@ type Config struct {
 }
 
 type ArticleEntry struct {
-	ID       string
-	Title    string
-	UId      string
-	Cover    string
-	Tags     string
-	User     User
-	Abstract string
-	Label    string
-	Ctime    time.Time
-	Mtime    time.Time
+	ID        string
+	Title     string
+	UId       string
+	Cover     string
+	Tags      string
+	User      User
+	Abstract  string
+	Label     string
+	Ctime     time.Time
+	Mtime     time.Time
 	ViewCount int
 	LikeCount int
 }
@@ -200,7 +199,7 @@ func (p *Community) Article(ctx context.Context, id string) (article *Article, e
 	article = &Article{}
 	// var htmlId string
 	sqlStr := "select id,title,user_id,cover,tags,abstract,content,ctime,mtime,label,like_count,view_count from article where id=?"
-	err = p.db.QueryRow(sqlStr, id).Scan(&article.ID, &article.Title, &article.UId, &article.Cover, &article.Tags, &article.Abstract, &article.Content, &article.Ctime, &article.Mtime, &article.Label,&article.LikeCount, &article.ViewCount)
+	err = p.db.QueryRow(sqlStr, id).Scan(&article.ID, &article.Title, &article.UId, &article.Cover, &article.Tags, &article.Abstract, &article.Content, &article.Ctime, &article.Mtime, &article.Label, &article.LikeCount, &article.ViewCount)
 	if err == sql.ErrNoRows {
 		p.xLog.Warn("not found the article")
 		return article, ErrNotExist
@@ -393,7 +392,7 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 	var rowLen int
 	for rows.Next() {
 		article := &ArticleEntry{}
-		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Abstract, &article.Cover, &article.Label,&article.LikeCount, &article.ViewCount)
+		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Abstract, &article.Cover, &article.Label, &article.LikeCount, &article.ViewCount)
 		if err != nil {
 			return []*ArticleEntry{}, from, err
 		}
@@ -409,10 +408,10 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 	}
 	// have no article
 	if rowLen == 0 {
-		return []*ArticleEntry{}, MarkEnd, io.EOF
+		return []*ArticleEntry{}, MarkEnd, nil
 	}
 	if rowLen < limit {
-		return items, MarkEnd, io.EOF
+		return items, MarkEnd, nil
 	}
 	next = strconv.Itoa(fromInt + rowLen)
 	return items, next, nil
@@ -420,13 +419,13 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 
 // ListArticle lists articles from a position.
 func (p *Community) ListArticle(ctx context.Context, from string, limit int, searchValue string, label string) (items []*ArticleEntry, next string, err error) {
-	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label,like_count,view_count from article where title like ? and label like ? order by ctime desc limit ? offset ?"
+	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label, like_count, view_count from article where title like ? and label like ? order by ctime desc limit ? offset ?"
 	return p.getPageArticles(sqlStr, from, limit, "%"+searchValue+"%", "%"+label+"%")
 }
 
 // GetArticlesByUid get articles by user id.
 func (p *Community) GetArticlesByUid(ctx context.Context, uid string, from string, limit int) (items []*ArticleEntry, next string, err error) {
-	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label from article where user_id = ? and label like ? order by ctime desc limit ? offset ?"
+	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label, like_count, view_count from article where user_id = ? and label like ? order by ctime desc limit ? offset ?"
 	return p.getPageArticles(sqlStr, from, limit, uid, "%")
 }
 
