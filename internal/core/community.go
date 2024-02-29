@@ -20,7 +20,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"io"
 	"net"
 	"net/http"
 	"net/url"
@@ -409,10 +408,10 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 	}
 	// have no article
 	if rowLen == 0 {
-		return []*ArticleEntry{}, MarkEnd, io.EOF
+		return []*ArticleEntry{}, MarkEnd, nil
 	}
 	if rowLen < limit {
-		return items, MarkEnd, io.EOF
+		return items, MarkEnd, nil
 	}
 	next = strconv.Itoa(fromInt + rowLen)
 	return items, next, nil
@@ -420,13 +419,13 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 
 // ListArticle lists articles from a position.
 func (p *Community) ListArticle(ctx context.Context, from string, limit int, searchValue string, label string) (items []*ArticleEntry, next string, err error) {
-	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label,like_count,view_count from article where title like ? and label like ? order by ctime desc limit ? offset ?"
+	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label, like_count, view_count from article where title like ? and label like ? order by ctime desc limit ? offset ?"
 	return p.getPageArticles(sqlStr, from, limit, "%"+searchValue+"%", "%"+label+"%")
 }
 
 // GetArticlesByUid get articles by user id.
 func (p *Community) GetArticlesByUid(ctx context.Context, uid string, from string, limit int) (items []*ArticleEntry, next string, err error) {
-	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label,like_count,view_count from article where user_id = ? and label like ? order by ctime desc limit ? offset ?"
+	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label, like_count, view_count from article where user_id = ? and label like ? order by ctime desc limit ? offset ?"
 	return p.getPageArticles(sqlStr, from, limit, uid, "%")
 }
 

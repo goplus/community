@@ -125,22 +125,22 @@ get "/article/:id", ctx => {
 	}
 	id := ctx.param("id")
 	article, err := community.Article(todo, id)
-	if err!=nil {
+	if err != nil {
 		xLog.Error("get article error:", err)
 		return
 	}
-	likeState,err := community.ArticleLikeState(todo,userId,id)
-	if err!=nil {
+	likeState, err := community.ArticleLikeState(todo, userId, id)
+	if err != nil {
 		xLog.Error("article state err:", err)
 		return
 	}
 	ip := community.GetClientIP(ctx.Request)
-    community.ArticleLView(todo,id,ip,userId)
+	community.ArticleLView(todo, id, ip, userId)
 	articleJson, _ := json.Marshal(&article)
 	ctx.yap "article", {
-		"UserId":  userId,
-		"User":    user,
-		"Article": string(articleJson),
+		"UserId":    userId,
+		"User":      user,
+		"Article":   string(articleJson),
 		"LikeState": likeState,
 	}
 }
@@ -467,7 +467,7 @@ get "/user/edit", ctx => {
 // User
 //
 // User apis
-put "/api/user", ctx => {
+put "/api/update/user", ctx => {
 	token, err := core.GetToken(ctx)
 	uid, err := community.ParseJwtToken(token.Value)
 	user := &core.UserInfo{
@@ -777,15 +777,15 @@ get "/login/callback", ctx => {
 }
 
 post "/api/article/like", ctx => {
-    articleId := ctx.param("articleId")
+	articleId := ctx.param("articleId")
 	articleIdInt, err := strconv.Atoi(articleId)
-    if err != nil {
-    	ctx.json {
-        	"code": 500,
-        	"err":  err.Error(),
-        }
-    }
-    token, err := core.GetToken(ctx)
+	if err != nil {
+		ctx.json {
+			"code": 500,
+			"err":  err.Error(),
+		}
+	}
+	token, err := core.GetToken(ctx)
 	if err != nil {
 		xLog.Info("token", err)
 		ctx.json {
@@ -794,25 +794,24 @@ post "/api/article/like", ctx => {
 		}
 	}
 	uid, err := community.ParseJwtToken(token.Value)
-    if err != nil {
-    	ctx.json {
-    		"code": 0,
-    		"err":  err.Error(),
-    	}
-    }
-    res, err := community.ArticleLike(todo, articleIdInt,uid)
-    if err!=nil {
-        ctx.json {
-            "code": 500,
-            "err":  err.Error(),
-       }
-    }
-    ctx.json {
-        "code": 200,
-        "data":  res,
-    }
+	if err != nil {
+		ctx.json {
+			"code": 0,
+			"err":  err.Error(),
+		}
+	}
+	res, err := community.ArticleLike(todo, articleIdInt, uid)
+	if err != nil {
+		ctx.json {
+			"code": 500,
+			"err":  err.Error(),
+		}
+	}
+	ctx.json {
+		"code": 200,
+		"data": res,
+	}
 }
-
 
 conf := &core.Config{}
 community, _ = core.New(todo, conf)

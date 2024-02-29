@@ -318,11 +318,11 @@
                     const formData = objectToFormData(userProfile.value);
 
                     const requestOptions = {
-                        method: "POST",
+                        method: "PUT",
                         body: formData
                     };
 
-                    fetch("/update/user", requestOptions)
+                    fetch("/api/update/user", requestOptions)
                         .then(res => {
                             return res.json();
                         })

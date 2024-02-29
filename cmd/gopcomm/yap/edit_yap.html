@@ -529,7 +529,7 @@
             template.innerHTML = cherryHtml;
             const firstParagraph = template.querySelector('p[data-type="p"]')
             if (firstParagraph) {
-                articleForm.value.abstract = firstParagraph.innerText.trim() || "";
+                articleForm.value.abstract = firstParagraph.innerText.trim().slice(0,100) || "";
             } 
 
             showModal.value = true;

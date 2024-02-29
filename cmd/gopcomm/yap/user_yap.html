@@ -44,7 +44,7 @@
                         Home
                     </div>
                 </n-breadcrumb-item>
-                <n-breadcrumb-item href="/user/{{.User.Id}}">
+                <n-breadcrumb-item href="/user/{{.UserId}}">
                     <div class="flex items-center">
                         <div>
                             <span></span>
@@ -475,7 +475,7 @@
                                 <n-gi :span="1" v-for="(item,index) in imageList" :key="index">
                                     <n-card hoverable>
                                         <div class="image">
-                                            <n-image :src="item.FileKey" class="image-item" fit="cover"></n-image>
+                                            <n-image :src="item.FileKey || '/static/img/default-cover.jpg'" class="image-item" fit="cover"></n-image>
                                         </div>
                                         <div class="delete">
                                             <div class="image-time">${ item.CreateAt.slice(0,10) }</div>
