@@ -56,10 +56,10 @@ export default  {
         }
     },
     mounted() {
-        setTimeout(() => {
-            this.c = "```gop ```"
-            console.log("set time out")
-        }, 5000)
+        // setTimeout(() => {
+        //     this.c = "```gop ```"
+        //     console.log("set time out")
+        // }, 5000)
         // const player = new Plyr(this.$refs.plyr, {
         //     controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'airplay', 'fullscreen']
         // })
