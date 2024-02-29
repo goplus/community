@@ -28,10 +28,21 @@ var cherryEngine = null
 
 var vtt_src = ""
 
+let fileType = "video/mp4"
+
+let vtt_id = ""
+
+
 function fileUpload(file) {
     // 提交的时候代码
     let type = file.type
     console.log("upload", file.type)
+
+    if(type.includes("video") && checkVideo()){
+        console.log("only can upload a video.")
+        return 
+    }
+
     var formData = new FormData()
     formData.append('file', file)
     // axios post 请求                
@@ -50,21 +61,26 @@ function fileUpload(file) {
                 axios({
                     method: 'get',
                     url: '/api/video/'+response.data,
-                }).then(response => {
+                }).then(res => {
                     console.log("get video")
-                    let url = response.data.url.fileKey
-                    let stitle = response.data.url.subtitle
+                    let url = res.data.url.fileKey
+                    let stitle = res.data.url.subtitle
+                    let status = res.data.url.status
+                    if(status !== "1"){
+                        vtt_id = response.data
+                    }
                     vtt_src = stitle
+                    
                     console.log("URL", url)
                     // 返回文件地址的话需要
-                    onloadCallback(type, url)                        
+                    onloadCallback(type, url)                       
                 })
             } else {
                 axios({
                     method: 'get',
                     url: '/api/media/'+response.data+'/url',
-                }).then(response => {
-                    let url = response.data.url
+                }).then(res => {
+                    let url = res.data.url
                     console.log(url)
                     // 返回文件地址的话需要
                     onloadCallback(type, url)                        
@@ -85,12 +101,59 @@ function fileUpload(file) {
     // onloadCallback(type, url)                        
 
 }
+
+// function getVtt(id, type, url){
+//     if(vtt_status !== "1" && vttGetCount < 10) {
+//         vttGetCount = vttGetCount+1
+//         axios({
+//             method: 'get',
+//             url: '/api/vtt/'+id,
+//         }).then(res => {
+//             if(res.code === 200){
+//                 let stitle = res.data.subtitle
+//                 vtt_status = res.data.status
+//                 console.log("setTimeout - stitle",stitle)
+//                 console.log("setTimeout - vtt_status",vtt_status)
+//                 // finish vtt
+//                 if(vtt_status === "1"){
+//                     vtt_src = stitle
+//                     vttGetCount = 0
+//                     onVttCallback(type, url)  
+//                 }else{
+//                     this.timer = setTimeout(getVtt(id, type, url), 5000)   
+//                 }    
+//             }                     
+//         })
+//     }
+// }
+
+// function onVttCallback(type, url){
+//     let md = getMarkdown()
+//     md.replace(videoMd, `!video[${type}](${url})(${vtt_src})`)
+//     setMarkdown(md)
+// }
+
+function checkVideo(){
+    const md = getCherryContent()
+    const regex = /!video\[[^\]]*\]\([^)]*\)(\([^)]*\))?/; // 匹配 !video[]()() 格式的字符串
+
+    if (regex.test(md)) {
+        console.log("have video")
+        return true
+    }
+    return false
+}
+
 function onloadCallback(type, url) {
     console.log("call back")
     let imgMdStr = ""
-    if (/mp4|avi|rmvb/i.test(type)) {
+    type = type.toLowerCase()
+    fileType = type
+    if (/mp4|avi|rmvb|mov|wmv|flv|avi|webm/i.test(type.toLowerCase())) {
         // 会渲染成video标签 需要替换video1标签 <video controls src=""> <video>
         imgMdStr = `!video[${type}](${url})(${vtt_src})`;
+        // to replace vtt
+        // videoMd = imgMdStr
     } else if (/mp3/i.test(type)) {
         imgMdStr = `!audio[${type}](${url})`;
     } else if (/bmp|gif|jpg|jpeg|png/i.test(type)) {
@@ -108,9 +171,6 @@ function urlProcessor(url, srcType) {
 function afterChange(text, html) {
     this.content = text
     const p = new Plyr('video', {captions: {active: true}});
-
-    // this.$emit('mdChange', html, text)
-    // this.$emit('input', text)
 }
 
 function onCopyCode(event, code) {
@@ -153,40 +213,6 @@ function getCherryHtml() {
     var result = cherrInstance.getHtml()
     return result
 }
-// 
-function makeHtml(str) {
-    var result = cherrInstance.engine.makeHtml(str)
-    console.log("make html", result)
-    return result
-}
-function getData() {
-    var result = cherrInstance.getHtml()
-    return result
-}
-function getToc() {
-    var result = cherrInstance.getToc()
-    return result
-}
-
-function exportMD(type = 'pdf') {
-    cherrInstance.export(type)
-}
-function switchModel(model) {
-    if (this.isInit()) {
-        cherrInstance.switchModel(model)
-    }
-}
-
-function insert(content, isSelect = false, anchor = [], focus = true) {
-    cherrInstance.insert(content, isSelect, anchor, focus)
-}
-function isInit() {
-    if (cherrInstance) {
-        return true
-    }
-    this.$message.warning('编辑器未初始化，请检查')
-    return false
-}
 
 function initCherryMD(value, config) {
     var defaultValue = value || ""
@@ -196,26 +222,29 @@ function initCherryMD(value, config) {
     var myBlockHook = Cherry.createSyntaxHook('myBlock', Cherry.constants.HOOKS_TYPE_LIST.PAR, {
         makeHtml(str) {
             return str.replace(this.RULE.reg, function(whole, m1) {
-                // 匹配whole括号中的内容
-                console.log("提取video内容", whole)
-                const regex = /\((.*?)\)/; // 定义正则表达式，其中 \() 表示左括号，(.*?) 表示非贪婪模式匹配任意字符，\)) 表示右括号
+                // []
+                const regexType = /\[(.*?)\]/g; 
+                const matchType = whole.match(regexType); // 使用 match 函数进行匹配
+                if (matchType){
+                    fileType = matchType[0].replace("[","").replace("]","")
+                }
+                // ()
+                console.log("all video ", whole)
+                const regex = /\((.*?)\)/g; // 定义正则表达式，其中 \() 表示左括号，(.*?) 表示非贪婪模式匹配任意字符，\)) 表示右括号
                 const matchResult = whole.match(regex); // 使用 match 函数进行匹配
-                let video_src = ""
-                if (matchResult && matchResult[1]) {
-                    console.log("提取到的结果为：" + matchResult[1]);
-                    // console.log("player", player)
-                    video_src = matchResult[1]
-                    console.log("video src 已经替换了", video_src)
+                if (matchResult) {
+                    let video_src = matchResult[0].replace("(","").replace(")","")
+                    console.log("video src", video_src)
                     let poster = video_src + "/vframe/jpg/offset/7"
-                    return `<div><video controls="" crossorigin="" playsinline="" poster=${poster}><source src=${video_src} type="video/mp4" size="576"/><track kind="captions" label="English" srclang="en" src=${vtt_src} default/><track kind="captions" label="Français" srclang="fr" src=${vtt_src} /><a href=${video_src} download>Download</a></video></div>`
-                    // return `<vue-plyr ref="plyr"><video ref="plyr" class="plyr" :autoplay="autoplay" :crossorigin="crossorigin" :poster="poster" :playsinline="playsinline"><source :src="source" type="video/mp4"></video></vue-plyr>`
-                    // return `<div class="plyr plyr--full-ui plyr--video plyr--html5 plyr--fullscreen-enabled plyr--paused plyr--stopped plyr--pip-supported plyr--captions-enabled plyr__poster-enabled"><video controls crossorigin playsinline poster="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg"><source src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4" type="video/mp4" size="576"><source src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-720p.mp4" type="video/mp4" size="720"><source src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-1080p.mp4" type="video/mp4" size="1080"><!-- Caption files --><track kind="captions" label="English" srclang="en" src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt"default><track kind="captions" label="Français" srclang="fr" src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.fr.vtt"><!-- Fallback for browsers that don't support the <video> element --><a href="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4" download>Download</a></video>`
-                    // return `<div class="plyr plyr--full-ui plyr--video plyr--html5 plyr--fullscreen-enabled plyr--paused plyr--stopped plyr--pip-supported plyr--captions-enabled plyr__poster-enabled"><div class="plyr__controls"><button class="plyr__controls__item plyr__control" type="button" data-plyr="play" aria-pressed="false" aria-label="Play"><svg class="icon--pressed" aria-hidden="true" focusable="false"><use xlink:href="#plyr-pause"></use></svg><svg class="icon--not-pressed" aria-hidden="true" focusable="false"><use xlink:href="#plyr-play"></use></svg><span class="label--pressed plyr__sr-only">Pause</span><span class="label--not-pressed plyr__sr-only">Play</span></button><div class="plyr__controls__item plyr__progress__container"><div class="plyr__progress"><input data-plyr="seek" type="range" min="0" max="100" step="0.01" value="0" autocomplete="off" role="slider" aria-label="Seek" aria-valuemin="0" aria-valuemax="183.125333" aria-valuenow="0" id="plyr-seek-8215" aria-valuetext="00:00 of 03:03" style="--value: 0%;"><progress class="plyr__progress__buffer" min="0" max="100" value="0" role="progressbar" aria-hidden="true">% buffered</progress><span class="plyr__tooltip">00:00</span></div></div><div class="plyr__controls__item plyr__time--current plyr__time" aria-label="Current time" role="timer">-03:03</div><div class="plyr__controls__item plyr__volume"><button type="button" class="plyr__control" data-plyr="mute" aria-pressed="false"><svg class="icon--pressed" aria-hidden="true" focusable="false"><use xlink:href="#plyr-muted"></use></svg><svg class="icon--not-pressed" aria-hidden="true" focusable="false"><use xlink:href="#plyr-volume"></use></svg><span class="label--pressed plyr__sr-only">Unmute</span><span class="label--not-pressed plyr__sr-only">Mute</span></button><input data-plyr="volume" type="range" min="0" max="1" step="0.05" value="1" autocomplete="off" role="slider" aria-label="Volume" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" id="plyr-volume-8215" aria-valuetext="100.0%" style="--value: 100%;"></div><button class="plyr__controls__item plyr__control" type="button" data-plyr="captions" aria-pressed="false"><svg class="icon--pressed" aria-hidden="true" focusable="false"><use xlink:href="#plyr-captions-on"></use></svg><svg class="icon--not-pressed" aria-hidden="true" focusable="false"><use xlink:href="#plyr-captions-off"></use></svg><span class="label--pressed plyr__sr-only">Disable captions</span><span class="label--not-pressed plyr__sr-only">Enable captions</span></button><div class="plyr__controls__item plyr__menu"><button aria-haspopup="true" aria-controls="plyr-settings-8215" aria-expanded="false" type="button" class="plyr__control" data-plyr="settings" aria-pressed="false"><svg aria-hidden="true" focusable="false"><use xlink:href="#plyr-settings"></use></svg><span class="plyr__sr-only">Settings</span></button><div class="plyr__menu__container" id="plyr-settings-8215" hidden=""><div><div id="plyr-settings-8215-home"><div role="menu"><button data-plyr="settings" type="button" class="plyr__control plyr__control--forward" role="menuitem" aria-haspopup="true"><span>Captions<span class="plyr__menu__value">Disabled</span></span></button><button data-plyr="settings" type="button" class="plyr__control plyr__control--forward" role="menuitem" aria-haspopup="true"><span>Quality<span class="plyr__menu__value">576p</span></span></button><button data-plyr="settings" type="button" class="plyr__control plyr__control--forward" role="menuitem" aria-haspopup="true"><span>Speed<span class="plyr__menu__value">Normal</span></span></button></div></div><div id="plyr-settings-8215-captions" hidden=""><button type="button" class="plyr__control plyr__control--back"><span aria-hidden="true">Captions</span><span class="plyr__sr-only">Go back to previous menu</span></button><div role="menu"><button data-plyr="language" type="button" role="menuitemradio" class="plyr__control" aria-checked="true" value="-1"><span>Disabled</span></button><button data-plyr="language" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="0"><span>English<span class="plyr__menu__value"><span class="plyr__badge">EN</span></span></span></button><button data-plyr="language" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="1"><span>Français<span class="plyr__menu__value"><span class="plyr__badge">FR</span></span></span></button></div></div><div id="plyr-settings-8215-quality" hidden=""><button type="button" class="plyr__control plyr__control--back"><span aria-hidden="true">Quality</span><span class="plyr__sr-only">Go back to previous menu</span></button><div role="menu"><button data-plyr="quality" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="1080"><span>1080p<span class="plyr__menu__value"><span class="plyr__badge">HD</span></span></span></button><button data-plyr="quality" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="720"><span>720p<span class="plyr__menu__value"><span class="plyr__badge">HD</span></span></span></button><button data-plyr="quality" type="button" role="menuitemradio" class="plyr__control" aria-checked="true" value="576"><span>576p<span class="plyr__menu__value"><span class="plyr__badge">SD</span></span></span></button></div></div><div id="plyr-settings-8215-speed" hidden=""><button type="button" class="plyr__control plyr__control--back"><span aria-hidden="true">Speed</span><span class="plyr__sr-only">Go back to previous menu</span></button><div role="menu"><button data-plyr="speed" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="0.5"><span>0.5×</span></button><button data-plyr="speed" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="0.75"><span>0.75×</span></button><button data-plyr="speed" type="button" role="menuitemradio" class="plyr__control" aria-checked="true" value="1"><span>Normal</span></button><button data-plyr="speed" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="1.25"><span>1.25×</span></button><button data-plyr="speed" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="1.5"><span>1.5×</span></button><button data-plyr="speed" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="1.75"><span>1.75×</span></button><button data-plyr="speed" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="2"><span>2×</span></button><button data-plyr="speed" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="4"><span>4×</span></button></div></div></div></div></div><button class="plyr__controls__item plyr__control" type="button" data-plyr="pip" aria-pressed="false"><svg aria-hidden="true" focusable="false"><use xlink:href="#plyr-pip"></use></svg><span class="plyr__sr-only">PIP</span></button><button class="plyr__controls__item plyr__control" type="button" data-plyr="fullscreen" aria-pressed="false"><svg class="icon--pressed" aria-hidden="true" focusable="false"><use xlink:href="#plyr-exit-fullscreen"></use></svg><svg class="icon--not-pressed" aria-hidden="true" focusable="false"><use xlink:href="#plyr-enter-fullscreen"></use></svg><span class="label--pressed plyr__sr-only">Exit fullscreen</span><span class="label--not-pressed plyr__sr-only">Enter fullscreen</span></button></div><div class="plyr__video-wrapper"><video crossorigin="" playsinline="" poster="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg" src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4" data-poster="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg"><source src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4" type="video/mp4" size="576"><source src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-720p.mp4" type="video/mp4" size="720"><source src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-1080p.mp4" type="video/mp4" size="1080"><!-- Caption files --><track kind="captions" label="English" srclang="en" src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt" default=""><track kind="captions" label="Français" srclang="fr" src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.fr.vtt"><!-- Fallback for browsers that don't support the <video> element --><a href="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4" download="">Download</a></video><div class="plyr__poster" style="background-image: url(&quot;https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg&quot;);"></div></div><div class="plyr__captions" dir="auto"></div><button type="button" class="plyr__control plyr__control--overlaid" data-plyr="play" aria-pressed="false" aria-label="Play"><svg aria-hidden="true" focusable="false"><use xlink:href="#plyr-play"></use></svg><span class="plyr__sr-only">Play</span></button></div>`
+                    if(matchResult[1]){
+                        vtt_src = matchResult[1].replace("(","").replace(")","")
+                    }
+                    return `<div><video controls="" crossorigin="" playsinline="" data-poster=${poster}><source src=${video_src} type=${fileType} size="576"/><track kind="captions" label="English" srclang="en" src=${vtt_src} default/><a href=${video_src} download>Download</a></video></div>`
+                    
                 } else {
-                    console.log("未能提取到小括号中的内容");
+                    console.log("can't match ()");
                     let r = "show video failed"
                     return `<div style="border: 1px solid;border-radius: 15px;background: gold;">${r}</div>`;
-                    // return `<div><video controls crossorigin playsinline data-poster="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg" id="player"><source src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4" type="video/mp4" size="576"/><track kind="captions" label="English" srclang="en" src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt" default/><track kind="captions" label="Français" srclang="fr" src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.fr.vtt"/><a href="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4" download>Download</a></video></div>`
                 }
             });
         },
@@ -519,47 +548,13 @@ export default {
     },
     data() {
         return {
-            // content: null,
-            // cherrInstance: null,
-            // child_con: 'Hellll',
-            content_id: -1,
-            isAdd: false,
-            // input_title: "",
-            // req_suc: false,
-            // open: false,
-            // formState: {
-            //     resource: '',
-            //     tags: '',
-            //     abs: '',
-
-            // },
-            // resources: [
-            //     "original",
-            //     "reposted",
-            //     "translated from the other ariticle"
-            // ],
-            // labelCol: { span: 10 },
-            // wrapperCol: { span: 14 },       
-            // 自定义 
-            // CustomHookA: Cherry.createSyntaxHook('important', Cherry.constants.HOOKS_TYPE_LIST.SEN, {
-            //     makeHtml(str) {
-            //         console.log("custom hook", str)
-            //         return str.replace(this.RULE.reg, function(whole, m1, m2) {
-            //             return `<span style="color: green;"><strong>${m2}</strong></span>`;
-            //         });
-            //     },
-            //     rule(str) {
-            //         console.log("rule", str)
-            //         return { reg: /(\*\*\*)([^\*]+)\1/g };
-            //     },
-            // })
         }
     },
     mounted() {
         initCherryMD()
     },
     methods: {    
-         getMarkdown() {
+        getMarkdown() {
             return getCherryContent()
         },      
         getCherryHtml() {
@@ -573,6 +568,12 @@ export default {
             // setMarkdown(content)
             cherrInstance.setMarkdown(content)
             cherrInstance.editor.editor.setCursor(cherrInstance.getMarkdown().length)
+        },
+        getVttId() {
+            return vtt_id
+        },
+        checkVideo(){
+            return checkVideo()
         }
     }
 }

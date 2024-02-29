@@ -89,9 +89,9 @@
             box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05); padding: 20px 50px;">
                 <!-- Header -->
                 <header class="mb-4 not-format">
-                    <div class="flex flex-row" style="justify-content: space-between">
+                    <div class="flex flex-row" :style="{'justify-content': article.Tags ? 'space-between' : 'right'}">
                         <!-- Tags -->
-                        <div class="flex flex-row items-center">
+                        <div v-if="article.Tags" class="flex flex-row items-center">
                             <span v-for="(item, index) in article.Tags.split(';')"
                                 style="background-color: #cee1f5;"
                                 class="mr-3 inline-flex items-center font-medium px-2.5 py-0.5 rounded-full">
@@ -124,7 +124,7 @@
                     <!-- Avatar & Nick Name -->
                     <div class="flex flex-row items-center" style="margin: 20px 0;">
                         <!-- Avatar -->
-                        <img class="w-12 h-12 rounded-full mr-2" :src="article.User.Avatar"
+                        <img class="w-12 h-12 rounded-full mr-2" :src="article.User.Avatar || '/static/img/default-cover.jpg'"
                             alt="Rounded avatar">
 
                         <div>
@@ -307,7 +307,7 @@
             }
         };
 
-        const isLiked = ref({{.LikeState}})
+        const isLiked = ref("{{.LikeState}}")
         const likeCount =ref(article.value.LikeCount)
         function likeArticle(id) {
             console.log(article.value.ID)
