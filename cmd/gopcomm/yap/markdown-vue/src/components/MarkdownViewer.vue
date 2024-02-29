@@ -23,48 +23,24 @@ export default {
         },
         data() {
             return {
-                content: "Hello World",
-                // content: '!video[video/mp4](https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)', // HTML内容
+                content: "",
                 vtts: [],
-                videos: []
+                videos: [],
+                types: [],
             }
         },
         watch: {
             md(newValue) {
-                // 在这里处理新值的更新逻辑
-                console.log("更新子组件值", newValue)
+                console.log("update markdown", newValue)
                 this.computeOut(newValue)
 
             }
         },
         beforeMount() {
-            // const cherryEngineInstance = new CherryEngine();
-            // var html = this.getVttfile(this.md)
-            // console.log("++++++++", html)
-            // var htmlContent = cherryEngineInstance.makeHtml(html);
-            // console.log("html content", htmlContent)
-            // htmlContent = this.replaceVideo(htmlContent)
-            // htmlContent = this.replaceGoplus(htmlContent)
-            // this.content = htmlContent
-            // console.log("result", htmlContent)
             this.computeOut(this.md)
         },
         mounted() {
-            // console.log("mounted", this.md)
-            // const cherryEngineInstance = new CherryEngine();
-            // // markdown语法以 <code>gop 开头</code>结尾
-            // // video <video>开头 </video>结尾 
-            // // <code>gop println&quot;&quot;</code>
-            // // var md = this.replaceGoplus(this.md)
-            // var html = this.getVttfile(this.md)
-            // console.log("++++++++", html)
-            // var htmlContent = cherryEngineInstance.makeHtml(html);
-            // console.log("html content", htmlContent)
-            // htmlContent = this.replaceVideo(htmlContent)
-            // htmlContent = this.replaceGoplus(htmlContent)
-            // this.content = htmlContent
-            // console.log("result", htmlContent)
-            // const p = new Plyr('video', {captions: {active: true}});
+
 
         },
         methods: {  
@@ -85,21 +61,23 @@ export default {
                 console.log("m", matches)
                 let now_s = this.videos
                 let now_v = this.vtts
+                let now_t = this.types
                 if(matches) {
                     for(let i=0; i<matches.length; i++) {
                         console.log("match", matches[i])
                         // htmlContent = htmlContent.replace(matches[i], "video replace" )
                         htmlContent = htmlContent.replace(matches[i], function(h) { 
-                            var regex1 = /src="(.*?)">video\/mp4/
-                            let src = matches[i].match(regex1)[1]
                             let src_a = now_s[i]
                             // console.log("---------", this.videos)
                             let vtt_a = now_v[i]
-                            console.log("=========duibi", src, src_a)
+                            let type_a = now_t[i]
+                            console.log("=========duibi", vtt_a, src_a)
                             // console.log("src", src)
                             // return `<div><video controls crossorigin playsinline data-poster="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg" id="player"><source src=${src_a} type="video/mp4" size="576"/><track kind="captions" label="English" srclang="en" src=${vtt_a} default/><track kind="captions" label="Français" srclang="fr" src=${vtt_a}/><a href=${src_a} download>Download</a></video></div>`
                             let poster = src_a + "/vframe/jpg/offset/7"
-                            return `<div><video controls crossorigin playsinline preload="meta" poster=${poster} id="player"><source src=${src_a} type="video/mp4" size="576"/><track kind="captions" label="English" srclang="en" src=${vtt_a} default/><track kind="captions" label="Français" srclang="fr" src=${vtt_a}/><a href=${src_a} download>Download</a></video></div>`
+                            // poster = "https://th.bing.com/th/id/OIP.YwQZJ_SoLGm-kVT-e-Xc2AHaEo?rs=1&pid=ImgDetMain"
+                            return `<div><video controls="" crossorigin="" playsinline="" data-poster=${poster}><source src=${src_a} type=${type_a} size="576"/><track kind="captions" label="English" srclang="en" src=${vtt_a} default/><a href=${src_a} download>Download</a></video></div>`
+
                         })
                     }
                     console.log("replace")
@@ -113,33 +91,45 @@ export default {
                 let reg1 = /!video(.*?)\((.*?)\)\((.*?)\)/g
                 let sttt = reg1.exec(mdContent)
                 console.log("sttt", sttt)
-                // let p_str = sttt[0]
-                // console.log(p_str)
                 var replace_vtt = ""
                 if(sttt) {
                     for(let i = 0; i<sttt.length; i++) {
                         let p_str = sttt[i]
+                        const regexType = /\[(.*?)\]/g; 
+                        const matchType = p_str.match(regexType); // 使用 match 函数进行匹配
+                        let fileType = "video/mp4"
+                        if (matchType){
+                            fileType = matchType[0].replace("[","").replace("]","")
+                            if (fileType === "video") {
+                                fileType = "video/mp4"
+                            }
+                        }
                         const regex = /\((.*?)\)/g; // 定义正则表达式，其中 \() 表示左括号，(.*?) 表示非贪婪模式匹配任意字符，\)) 表示右括号
                         const matchResult = p_str.match(regex); // 使用 match 函数进行匹配
-                        let video_src = ""
-                        if (matchResult && matchResult[1]) {
-                            console.log("提取到的结果为：" , matchResult[0],"===", matchResult[1]);
-                            
+                        if (matchResult) {
+                            console.log("matchResult" , matchResult);
+                            matchResult[0] = matchResult[0].replace("(", "").replace(")", "")
                             replace_vtt = mdContent.replace(matchResult[1], "")
 
-                            matchResult[1] = matchResult[1].replace("(", "")
-                            matchResult[0] = matchResult[0].replace("(", "")
-                            matchResult[1] = matchResult[1].replace(")", "")
-                            matchResult[0] = matchResult[0].replace(")", "")
-                            this.vtts.push(matchResult[1])
-                            this.videos.push(matchResult[0])
-                            console.log('temp', replace_vtt)
+                            if (matchResult[1]){
+                                matchResult[1] = matchResult[1].replace("(", "").replace(")", "")
+                                this.vtts.push(matchResult[1])
+                                this.videos.push(matchResult[0])
+                                this.types.push(fileType)
+                                console.log('have vtt', replace_vtt)
+                                
+                            } else{
+                                replace_vtt = mdContent.replace(matchResult[1], "")
+                                this.vtts.push("")
+                                this.videos.push(matchResult[0])
+                                this.types.push(fileType)
+                                console.log('have no vtt', replace_vtt)
+                            }
                         } 
                     }
                     return replace_vtt
                 }
                 
-                // 替换一下
                 console.log(this.videos, this.vtts)
                 return mdContent
             },

@@ -76,6 +76,7 @@ type Article struct {
 	ArticleEntry
 	Content string // in markdown
 	Trans   bool
+	Vtt_id  string
 }
 
 type Community struct {
@@ -198,13 +199,32 @@ func (p *Community) GetTranslateArticle(ctx context.Context, id string) (article
 func (p *Community) Article(ctx context.Context, id string) (article *Article, err error) {
 	article = &Article{}
 	// var htmlId string
-	sqlStr := "select id,title,user_id,cover,tags,abstract,content,ctime,mtime,label,like_count,view_count from article where id=?"
-	err = p.db.QueryRow(sqlStr, id).Scan(&article.ID, &article.Title, &article.UId, &article.Cover, &article.Tags, &article.Abstract, &article.Content, &article.Ctime, &article.Mtime, &article.Label, &article.LikeCount, &article.ViewCount)
+	sqlStr := "select id,title,user_id,cover,tags,abstract,content,ctime,mtime,label,like_count,view_count,vtt_id from article where id=?"
+	err = p.db.QueryRow(sqlStr, id).Scan(&article.ID, &article.Title, &article.UId, &article.Cover, &article.Tags, &article.Abstract, &article.Content, &article.Ctime, &article.Mtime, &article.Label, &article.LikeCount, &article.ViewCount, &article.Vtt_id)
 	if err == sql.ErrNoRows {
 		p.xLog.Warn("not found the article")
 		return article, ErrNotExist
 	} else if err != nil {
 		return article, err
+	}
+	// vtt don't finished when adding
+	if article.Vtt_id != "" {
+		row := p.db.QueryRow(`select output, status from video_task where resource_id = ?`, article.Vtt_id)
+		var fileKey string
+		var status string
+		err = row.Scan(&fileKey, &status)
+		if err != nil {
+			return article, err
+		}
+		// vtt finish
+		if status == "1" {
+			article.Content = strings.Replace(article.Content, "("+p.domain+")", "("+p.domain+fileKey+")", -1)
+			sqlStr := "update article set content=?, vtt_id=? where id=?"
+			_, err := p.db.Exec(sqlStr, article.Content, "", id)
+			if err != nil {
+				return article, err
+			}
+		}
 	}
 	// add author info
 	user, err := p.GetUserById(article.UId)
@@ -288,8 +308,8 @@ func (p *Community) SaveHtml(ctx context.Context, uid, htmlStr, mdData, id strin
 func (p *Community) PutArticle(ctx context.Context, uid string, article *Article) (id string, err error) {
 	// new article
 	if article.ID == "" {
-		sqlStr := "insert into article (title, ctime, mtime, user_id, tags, abstract, cover, content, trans, label) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-		res, err := p.db.Exec(sqlStr, &article.Title, time.Now(), time.Now(), uid, &article.Tags, &article.Abstract, &article.Cover, &article.Content, &article.Trans, &article.Label)
+		sqlStr := "insert into article (title, ctime, mtime, user_id, tags, abstract, cover, content, trans, label, vtt_id) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+		res, err := p.db.Exec(sqlStr, &article.Title, time.Now(), time.Now(), uid, &article.Tags, &article.Abstract, &article.Cover, &article.Content, &article.Trans, &article.Label, &article.Vtt_id)
 		if err != nil {
 			return "", err
 		}
@@ -300,8 +320,8 @@ func (p *Community) PutArticle(ctx context.Context, uid string, article *Article
 		return strconv.FormatInt(idInt, 10), nil
 	}
 	// edit article
-	sqlStr := "update article set title=?, mtime=?, tags=?, abstract=?, cover=?, content=?, trans=?, label=? where id=?"
-	_, err = p.db.Exec(sqlStr, &article.Title, time.Now(), &article.Tags, &article.Abstract, &article.Cover, &article.Content, &article.Trans, &article.Label, &article.ID)
+	sqlStr := "update article set title=?, mtime=?, tags=?, abstract=?, cover=?, content=?, trans=?, label=?, vtt_id=? where id=?"
+	_, err = p.db.Exec(sqlStr, &article.Title, time.Now(), &article.Tags, &article.Abstract, &article.Cover, &article.Content, &article.Trans, &article.Label, &article.Vtt_id, &article.ID)
 	return article.ID, err
 }
 

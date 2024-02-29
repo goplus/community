@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strconv"
 
 	"github.com/goplus/community/internal/core"
@@ -355,6 +356,7 @@ post "/api/article/commit", ctx => {
 		},
 		Content: content,
 		Trans:   trans,
+		Vtt_id:  ctx.param("vtt_id"),
 	}
 
 	// if trans == true translate the article
@@ -653,7 +655,7 @@ get "/api/media/:id/url", ctx => {
 get "/api/video/:id", ctx => {
 	id := ctx.param("id")
 	fileKey, err := community.GetMediaUrl(todo, id)
-	m := make(map[string]string, 2)
+	m := make(map[string]string, 3)
 	format, err := community.GetMediaType(todo, id)
 	if err != nil {
 		ctx.json {
@@ -661,8 +663,9 @@ get "/api/video/:id", ctx => {
 			"err":  err.Error(),
 		}
 	}
-	if format == "video/mp4" {
-		subtitle, err := community.GetVideoSubtitle(todo, id)
+	match, _ := regexp.MatchString("^video", format)
+	if match {
+		subtitle, status, err := community.GetVideoSubtitle(todo, id)
 		if err != nil {
 			if err != nil {
 				ctx.json {
@@ -673,6 +676,7 @@ get "/api/video/:id", ctx => {
 			return
 		}
 		m["subtitle"] = domain + subtitle
+		m["status"] = status
 	}
 	htmlUrl := fmt.Sprintf("%s%s", domain, fileKey)
 	if err != nil {
