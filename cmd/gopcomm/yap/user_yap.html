@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>User Profile</title>
+    <link rel="icon" href="static/img/favicon.svg">
 
     <!-- UI -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
@@ -188,7 +189,7 @@
                                 <template #prefix>
                                     <div style="height: 20vh; width: 32vh;">
                                         <!-- Image -->
-                                        <img class="w-full object-cover rounded" :src="item.Cover || '/static/img/default-cover.jpg'" alt="">
+                                        <img class="w-full object-cover rounded" :src="item.Cover || '../static/img/default-cover.jpg'" alt="">
 
                                         <!-- Data -->
                                         <div class="flex justify-center items-center mt-2" style="height: 2vh;">
