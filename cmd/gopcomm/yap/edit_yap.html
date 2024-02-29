@@ -413,14 +413,16 @@
                         if (!isAdd.value) {
                             formData.append("id", article.ID)
                         }
-
+                        let content = window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown()
+                        let vtt_id = window.GoplusMarkdown.MarkdownEditor.methods.getVttId()
                         // organize the formData
                         formData.append("title", articleForm.value.title);
                         formData.append("tags", tags.value);
                         formData.append("abstract", articleForm.value.abstract);
                         formData.append("label", articleForm.value.label);
                         formData.append("cover", coverUrl);
-                        formData.append("content", window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown())
+                        formData.append("content", content)
+                        formData.append("vtt_id", vtt_id)
                         formData.append("trans", articleForm.value.trans)
                         // upload the formData to backend
                         uploadArticle(formData);
