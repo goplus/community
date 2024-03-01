@@ -144,7 +144,7 @@
                         <template #label>
                             <p class="font-semibold text-gray-900 truncate">Abstract</p>
                         </template>
-                        <n-input v-model:value="articleForm.abstract" type="textarea" show-count :min-length="15"
+                        <n-input v-model:value="articleForm.abstract" type="textarea" show-count :min-length="15" :max-length="100"
                             placeholder="write an abstract for your article" 
                             :theme-overrides="inputTheme"
                             :rule="{

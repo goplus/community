@@ -20,7 +20,7 @@ import 'plyr/dist/plyr.css'
 // import {  UploadOutlined, SendOutlined } from '@ant-design/icons-vue';
 
 
-axios.defaults.baseURL = 'http://localhost:8080/';
+// axios.defaults.baseURL = 'http://localhost:8080/';
 
 var cherrInstance = null
 
