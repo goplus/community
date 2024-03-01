@@ -3,10 +3,13 @@ package core
 import (
 	"context"
 	"database/sql"
+	"encoding/base64"
 	"encoding/json"
+	"gocloud.dev/blob"
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -16,6 +19,26 @@ import (
 	_ "github.com/qiniu/go-cdk-driver/kodoblob"
 	"github.com/qiniu/x/xlog"
 )
+
+var transcodeType = map[string]bool{
+	".wmv":  true,
+	".asx":  true,
+	".asf":  true,
+	".rmvb": true,
+	".rm":   true,
+	".3gp":  true,
+	".m4v":  true,
+	".avi":  true,
+	".mov":  true,
+	".dat":  true,
+	".mkv":  true,
+	".vob":  true,
+	".flv":  true,
+}
+
+func isTranscoding(fileType string) bool {
+	return transcodeType[fileType]
+}
 
 // todo
 type VideoSubtitle struct {
@@ -119,11 +142,17 @@ func (c *Community) GetVideoSubtitle(ctx context.Context, mediaId string) (strin
 	return fileKey, status, nil
 }
 
-func (c *Community) SaveMedia(ctx context.Context, userId string, data []byte) (int64, error) {
-
+func (c *Community) SaveMedia(ctx context.Context, userId string, data []byte, fileExt string) (int64, error) {
+	opts := &blob.WriterOptions{}
 	// upload cloud oss
 	fileKey := uuid.New().String()
-	err := c.uploadMedia(fileKey, data)
+	c.xLog.Info(fileKey)
+	if isTranscoding(fileExt) {
+		encoding := base64.URLEncoding.EncodeToString([]byte(c.bucketName + ":" + fileKey))
+		opts.Metadata = make(map[string]string)
+		opts.Metadata["persistent-ops"] = "avthumb/mp4/vcodec/libx264|saveas/" + encoding
+	}
+	err := c.uploadMedia(fileKey, data, opts)
 	if err != nil {
 		return 0, err
 	}
@@ -217,9 +246,9 @@ func GetVideoDuration(url string) (duration string, err error) {
 	return duration, nil
 }
 
-func (c *Community) uploadMedia(fileKey string, data []byte) error {
+func (c *Community) uploadMedia(fileKey string, data []byte, opts *blob.WriterOptions) error {
 
-	w, err := c.bucket.NewWriter(context.Background(), fileKey, nil)
+	w, err := c.bucket.NewWriter(context.Background(), fileKey, opts)
 	if err != nil {
 		return err
 	}
@@ -286,8 +315,8 @@ func (c *Community) UploadFile(ctx *yap.Context) {
 	if err != nil {
 		ctx.JSON(500, err.Error())
 	}
-
-	id, err := c.SaveMedia(context.Background(), uid, bytes)
+	ext := filepath.Ext(filename)
+	id, err := c.SaveMedia(context.Background(), uid, bytes, ext)
 	if err != nil {
 		xLog.Error("save file", err.Error())
 		ctx.JSON(500, err.Error())

@@ -2,6 +2,7 @@ package core_test
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -21,12 +22,20 @@ func TestGetMediaUrl(t *testing.T) {
 }
 
 func TestSaveMedia(t *testing.T) {
-	data, err := readFileByte("xxx")
+
+	conf := &core.Config{}
+	todo := context.TODO()
+	c, err := core.New(todo, conf)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	data, err := readFileByte("")
 	if err != nil {
 		log.Fatalln(err.Error())
 		return
 	}
-	id, err := c.SaveMedia(context.Background(), "1", data)
+	id, err := c.SaveMedia(context.Background(), "", data, ".flv")
 	if err != nil {
 		log.Fatalln(err.Error())
 		return

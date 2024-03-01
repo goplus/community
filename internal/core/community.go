@@ -86,6 +86,7 @@ type Community struct {
 	casdoorConfig *CasdoorConfig
 	xLog          *xlog.Logger
 	translation   *Translation
+	bucketName    string
 }
 type CasdoorConfig struct {
 	endPoint         string
@@ -146,8 +147,28 @@ func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 		),
 		VideoTaskCache: NewVideoTaskCache(),
 	}
+	bucketName, err := getBucketName(bus, "@", "?")
+	if err != nil {
+		xLog.Error("get bucket name error:", err.Error())
+		return
+	}
+	return &Community{bucket, db, domain, casdoorConf, xLog, translationEngine, bucketName}, nil
+}
 
-	return &Community{bucket, db, domain, casdoorConf, xLog, translationEngine}, nil
+func getBucketName(url, startSymbol, endSymbol string) (string, error) {
+	startIndex := strings.Index(url, startSymbol)
+	if startIndex == -1 {
+		return "", fmt.Errorf("start symbol '%s' not found", startSymbol)
+	}
+
+	startIndex += len(startSymbol)
+
+	endIndex := strings.Index(url[startIndex:], endSymbol)
+	if endIndex == -1 {
+		return "", fmt.Errorf("end symbol '%s' not found", endSymbol)
+	}
+
+	return url[startIndex : startIndex+endIndex], nil
 }
 
 func (p *Community) TranslateMarkdownText(ctx context.Context, src string, from string, to language.Tag) (string, error) {
@@ -279,7 +300,7 @@ func (p *Community) CanEditable(ctx context.Context, uid, id string) (editable b
 
 // SaveHtml upload origin html(string) to media for html id and save id to database
 func (p *Community) SaveHtml(ctx context.Context, uid, htmlStr, mdData, id string) (articleId string, err error) {
-	htmlId, err := p.SaveMedia(ctx, uid, []byte(htmlStr))
+	htmlId, err := p.SaveMedia(ctx, uid, []byte(htmlStr), "")
 	if err != nil {
 		return "", err
 	}

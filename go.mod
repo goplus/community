@@ -21,7 +21,12 @@ require (
 	golang.org/x/oauth2 v0.17.0
 )
 
+
 require github.com/liuscraft/gop-casdoor-account-sdk v1.1.0
+
+replace (
+	github.com/qiniu/go-cdk-driver v0.1.0 => github.com/xhyqaq/go-cdk-driver v1.0.0
+)
 
 require (
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
