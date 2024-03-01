@@ -608,6 +608,7 @@ delete "/api/media/:id", ctx => {
 get "/api/translation/:id", ctx => {
 	id := ctx.param("id")
 	article, err := community.GetTranslateArticle(todo, id)
+	xLog.Info(err)
 	if err != nil {
 		ctx.json {
 			"code": 0,
