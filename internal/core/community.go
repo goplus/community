@@ -117,6 +117,10 @@ type Translation struct {
 	VideoTaskCache *VideoTaskCache
 }
 
+func NewEmpty() *Community {
+	return &Community{}
+}
+
 func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 	// Init log
 	xLog := xlog.New("")
