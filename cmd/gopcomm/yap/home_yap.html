@@ -129,7 +129,7 @@
                                     <button
                                         class="mt-2 block rounded-lg bg-transparent py-1.5 px-4 font-medium text-blue-600 transition-colors hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50">
                                         <a href="/">
-                                            Return to home
+                                            Go to add article
                                         </a>
                                     </button>
                                 </div>
@@ -170,7 +170,7 @@
                                         <div class="flex items-center absolute bottom-4">
                                             <a class="flex items-center" :href="'/user/' + item.User.Id">
                                                 <!-- Avatar -->
-                                                <n-avatar class="mr-2" round :size="25" :src="item.User.Avatar"></n-avatar>
+                                                <n-avatar class="mr-2" round :size="25" :src="item.User.Avatar || './static/img/gop-avatar.png'"></n-avatar>
 
                                                 <!-- Nick Name -->
                                                 <p class="text-sm font-medium mr-1 text-black">${ item.User.Name }</p>
@@ -186,7 +186,6 @@
                                     <!-- right part -->
                                     <div style="width: 20%;">
                                         <!-- Image -->
-                                        <!-- TODO: 封面图 -->
                                         <img class="w-full object-cover rounded-lg" style="height: 15vh;" :src="item.Cover || './static/img/default-cover.jpg'" alt="">
 
                                         <!-- Data -->
@@ -194,14 +193,12 @@
                                             <!-- Views -->
                                             <div class="flex justify-center items-center" style="width: 40%;">
                                                 <i class="ph-duotone ph-eye" style="color: #6091d2;"></i>
-                                                <!-- TODO: 浏览量 -->
                                                 <span class="ml-1 text-sm"> ${ item.ViewCount }</span>
                                             </div>
 
                                             <!-- Likes -->
                                             <div class="flex justify-center items-center" style="width: 40%;">
                                                 <i class="ph-duotone ph-thumbs-up" style="color: #6091d2;"></i>
-                                                <!-- TODO: 点赞数 -->
                                                 <span class="ml-1 text-sm"> ${ item.LikeCount }</span>
                                             </div>
                                         </div>
@@ -248,7 +245,7 @@
                                     <button
                                         class="mt-2 block rounded-lg bg-transparent py-1.5 px-4 font-medium text-blue-600 transition-colors hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50">
                                         <a href="/">
-                                            Return to home
+                                            Go to add article
                                         </a>
                                     </button>
                                 </div>
@@ -289,7 +286,7 @@
                                         <div class="flex items-center absolute bottom-4">
                                             <a class="flex items-center" :href="'/user/' + item.User.Id">
                                                 <!-- Avatar -->
-                                                <n-avatar class="mr-2" round :size="25" :src="item.User.Avatar"></n-avatar>
+                                                <n-avatar class="mr-2" round :size="25" :src="item.User.Avatar || './static/img/gop-avatar.png'"></n-avatar>
 
                                                 <!-- Nick Name -->
                                                 <p class="text-sm font-medium mr-1 text-black">${ item.User.Name }</p>
@@ -305,7 +302,6 @@
                                     <!-- right part -->
                                     <div style="width: 20%;">
                                         <!-- Image -->
-                                        <!-- TODO: 封面图 -->
                                         <img class="w-full object-cover rounded-lg" style="height: 15vh;" :src="item.Cover || './static/img/default-cover.jpg'" alt="">
 
                                         <!-- Data -->
@@ -313,15 +309,13 @@
                                             <!-- Views -->
                                             <div class="flex justify-center items-center" style="width: 40%;">
                                                 <i class="ph-duotone ph-eye" style="color: #6091d2;"></i>
-                                                <!-- TODO: 浏览量 -->
-                                                <span class="ml-1 text-sm">368</span>
+                                                <span class="ml-1 text-sm">${ item.ViewCount }</span>
                                             </div>
 
                                             <!-- Likes -->
                                             <div class="flex justify-center items-center" style="width: 40%;">
                                                 <i class="ph-duotone ph-thumbs-up" style="color: #6091d2;"></i>
-                                                <!-- TODO: 点赞数 -->
-                                                <span class="ml-1 text-sm">12</span>
+                                                <span class="ml-1 text-sm">${ item.LikeCount }</span>
                                             </div>
                                         </div>
                                     </div>
@@ -368,7 +362,7 @@
                                     <button
                                         class="mt-2 block rounded-lg bg-transparent py-1.5 px-4 font-medium text-blue-600 transition-colors hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50">
                                         <a href="/">
-                                            Return to home
+                                            Go to add article
                                         </a>
                                     </button>
                                 </div>
@@ -409,7 +403,7 @@
                                         <div class="flex items-center absolute bottom-4">
                                             <a class="flex items-center" :href="'/user/' + item.User.Id">
                                                 <!-- Avatar -->
-                                                <n-avatar class="mr-2" round :size="25" :src="item.User.Avatar"></n-avatar>
+                                                <n-avatar class="mr-2" round :size="25" :src="item.User.Avatar || './static/img/gop-avatar.png'"></n-avatar>
 
                                                 <!-- Nick Name -->
                                                 <p class="text-sm font-medium mr-1 text-black">${ item.User.Name }</p>
@@ -425,7 +419,6 @@
                                     <!-- right part -->
                                     <div style="width: 20%;">
                                         <!-- Image -->
-                                        <!-- TODO: 封面图 -->
                                         <img class="w-full object-cover rounded-lg" style="height: 15vh;" :src="item.Cover || './static/img/default-cover.jpg'" alt="">                                        
 
                                         <!-- Data -->
@@ -433,15 +426,13 @@
                                             <!-- Views -->
                                             <div class="flex justify-center items-center" style="width: 40%;">
                                                 <i class="ph-duotone ph-eye" style="color: #6091d2;"></i>
-                                                <!-- TODO: 浏览量 -->
-                                                <span class="ml-1 text-sm">368</span>
+                                                <span class="ml-1 text-sm">${ item.ViewCount }</span>
                                             </div>
 
                                             <!-- Likes -->
                                             <div class="flex justify-center items-center" style="width: 40%;">
                                                 <i class="ph-duotone ph-thumbs-up" style="color: #6091d2;"></i>
-                                                <!-- TODO: 点赞数 -->
-                                                <span class="ml-1 text-sm">12</span>
+                                                <span class="ml-1 text-sm">${ item.LikeCount }</span>
                                             </div>
                                         </div>
                                     </div>
@@ -600,9 +591,9 @@
             };
 
             function handleSearch() {
-                if (searchValue.value !== "") {
+                // if (searchValue.value !== "") {
                     window.location.href = `/search?value=${searchValue.value}`
-                }
+                // }
             }
 
             /*======= register vue component =======*/

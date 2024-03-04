@@ -40,7 +40,7 @@ func (p *Community) GetUser(token string) (user *User, err error) {
 		return &User{}, ErrNotExist
 	}
 	user = &User{
-		Name:   claim.Name,
+		Name:   claim.DisplayName,
 		Avatar: claim.Avatar,
 		Id:     claim.Id,
 	}
@@ -79,11 +79,11 @@ func (p *Community) GetUserById(uid string) (user *User, err error) {
 		user = &User{
 			Name:   "unknown",
 			Avatar: "",
-			Id:     "",
+			Id:     uid,
 		}
 	} else {
 		user = &User{
-			Name:   claim.Name,
+			Name:   claim.DisplayName,
 			Avatar: claim.Avatar,
 			Id:     claim.Id,
 		}
@@ -95,6 +95,11 @@ func (p *Community) GetUserById(uid string) (user *User, err error) {
 // UpdateUserById update user by uid
 func (p *Community) UpdateUserById(uid string, user *UserInfo) (res bool, err error) {
 	res, err = casdoorsdk.UpdateUserById(uid, (*casdoorsdk.User)(user))
+	return
+}
+
+func (p *Community) UpdateUser(user *UserInfo) (res bool, err error) {
+	res, err = casdoorsdk.UpdateUser((*casdoorsdk.User)(user))
 	return
 }
 
