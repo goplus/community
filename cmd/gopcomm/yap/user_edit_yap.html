@@ -28,7 +28,7 @@
                         <span></span>
                         <i class="ph-duotone ph-user" style="font-size: 18px; margin-right: 5px;"></i>
                     </div>
-                    ${ userProfile.name }
+                    ${ userProfile.displayName }
                 </div>
             </n-breadcrumb-item>
             <n-breadcrumb-item>
@@ -68,7 +68,6 @@
 
                 <div class="bg-white rounded-lg w-full flex" style="padding: 20px 30px;">
                     <n-form :model="userProfile" inline ref="formRef" :rules="rules">
-                        <!-- TODO: Avatar -->
                         <n-form-item path="avatar" show-require-mark require-mark-placement="right-hanging"
                             style="width: 10%;">
                             <template #label>
@@ -83,12 +82,12 @@
 
                         <n-grid :cols="2" :x-gap="20" style="width: 60%; margin-left: 40px;">
                             <!-- Name -->
-                            <n-form-item-gi :span="2" path="name" show-require-mark
+                            <n-form-item-gi :span="2" path="displayName" show-require-mark
                                 require-mark-placement="right-hanging">
                                 <template #label>
                                     <p class="font-semibold text-gray-900 truncate">Nick Name</p>
                                 </template>
-                                <n-input v-model:value="userProfile.name" placeholder="Input Nick Name" 
+                                <n-input v-model:value="userProfile.displayName" placeholder="Input Nick Name" 
                                 :theme-overrides="inputTheme"
                                 :rule="{
                                         required: true,
@@ -322,7 +321,7 @@
                         body: formData
                     };
 
-                    fetch("/api/update/user", requestOptions)
+                    fetch("/api/user", requestOptions)
                         .then(res => {
                             return res.json();
                         })

@@ -50,7 +50,7 @@
                             <span></span>
                             <i class="ph-duotone ph-user" style="font-size: 18px; margin-right: 5px;"></i>
                         </div>
-                        <span class="font-semibold">${ CurrentUser.name }</span>
+                        <span class="font-semibold">${ CurrentUser.displayName }</span>
                     </div>
                 </n-breadcrumb-item>
             </n-breadcrumb>
@@ -68,8 +68,7 @@
                     <n-gi :span="5" class="flex flex-col justify-center">
                         <!-- Name & Description -->
                         <span class="text-3xl font-semibold mb-2">
-                            ${ CurrentUser.name }
-                            <!-- TODO: <span class="text-xs text-neutral-700 font-normal ml-3">Description</span> -->
+                            ${ CurrentUser.displayName }
                         </span>
 
                         <!-- Contact Info  -->
@@ -189,21 +188,19 @@
                                 <template #prefix>
                                     <div style="height: 20vh; width: 32vh;">
                                         <!-- Image -->
-                                        <img class="w-full object-cover rounded" :src="item.Cover || '../static/img/default-cover.jpg'" alt="">
+                                        <img class="w-full object-cover rounded" :src="item.Cover || '/static/img/default-cover.jpg'" alt="">
 
                                         <!-- Data -->
                                         <div class="flex justify-center items-center mt-2" style="height: 2vh;">
                                             <!-- Views -->
                                             <div class="flex justify-center items-center" style="width: 40%;">
                                                 <i class="ph-duotone ph-eye" style="color: #3182ce;"></i>
-                                                <!-- TODO: 浏览量 -->
                                                 <span class="ml-1 text-sm">${ item.ViewCount }</span>
                                             </div>
 
                                             <!-- Likes -->
                                             <div class="flex justify-center items-center" style="width: 40%;">
                                                 <i class="ph-duotone ph-thumbs-up" style="color: #3182ce;"></i>
-                                                <!-- TODO: 点赞数 -->
                                                 <span class="ml-1 text-sm">${ item.LikeCount }</span>
                                             </div>
                                         </div>
@@ -346,10 +343,7 @@
                                     <div style="width: 70%;" class="flex flex-col items-start">
                                         <div class="absolute top-4">
                                             <!-- Video Filename -->
-                                            <!-- TODO: 视频文件名${ item. } -->
-                                            <p class="text-xl font-semibold mb-3">Video Name</p>
-
-                                            <!-- TODO: 视频时长 -->
+                                            <!-- <p class="text-xl font-semibold mb-3">Video Name</p> -->
 
                                             <!-- Update Time -->
                                             <span class="mb-2" style="color: #A0AEC0;">
@@ -525,6 +519,7 @@
 
             // User
             let CurrentUser = ref(JSON.parse("{{.CurrentUser}}"))
+            console.log("CurrentUser",CurrentUser)
             const UserId = ref("{{.UserId}}")
 
             // Article List
@@ -627,7 +622,7 @@
                     body: formData
                 };
 
-                fetch("/caption/task", requestOptions)
+                fetch("/api/caption/task", requestOptions)
                     .then(res => {
                         return res.json();
                     })
@@ -780,6 +775,11 @@
     .n-card>.n-card__content:first-child,
     .n-card>.n-card__footer:first-child {
         padding: 0;
+    }
+
+    img {
+    max-height: 85%;
+        /* max-width: 100%; */
     }
 
     /* video::-webkit-media-controls-timeline {

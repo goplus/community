@@ -124,7 +124,7 @@
                     <!-- Avatar & Nick Name -->
                     <div class="flex flex-row items-center" style="margin: 20px 0;">
                         <!-- Avatar -->
-                        <img class="w-12 h-12 rounded-full mr-2" :src="article.User.Avatar || '/static/img/default-cover.jpg'"
+                        <img class="w-12 h-12 rounded-full mr-2" :src="article.User.Avatar || '/static/img/gop-avatar.png'"
                             alt="Rounded avatar">
 
                         <div>
@@ -143,8 +143,7 @@
                                 <!-- Views -->
                                 <div class="inline-flex items-center text-sm" style="margin-left: 30px;">
                                     <i class="ph-duotone ph-eye" style="font-size: 18px; color: #a0aec0;"></i>
-                                    <!-- TODO: @Bai <p>${ article.Views }</p> -->
-                                    <p class="ml-1 text-sm" style="color: #a0aec0;">123</p>
+                                    <p class="ml-1 text-sm" style="color: #a0aec0;">${ article.ViewCount }</p>
                                 </div>
                             </div>
                         </div>
@@ -152,6 +151,7 @@
 
                     <!-- Button Group -->
                     <div class="flex items-center justify-between">
+                        {{if .User}}
                         <!-- Like Button -->
                         <div class="flex items-center">
                             <!-- Like Button -->
@@ -179,9 +179,14 @@
                             </n-tooltip>
 
                             <!-- Like numbers -->
-                            <n-badge :value="likeCount" color="transparent" style="margin-left: -5px; --n-font-size: 15px;"></n-badge>
+                            <n-badge :value="likeCount" color="transparent" style="margin-left: -5px; --n-font-size: 15px;" show-zero></n-badge>
                         </div>
-
+                        {{ else }}
+                        <div class="flex items-center justify-between">
+                            <i class="ph-bold ph-heart" style="font-size: 20px; color: #ef4444;"></i>
+                            <p class="ml-1 text-sm" style="color: #a0aec0;">${ likeCount }</p>
+                        </div>
+                        {{ end }}
                         <!-- Quick Sharing -->
                         <div class="flex items-center">
                             <span class="mr-2" style="color: #a0aec0;">Share to</span>
@@ -224,7 +229,7 @@
                                 </template>
                                 <div class="flex flex-col items-center">
                                     <span class="mb-1">WeChat</span>
-                                    <n-qr-code :value="currentHref" class="mb-1"></n-qr-code>
+                                    <n-qr-code :value="currentHref" class="mb-1" style="padding: 0;"></n-qr-code>
                                     <span style="font-size: x-small;">scan the QR Code</span>
                                 </div>
                             </n-tooltip>
@@ -307,8 +312,8 @@
             }
         };
 
-        const isLiked = ref("{{.LikeState}}")
-        const likeCount =ref(article.value.LikeCount)
+        const isLiked = ref("{{.LikeState}}" === "true" ? true : false)
+        const likeCount =ref(article.value.LikeCount || 0)
         function likeArticle(id) {
             console.log(article.value.ID)
             const options = {
@@ -317,8 +322,11 @@
             fetch("/api/article/like?articleId="+article.value.ID, options)
                 .then(res=> res.json())
                 .then(todos => {
-                    likeCount.value = likeCount.value + (todos.data ? 1 : -1)
-                    isLiked.value = todos.data                    
+                    if(todos.code === 200){
+                        likeCount.value = likeCount.value + (todos.data ? 1 : -1)
+                        isLiked.value = todos.data
+                    }
+                                        
                 });
         }
     
@@ -354,18 +362,6 @@
             }
         }
 
-        function articleLike(){
-            console.log(article.value.ID)
-            const options = {
-                method: 'POST',
-            }
-            fetch("/api/article/like?articleId="+article.value.ID, options)
-                .then(res=> res.json())
-                .then(todos => {
-                    isLiked.value = todos.data
-                });
-        }
-
         function shareToTwitter() {
             // var url = encodeURIComponent('http://8.130.26.238/animation/fb.html');
             // var text = encodeURIComponent('Linz');
@@ -386,7 +382,6 @@
                     isOrigin,
                     transOptions,
                     isLiked,
-                    articleLike,
                     likeCount,
                 }
             },
@@ -419,6 +414,11 @@
         color: #3182ce;
     }
 
+    h1,h2,h3,h4,h5,h6 {
+        font-size: revert !important;
+        font-weight: revert !important;
+    }
+
     .n-breadcrumb-item__link {
         display: flex;
         flex-direction: row;
@@ -449,5 +449,9 @@
         border: 0;
         padding-top: 1.5px;
         background: linear-gradient(to right, transparent, #e0e0e6, transparent);
+    }
+
+    .n-qr-code {
+        background: #262626 !important;
     }
 </style>

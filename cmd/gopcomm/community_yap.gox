@@ -423,19 +423,40 @@ get "/user/:id", ctx => {
 }
 
 get "/user/edit", ctx => {
+	var user *core.User
+	userId := ""
 	token, err := core.GetToken(ctx)
+	if err == nil {
+		user, err = community.GetUser(token.Value)
+		if err != nil {
+			xLog.Error("get user error:", err)
+		} else {
+			userId = user.Id
+		}
+	}
 	if err != nil {
+		xLog.Error("get token error:", err)
 		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
+	}
+	uid, err := community.ParseJwtToken(token.Value)
+	if err != nil {
+		xLog.Error("get uid error:", err)
+		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
+	}
+	userClaim, err := community.GetUserClaim(uid)
+	if err != nil {
+		xLog.Error("get current user error:", err)
 	}
 	gac, err := gopaccountsdk.GetClient(token.Value)
 	if err != nil {
+		xLog.Info("gac", err)
 		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
 	}
-	fullUser, err := gac.GetUser()
-	if err != nil {
-		xLog.Error("get user error:", err)
-		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
-	}
+	// fullUser, err := gac.GetUser()
+	// if err != nil {
+	// 	xLog.Error("get user error:", err)
+	// 	http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
+	// }
 	appInfo, err := community.GetApplicationInfo()
 	if err != nil {
 		xLog.Error("get application info error:", err)
@@ -451,14 +472,14 @@ get "/user/edit", ctx => {
 		xLog.Error("json marshal error:", err)
 		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
 	}
-	currentUser, err := json.Marshal(fullUser)
+	currentUser, err := json.Marshal(userClaim)
 	if err != nil {
 		xLog.Error("json marshal error:", err)
 		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
 	}
-	user := gac.GetUserSimple()
+	// user := gac.GetUserSimple()
 	ctx.yap "user_edit", {
-		"UserId":      user.Id,
+		"UserId":      userId,
 		"User":        user,
 		"CurrentUser": string(currentUser),
 		"Application": string(appInfoStr),
@@ -469,7 +490,7 @@ get "/user/edit", ctx => {
 // User
 //
 // User apis
-put "/api/update/user", ctx => {
+put "/api/user", ctx => {
 	token, err := core.GetToken(ctx)
 	uid, err := community.ParseJwtToken(token.Value)
 	user := &core.UserInfo{
@@ -481,9 +502,10 @@ put "/api/update/user", ctx => {
 		Email:       ctx.param("email"),
 		Avatar:      ctx.param("avatar"),
 		Owner:       ctx.param("owner"),
-		DisplayName: ctx.param("name"),
+		DisplayName: ctx.param("displayName"),
 	}
-	_, err = community.UpdateUserById(fmt.Sprintf("%s/%s", user.Owner, user.Name), user)
+	// _, err = community.UpdateUserById(fmt.Sprintf("%s/%s", user.Owner, user.Name), user)
+	_, err = community.UpdateUser(user)
 	if err != nil {
 		xLog.Info(err)
 		ctx.json {
