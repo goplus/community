@@ -149,9 +149,12 @@
 
 
             function handleSearch(){
-                if( searchValue.value !== ""){
-                    window.location.href = `/search?value=${searchValue.value}`
-                }
+                const protocolAndHost = window.location.protocol + "//" + window.location.host;
+                const url = new URL(`${protocolAndHost}/search`)
+                url.searchParams.set('value', encodeURIComponent(searchValue.value))
+
+                window.location.href = url
+                // window.location.href = `/search?value=${searchValue.value}`
             }
 
             /*======= register vue component =======*/

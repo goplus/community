@@ -184,7 +184,8 @@
                         {{ else }}
                         <div class="flex items-center justify-between">
                             <i class="ph-bold ph-heart" style="font-size: 20px; color: #ef4444;"></i>
-                            <p class="ml-1 text-sm" style="color: #a0aec0;">${ likeCount }</p>
+                            <n-badge :value="likeCount" color="transparent" style="margin-left: -2px; --n-font-size: 15px;" show-zero></n-badge>
+                            <!-- <p class="ml-1 text-sm" style="color: #a0aec0;">${ likeCount }</p> -->
                         </div>
                         {{ end }}
                         <!-- Quick Sharing -->
@@ -259,14 +260,19 @@
         </n-back-top>
     </div>
 
+    <script>
+        const parseArticle = JSON.parse("{{.Article}}");
+        const parseLikeState = "{{.LikeState}}"
+        // const parseUser = "{{.User}}"
+    </script>
+
     <script type="module">
         const { reactive, toRefs, ref, h } = Vue;
 
         /*======= article related =======*/
+        const article = ref(parseArticle);
+        const originArticle = parseArticle;
 
-        const article = ref(JSON.parse("{{.Article}}"));
-        
-        const originArticle = JSON.parse("{{.Article}}");
         let transArticle = {}
         const transOptions = [
             {
@@ -312,7 +318,7 @@
             }
         };
 
-        const isLiked = ref("{{.LikeState}}" === "true" ? true : false)
+        const isLiked = ref(parseLikeState === "true" ? true : false)
         const likeCount =ref(article.value.LikeCount || 0)
         function likeArticle(id) {
             console.log(article.value.ID)

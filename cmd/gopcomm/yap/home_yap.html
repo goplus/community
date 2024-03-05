@@ -567,11 +567,15 @@
                 if (next.value[tabName] !== "eof") {
                     isBottom.value[tabName] = false;
                     window.setTimeout(() => {
-                        let url = "/api/articles?from=" + next.value[tabName] + "&label=" + tabName
-                        if ("{{.Value}}") {
-                            url = url + "&value=" + "{{.Value}}"
+                        const protocolAndHost = window.location.protocol + "//" + window.location.host;
+                        const url = new URL(`${protocolAndHost}/api/articles`)
+                        url.searchParams.set('from', next.value[tabName])
+                        url.searchParams.set('label', tabName)
+                        const searchValue = "{{.Value}}"
+                        if (searchValue) {
+                            url.searchParams.set('value', encodeURIComponent(searchValue))
                         }
-                        console.log("url", url)
+                        // console.log("url", url)
                         // load a new page of articles, and append it to the articleList
                         fetch(url)
                             .then(res => {
@@ -596,9 +600,11 @@
             };
 
             function handleSearch() {
-                // if (searchValue.value !== "") {
-                    window.location.href = `/search?value=${searchValue.value}`
-                // }
+                const protocolAndHost = window.location.protocol + "//" + window.location.host;
+                const url = new URL(`${protocolAndHost}/search`)
+                url.searchParams.set('value', encodeURIComponent(searchValue.value))
+
+                window.location.href = url
             }
 
             /*======= register vue component =======*/
