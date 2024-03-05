@@ -90,7 +90,7 @@ export default {
                 // let reg1 = /^!video.*\)/g
                 let reg1 = /!video(.*?)\((.*?)\)\((.*?)\)/g
                 let sttt = reg1.exec(mdContent)
-                console.log("sttt", sttt)
+                // console.log("sttt", sttt)
                 var replace_vtt = ""
                 if(sttt) {
                     for(let i = 0; i<sttt.length; i++) {

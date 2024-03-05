@@ -378,8 +378,9 @@
         // edit
         const isAdd = window.location.href.indexOf("edit") !== -1 ? ref(false) : ref(true)
         const article = isAdd.value ? {} : JSON.parse("{{.Article}}")
+        console.log("article", article)
         // article.Cover = "https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg"
-        const fileList = isAdd.value ? ref([]) : ref([{
+        const fileList = (isAdd.value || article.Cover === '') ? ref([]) : ref([{
             id: "cover",
             status: "finished",
             url: article.Cover,
@@ -645,7 +646,7 @@
             mounted() {
                 if (!isAdd.value) {
                     articleForm.value.title = article.Title
-                    articleForm.value.tags = article.Tags.split(";")
+                    articleForm.value.tags = article.Tags === "" ? [] : article.Tags.split(";")
                     articleForm.value.abstract = article.Abstract
                     articleForm.value.label = article.Label
                     articleForm.value.trans = article.Trans

@@ -20,6 +20,8 @@
     <!-- Font -->
     <link href="https://fonts.cdnfonts.com/css/inter" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.proxy.ustclug.org">
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.6.8/plyr.css">
+    <script src="https://cdn.plyr.io/3.6.8/plyr.js"></script>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.proxy.ustclug.org/css2?family=Noto+Sans+SC&display=swap" rel="stylesheet">
     <style type="text/css" media="screen, print">
@@ -209,7 +211,7 @@
 
                                 <!-- content -->
                                 <div style="width: 70%;" class="flex flex-col items-start">
-                                    <div class="absolute top-4">
+                                    <div class="absolute top-4" style="width: 65%;">
                                         <!-- Title -->
                                         <div class="text-2xl font-semibold text-gray-900 title-font mb-2">
                                             <a :href="'/article/' + item.ID">
@@ -244,7 +246,7 @@
                                 <!-- suffix -->
                                 <template #suffix>
                                     {{if .User}}
-                                    <div class="flex">
+                                    <div class="flex" v-if="UserId === CurrentUser.id">
                                         <!-- Edit Button -->
                                         <n-button 
                                             tag="a"
@@ -352,7 +354,7 @@
                                         </div>
 
                                         <!-- View Button -->
-                                        <n-button @click="viewVideoId = item.Id" text class="absolute bottom-4"
+                                        <n-button @click="showModal(item.Id)" text class="absolute bottom-4"
                                             style="width: 10%; --n-text-color-hover: #3182ce; --n-text-color-focus: #3182ce;">
                                             <i class="ph-bold ph-video" style="font-size: 20px; margin-right: 5px;"></i>
                                             View video source
@@ -371,7 +373,7 @@
                                                         <p class="ml-2">📺Video Source</p>
                                                     </div>
                                                 </template>
-                                                <video controls preload="meta" style="height: 100%; width: 100%;">
+                                                <video controls preload="meta" style="height: 100%; width: 100%;" id="videoPlayer">
                                                     <source :src="item.FileKey" :type="item.Format" />
                                                 </video>
                                             </n-card>
@@ -383,7 +385,7 @@
                                         {{if .User}}
                                         <div class="flex">
                                             <!-- Regenerate Button -->
-                                                <n-button @click="retryCaptionGenerate({{.User.Id}}, item.Id)"
+                                                <n-button @click="retryCaptionGenerate({{.UserId}}, item.Id)"
                                                 style="--n-border-radius: 7px; --n-ripple-color: #7ba7d3; 
                                                 --n-text-color-hover: #2a82e4; --n-text-color-pressed: #3182ce;
                                                 --n-text-color-focus: #2a82e4; --n-border-hover: 1px solid #2a82e4;
@@ -396,7 +398,7 @@
 
                                             <!-- Delete Button -->
                                             <n-popconfirm :show="delVideoId === item.Id"
-                                                v-if="{{.User.Id}} === item.UserId">
+                                                v-if="{{.UserId}} === item.UserId">
                                                 <template #icon>
                                                     <i class="ph-duotone ph-warning" style="color: #f25858;"></i>
                                                 </template>
@@ -469,13 +471,13 @@
                                 <n-gi :span="1" v-for="(item,index) in imageList" :key="index">
                                     <n-card hoverable>
                                         <div class="image">
-                                            <n-image :src="item.FileKey || '/static/img/default-cover.jpg'" class="image-item" fit="cover"></n-image>
+                                            <n-image :src="item.FileKey || '/static/img/default-cover.jpg'" class="image-item" object-fit="cover"></n-image>
                                         </div>
                                         <div class="delete">
                                             <div class="image-time">${ item.CreateAt.slice(0,10) }</div>
                                             {{if .User}}
                                             <n-popconfirm :show="delImageId === item.Id"
-                                                v-if="{{.User.Id}} === item.UserId">
+                                                v-if="{{.UserId}} === item.UserId">
                                                 <template #icon>
                                                     <i class="ph-fill ph-siren" style="color: #f25858;"></i>
                                                 </template>
@@ -551,7 +553,7 @@
                 }
             }
 
-            let viewVideoId = 0;
+            const viewVideoId = ref(0);
 
             /*======= delete related =======*/
             let deleteId = 0;
@@ -590,6 +592,13 @@
             function handleVideoPageChange(page) {
                 console.log("pagevideo", page)
                 getMedias("video", page)
+            }
+
+            function showModal(id){
+                viewVideoId.value = id
+                this.$nextTick(() => {
+                    const p = new Plyr('#videoPlayer', { captions: { active: true } });
+                });
             }
 
             function getMedias(format, curPage) {
@@ -726,7 +735,8 @@
                     deleteArticle,
                     deleteMedia,
                     retryCaptionGenerate,
-                    onChangeTab
+                    onChangeTab,
+                    showModal
                 },
                 watch: {
                     curVideoPage(newValue) {

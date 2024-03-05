@@ -366,6 +366,7 @@ post "/api/article/commit", ctx => {
 
 	id, err = community.PutArticle(todo, uid, article)
 	if err != nil {
+		xLog.Info(err)
 		ctx.json {
 			"code": 0,
 			"err":  "add failed",
@@ -630,8 +631,9 @@ delete "/api/media/:id", ctx => {
 get "/api/translation/:id", ctx => {
 	id := ctx.param("id")
 	article, err := community.GetTranslateArticle(todo, id)
-	xLog.Info(err)
+	
 	if err != nil {
+		xLog.Info(err)
 		ctx.json {
 			"code": 0,
 		}
@@ -678,7 +680,7 @@ get "/api/media/:id/url", ctx => {
 get "/api/video/:id", ctx => {
 	id := ctx.param("id")
 	fileKey, err := community.GetMediaUrl(todo, id)
-	m := make(map[string]string, 3)
+	m := make(map[string]string, 4)
 	format, err := community.GetMediaType(todo, id)
 	if err != nil {
 		ctx.json {
@@ -709,6 +711,7 @@ get "/api/video/:id", ctx => {
 		}
 	}
 	m["fileKey"] = htmlUrl
+	m["type"] = format
 	ctx.json {
 		"code": 200,
 		"url":  m,

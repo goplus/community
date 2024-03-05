@@ -24,19 +24,36 @@ import 'plyr/dist/plyr.css'
 
 var cherrInstance = null
 
-var cherryEngine = null
-
 var vtt_src = ""
 
 let fileType = "video/mp4"
 
 let vtt_id = ""
 
+function getFileTypeByExtension(fileName) {
+    var extension = fileName.split('.').pop().toLowerCase();
+    var imageExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+    var videoExtensions = ['mp4', 'avi', 'mov', 'mkv', 'wmv', 'flv', 'webm', 'avchd'];
+    var audioExtensions = ['mp3', 'wav', 'ogg'];
+    var documentExtensions = ['doc', 'docx', 'pdf', 'txt'];
+
+    if (imageExtensions.includes(extension)) {
+        return 'image/' + extension;
+    } else if (videoExtensions.includes(extension)) {
+        return 'video/' + extension;
+    } else if (audioExtensions.includes(extension)) {
+        return 'audio/' + extension;
+    } else if (documentExtensions.includes(extension)) {
+        return 'document/' + extension;
+    } else {
+        return '';
+    }
+}
 
 function fileUpload(file) {
     // 提交的时候代码
-    let type = file.type
-    console.log("upload", file.type)
+    let type = getFileTypeByExtension(file.name)
+    console.log("upload", type)
 
     if(type.includes("video") && checkVideo()){
         console.log("only can upload a video.")
@@ -66,6 +83,7 @@ function fileUpload(file) {
                     let url = res.data.url.fileKey
                     let stitle = res.data.url.subtitle
                     let status = res.data.url.status
+                    let newType = res.data.url.type
                     if(status !== "1"){
                         vtt_id = response.data
                     }
@@ -73,7 +91,7 @@ function fileUpload(file) {
                     
                     console.log("URL", url)
                     // 返回文件地址的话需要
-                    onloadCallback(type, url)                       
+                    onloadCallback(newType, url)                       
                 })
             } else {
                 axios({
@@ -150,7 +168,7 @@ function onloadCallback(type, url) {
     type = type.toLowerCase()
     fileType = type
     if (/mp4|avi|rmvb|mov|wmv|flv|avi|webm/i.test(type.toLowerCase())) {
-        // 会渲染成video标签 需要替换video1标签 <video controls src=""> <video>
+        // replace <video controls src=""> <video> into !video
         imgMdStr = `!video[${type}](${url})(${vtt_src})`;
         // to replace vtt
         // videoMd = imgMdStr
