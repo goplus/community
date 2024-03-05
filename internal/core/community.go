@@ -29,13 +29,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gabriel-vasile/mimetype"
-
 	"github.com/goplus/community/translation"
 	"github.com/qiniu/x/xlog"
 
 	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/mattn/go-sqlite3"
 	"gocloud.dev/blob"
 	"golang.org/x/oauth2"
 	language "golang.org/x/text/language"
@@ -44,10 +43,42 @@ import (
 var (
 	ErrNotExist   = os.ErrNotExist
 	ErrPermission = os.ErrPermission
-	Twitter       = "twitter"
-	FaceBook      = "facebook"
-	WeChat        = "wechat"
 )
+
+// S3Service is the interface for s3 service and easy to mock
+type S3Service interface {
+	NewReader(ctx context.Context, key string, opts *blob.ReaderOptions) (_ S3Reader, err error)
+	NewWriter(ctx context.Context, key string, opts *blob.WriterOptions) (_ S3Writer, err error)
+	Delete(ctx context.Context, key string) (err error)
+}
+
+type S3ServiceAdapter struct {
+	bucket *blob.Bucket
+}
+
+func (s *S3ServiceAdapter) NewReader(ctx context.Context, key string, opts *blob.ReaderOptions) (_ S3Reader, err error) {
+	return nil, nil
+}
+
+func (s *S3ServiceAdapter) NewWriter(ctx context.Context, key string, opts *blob.WriterOptions) (_ S3Writer, err error) {
+	return nil, nil
+}
+
+func (s *S3ServiceAdapter) Delete(ctx context.Context, key string) (err error) {
+	return nil
+}
+
+type S3Reader interface {
+	Close() error
+	Read(p []byte) (int, error)
+	ContentType() string
+	Size() int64
+}
+
+type S3Writer interface {
+	Close() error
+	Write(p []byte) (n int, err error)
+}
 
 type Config struct {
 	Driver string // database driver. default is `mysql`.
@@ -56,26 +87,19 @@ type Config struct {
 	BlobUS string // blob URL scheme
 }
 
-type PlatformCount struct {
-	ArticleId string
-	Platform  string
-	ViewCount string
-}
-
 type ArticleEntry struct {
-	ID            string
-	Title         string
-	UId           string
-	Cover         string
-	Tags          string
-	User          User
-	Abstract      string
-	Label         string
-	Ctime         time.Time
-	Mtime         time.Time
-	ViewCount     int
-	LikeCount     int
-	PlatformCount []PlatformCount
+	ID        string
+	Title     string
+	UId       string
+	Cover     string
+	Tags      string
+	User      User
+	Abstract  string
+	Label     string
+	Ctime     time.Time
+	Mtime     time.Time
+	ViewCount int
+	LikeCount int
 }
 
 type ArticleLike struct {
@@ -92,13 +116,15 @@ type Article struct {
 }
 
 type Community struct {
-	bucket        *blob.Bucket
 	db            *sql.DB
 	domain        string
 	casdoorConfig *CasdoorConfig
 	xLog          *xlog.Logger
 	translation   *Translation
-	bucketName    string
+
+	// Casdoor Service for mock
+	CasdoorSDKService CasdoorSDKService
+	S3Service         S3Service
 }
 type CasdoorConfig struct {
 	endPoint         string
@@ -115,10 +141,6 @@ type Account struct {
 type Translation struct {
 	Engine         *translation.Engine
 	VideoTaskCache *VideoTaskCache
-}
-
-func NewEmpty() *Community {
-	return &Community{}
 }
 
 func New(ctx context.Context, conf *Config) (ret *Community, err error) {
@@ -143,15 +165,9 @@ func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 	}
 	domain := os.Getenv("GOP_COMMUNITY_DOMAIN")
 
-	bucket, err := blob.OpenBucket(ctx, bus)
-	if err != nil {
-		xLog.Error(err)
-		return
-	}
 	db, err := sql.Open(driver, dsn)
 	if err != nil {
 		xLog.Error(err)
-		return
 	}
 
 	// Init translation engine
@@ -163,28 +179,15 @@ func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 		),
 		VideoTaskCache: NewVideoTaskCache(),
 	}
-	bucketName, err := getBucketName(bus, "@", "?")
+
+	bucket, err := blob.OpenBucket(ctx, bus)
 	if err != nil {
-		xLog.Error("get bucket name error:", err.Error())
-		return
+		xLog.Error(err)
 	}
-	return &Community{bucket, db, domain, casdoorConf, xLog, translationEngine, bucketName}, nil
-}
+	s3Service := &S3ServiceAdapter{bucket: bucket}
+	casdoorSDKService := &CasdoorSDKServiceAdapter{}
 
-func getBucketName(url, startSymbol, endSymbol string) (string, error) {
-	startIndex := strings.Index(url, startSymbol)
-	if startIndex == -1 {
-		return "", fmt.Errorf("start symbol '%s' not found", startSymbol)
-	}
-
-	startIndex += len(startSymbol)
-
-	endIndex := strings.Index(url[startIndex:], endSymbol)
-	if endIndex == -1 {
-		return "", fmt.Errorf("end symbol '%s' not found", endSymbol)
-	}
-
-	return url[startIndex : startIndex+endIndex], nil
+	return &Community{db, domain, casdoorConf, xLog, translationEngine, casdoorSDKService, s3Service}, nil
 }
 
 func (p *Community) TranslateMarkdownText(ctx context.Context, src string, from string, to language.Tag) (string, error) {
@@ -242,31 +245,26 @@ func (p *Community) Article(ctx context.Context, id string) (article *Article, e
 		p.xLog.Warn("not found the article")
 		return article, ErrNotExist
 	} else if err != nil {
+		p.xLog.Errorf("get article error: %v", err)
 		return article, err
 	}
 	// vtt don't finished when adding
 	if article.Vtt_id != "" {
-		save_vid := []string{}
-		vids := strings.Split(article.Vtt_id, ";")
+		row := p.db.QueryRow(`select output, status from video_task where resource_id = ?`, article.Vtt_id)
 		var fileKey string
 		var status string
-		for _, vid := range vids {
-			row := p.db.QueryRow(`select output, status from video_task where resource_id = ?`, vid)
-			err = row.Scan(&fileKey, &status)
-			if err != nil {
-				return article, err
-			}
-			// vtt finish
-			if status == "1" {
-				article.Content = strings.Replace(article.Content, "("+p.domain+vid+")", "("+p.domain+fileKey+")", -1)
-			} else {
-				save_vid = append(save_vid, vid)
-			}
+		err = row.Scan(&fileKey, &status)
+		if err != nil {
+			p.xLog.Errorf("get vtt file error: %v", err)
+			return article, err
 		}
-		if len(save_vid) != len(vids) {
+		// vtt finish
+		if status == "1" {
+			article.Content = strings.Replace(article.Content, "("+p.domain+")", "("+p.domain+fileKey+")", -1)
 			sqlStr := "update article set content=?, vtt_id=? where id=?"
-			_, err := p.db.Exec(sqlStr, article.Content, strings.Join(save_vid, ";"), id)
+			_, err := p.db.Exec(sqlStr, article.Content, "", id)
 			if err != nil {
+				p.xLog.Errorf("update article error: %v", err)
 				return article, err
 			}
 		}
@@ -274,6 +272,7 @@ func (p *Community) Article(ctx context.Context, id string) (article *Article, e
 	// add author info
 	user, err := p.GetUserById(article.UId)
 	if err != nil {
+		p.xLog.Errorf("get user error: %v", err)
 		return
 	}
 	article.User = *user
@@ -317,6 +316,7 @@ func (p *Community) CanEditable(ctx context.Context, uid, id string) (editable b
 	sqlStr := "select id from article where id=? and user_id = ?"
 	err = p.db.QueryRow(sqlStr, id, uid).Scan(&id)
 	if err != nil {
+		p.xLog.Errorf("CanEditable: %v", err)
 		return false, ErrPermission
 	}
 	return true, nil
@@ -324,14 +324,14 @@ func (p *Community) CanEditable(ctx context.Context, uid, id string) (editable b
 
 // SaveHtml upload origin html(string) to media for html id and save id to database
 func (p *Community) SaveHtml(ctx context.Context, uid, htmlStr, mdData, id string) (articleId string, err error) {
-	ext := mimetype.Detect([]byte(htmlStr)).String()
-	htmlId, err := p.SaveMedia(ctx, uid, []byte(htmlStr), ext)
+	htmlId, err := p.SaveMedia(ctx, uid, []byte(htmlStr))
 	if err != nil {
 		return "", err
 	}
 	if id == "" {
 		// save to database
-		sqlStr := "insert into article (user_id, html_id, ctime, mtime, content) values (?, ?, ?)"
+		// Lost the article id, so we need to get it from the database
+		sqlStr := "insert into article (user_id, html_id, ctime, mtime, content) values (?, ?, ?, ?, ?)"
 		res, err := p.db.Exec(sqlStr, uid, htmlId, time.Now(), time.Now(), mdData)
 		if err != nil {
 			return "", err
@@ -376,20 +376,33 @@ func (p *Community) deleteMedias(ctx context.Context, uid, id string) (err error
 	var htmlIds []string
 	sqlStr := "select html_id from article where id=? and user_id=?"
 	rows, err := p.db.Query(sqlStr, id, uid)
+	if err != nil {
+		p.xLog.Error(err)
+		return err
+	}
+
 	defer func() {
 		err = rows.Close()
 		if err != nil {
 			p.xLog.Error(err)
 		}
 	}()
+
 	for rows.Next() {
 		var htmlId string
 		if err := rows.Scan(&htmlId); err != nil {
+			p.xLog.Error(err)
 			return err
 		}
 		htmlIds = append(htmlIds, htmlId)
 	}
+
 	err = p.DelMedias(ctx, uid, htmlIds)
+	if err != nil {
+		p.xLog.Error(err)
+		return err
+	}
+
 	return
 }
 
@@ -398,6 +411,7 @@ func (p *Community) DeleteArticle(ctx context.Context, uid, id string) (err erro
 	// Start a transaction
 	tx, err := p.db.BeginTx(ctx, nil)
 	if err != nil {
+		p.xLog.Errorf("DeleteArticle: %v", err)
 		return
 	}
 	defer func() {
@@ -413,6 +427,7 @@ func (p *Community) DeleteArticle(ctx context.Context, uid, id string) (err erro
 	// Delete medias (calling deleteMedias within the transaction)
 	err = p.deleteMedias(ctx, uid, id)
 	if err != nil {
+		p.xLog.Errorf("DeleteArticle: %v", err)
 		return err
 	}
 
@@ -420,9 +435,14 @@ func (p *Community) DeleteArticle(ctx context.Context, uid, id string) (err erro
 	sqlStr := "delete from article where id=? and user_id=?"
 	res, err := tx.ExecContext(ctx, sqlStr, id, uid)
 	if err != nil {
+		p.xLog.Errorf("DeleteArticle: %v", err)
 		return err
 	}
 	rows, err := res.RowsAffected()
+	if err != nil {
+		p.xLog.Errorf("DeleteArticle: %v", err)
+		return err
+	}
 	if rows != 1 {
 		return fmt.Errorf("no need to delete")
 	}
@@ -437,13 +457,9 @@ const (
 	MarkEnd   = "eof"
 )
 
-func (p *Community) getPageArticles(sqlStr string, from string, limit int, value string, label string, key string) (items []*ArticleEntry, next string, err error) {
+func (p *Community) getPageArticles(sqlStr string, from string, limit int, value string, label string) (items []*ArticleEntry, next string, err error) {
 	if from == MarkBegin {
-		if key == "search" {
-			from = "0"
-		} else {
-			from = "1"
-		}
+		from = "0"
 	} else if from == MarkEnd {
 		return []*ArticleEntry{}, from, nil
 	}
@@ -451,13 +467,8 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 	if err != nil {
 		return []*ArticleEntry{}, from, err
 	}
-	var rows *sql.Rows
-	if key == "search" {
-		rows, err = p.db.Query(sqlStr, value, value, label, limit, fromInt)
-	} else {
-		rows, err = p.db.Query(sqlStr, value, limit, (fromInt-1)*limit)
-	}
-	// rows, err := p.db.Query(sqlStr, value, value, label, limit, fromInt)
+
+	rows, err := p.db.Query(sqlStr, value, label, limit, fromInt)
 	if err != nil {
 		return []*ArticleEntry{}, from, err
 	}
@@ -465,11 +476,9 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 	defer rows.Close()
 
 	var rowLen int
-	var articleIds []string
 	for rows.Next() {
 		article := &ArticleEntry{}
 		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Abstract, &article.Cover, &article.Label, &article.LikeCount, &article.ViewCount)
-		articleIds = append(articleIds, article.ID)
 		if err != nil {
 			return []*ArticleEntry{}, from, err
 		}
@@ -483,58 +492,27 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 		items = append(items, article)
 		rowLen++
 	}
-
 	// have no article
 	if rowLen == 0 {
 		return []*ArticleEntry{}, MarkEnd, nil
 	}
-	sqlStr = "SELECT article_id, platform, COUNT(*) AS view_count FROM article_view WHERE article_id IN (" + strings.Join(articleIds, ",") + ") AND platform IS NOT NULL AND platform <> '' GROUP BY article_id, platform;"
-	rows, err = p.db.Query(sqlStr)
-	if err != nil {
-		return []*ArticleEntry{}, MarkEnd, nil
+	if rowLen < limit {
+		return items, MarkEnd, nil
 	}
-	var m = make(map[string][]PlatformCount)
-	for rows.Next() {
-		p1 := PlatformCount{}
-		err := rows.Scan(&p1.ArticleId, &p1.Platform, &p1.ViewCount)
-		if err != nil {
-			return []*ArticleEntry{}, from, err
-		}
-		if _, ok := m[p1.ArticleId]; !ok {
-			m[p1.ArticleId] = make([]PlatformCount, 0)
-		}
-		m[p1.ArticleId] = append(m[p1.ArticleId], p1)
-	}
-
-	for _, article := range items {
-		article.PlatformCount = m[article.ID]
-	}
-
-	if key == "search" {
-		if rowLen < limit {
-			return items, MarkEnd, nil
-		}
-		next = strconv.Itoa(fromInt + rowLen)
-	} else {
-		err = p.db.QueryRow("select count(*) from article where user_id = ?", value).Scan(&next)
-		if err != nil {
-			return items, next, nil
-		}
-	}
-
+	next = strconv.Itoa(fromInt + rowLen)
 	return items, next, nil
 }
 
 // ListArticle lists articles from a position.
 func (p *Community) ListArticle(ctx context.Context, from string, limit int, searchValue string, label string) (items []*ArticleEntry, next string, err error) {
-	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label, like_count, view_count from article where (title like ? or tags like ?) and label = ? order by ctime desc limit ? offset ?"
-	return p.getPageArticles(sqlStr, from, limit, "%"+searchValue+"%", label, "search")
+	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label, like_count, view_count from article where title like ? and label like ? order by ctime desc limit ? offset ?"
+	return p.getPageArticles(sqlStr, from, limit, "%"+searchValue+"%", "%"+label+"%")
 }
 
 // GetArticlesByUid get articles by user id.
-func (p *Community) GetArticlesByUid(ctx context.Context, uid string, page string, limit int) (items []*ArticleEntry, next string, err error) {
-	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label, like_count, view_count from article where user_id = ? order by ctime desc limit ? offset ?"
-	return p.getPageArticles(sqlStr, page, limit, uid, "", "user")
+func (p *Community) GetArticlesByUid(ctx context.Context, uid string, from string, limit int) (items []*ArticleEntry, next string, err error) {
+	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label, like_count, view_count from article where user_id = ? and label like ? order by ctime desc limit ? offset ?"
+	return p.getPageArticles(sqlStr, from, limit, uid, "%")
 }
 
 func casdoorConfigInit() *CasdoorConfig {
@@ -557,7 +535,7 @@ func casdoorConfigInit() *CasdoorConfig {
 	}
 }
 
-func (a *Community) RedirectToCasdoor(redirect string) (loginURL string) {
+func (p *Community) RedirectToCasdoor(redirect string) (loginURL string) {
 	// TODO: Check whitelist from referer
 	responseType := "code"
 	scope := "read"
@@ -566,8 +544,8 @@ func (a *Community) RedirectToCasdoor(redirect string) (loginURL string) {
 
 	loginURL = fmt.Sprintf(
 		"%s/login/oauth/authorize?client_id=%s&response_type=%s&redirect_uri=%s&scope=%s&state=%s",
-		a.casdoorConfig.endPoint,
-		a.casdoorConfig.clientId,
+		p.casdoorConfig.endPoint,
+		p.casdoorConfig.clientId,
 		responseType,
 		redirectEncodeURL,
 		scope,
@@ -579,10 +557,10 @@ func (a *Community) RedirectToCasdoor(redirect string) (loginURL string) {
 	return loginURL
 }
 
-func (a *Community) GetAccessToken(code, state string) (token *oauth2.Token, err error) {
-	token, err = casdoorsdk.GetOAuthToken(code, state)
+func (p *Community) GetAccessToken(code, state string) (token *oauth2.Token, err error) {
+	token, err = p.CasdoorSDKService.GetOAuthToken(code, state)
 	if err != nil {
-		a.xLog.Error(err)
+		p.xLog.Error(err)
 
 		return nil, ErrNotExist
 	}
@@ -591,63 +569,56 @@ func (a *Community) GetAccessToken(code, state string) (token *oauth2.Token, err
 }
 
 // share count
-func (a *Community) Share(ip, platform, userId, articleId string) {
-
-	if platform == Twitter || platform == FaceBook || platform == WeChat {
-		go func(ip, platform, userId, articleId string) {
-			a.xLog.Printf("user: %s, ip: %s, share to platform: %s, articleId: %s", userId, ip, platform, articleId)
-			if userId == "" {
-				userId = "0"
-			}
-			sqlStr := "INSERT INTO share (platform,user_Id,ip,index_key,create_at,article_id) values (?,?,?,?,?,?)"
-			index := ip + platform + articleId
-			_, err := a.db.Exec(sqlStr, platform, userId, ip, index, time.Now(), articleId)
-			if err != nil {
-				return
-			}
-
-		}(ip, platform, userId, articleId)
-	}
+func (p *Community) Share(ip, platform, userId, articleId string) {
+	go func(ip, platform, userId, articleId string) {
+		sqlStr := "INSERT INTO share (platform,user_Id,ip,index_key,create_at) values (?,?,?,?,?)"
+		index := ip + platform + articleId
+		_, err := p.db.Exec(sqlStr, platform, userId, ip, index, time.Now())
+		if err != nil {
+			p.xLog.Fatalln(err.Error())
+			return
+		}
+		p.xLog.Printf("user: %s, ip: %s, share to platform: %s, articleId: %s", userId, ip, platform, articleId)
+	}(ip, platform, userId, articleId)
 }
 
 // get community application information
-func (a *Community) GetApplicationInfo() (*casdoorsdk.Application, error) {
-	a2, err := casdoorsdk.GetApplication("application_x8aevk")
+func (p *Community) GetApplicationInfo() (*casdoorsdk.Application, error) {
+	// a2, err := p.CasdoorSDKService.GetApplication("application_x8aevk")
+	// TODO: Check env
+	a2, err := p.CasdoorSDKService.GetApplication(os.Getenv("GOP_CASDOOR_APPLICATONNAME"))
 	if err != nil {
-		a.xLog.Error(err)
+		p.xLog.Error(err)
 	}
 	return a2, err
 }
-
-// todo Optimization: Use short links to transform the sharing function in the future
-// Delete async update,Real-time update of the number of views is user-friendly
-func (a *Community) ArticleLView(ctx context.Context, articleId, ip, userId, platform string) {
-	if platform == Twitter || platform == FaceBook || platform == WeChat || platform == "" {
-		a.xLog.Debugf("user: %s, ip: %s, share to platform: %s, articleId: %s", userId, ip, platform, articleId)
+func (p *Community) ArticleLView(ctx context.Context, articleId, ip, userId string) {
+	go func(articleId, ip, userId string) {
 		userIdInt, err := strconv.Atoi(userId)
 		if err != nil {
 			userIdInt = 0
 		}
 		articleIdInt, err := strconv.Atoi(articleId)
 		if err != nil {
-			a.xLog.Error(err.Error())
+			p.xLog.Error(err.Error())
 			return
 		}
-		sqlStr := "INSERT INTO article_view (ip,user_id,article_id,created_at,`index`,platform) values (?,?,?,?,?,?)"
-		index := articleId + userId + ip + platform
-		if _, err = a.db.Exec(sqlStr, ip, userIdInt, articleIdInt, time.Now(), index, platform); err == nil {
+		sqlStr := "INSERT INTO article_view (ip,user_id,article_id,created_at,`index`) values (?,?,?,?,?)"
+		index := articleId + userId + ip
+		if _, err = p.db.Exec(sqlStr, ip, userIdInt, articleIdInt, time.Now(), index); err == nil {
 			// success article views incr
 			sqlStr = "update article set view_count = view_count + 1 where id=?"
-			_, err = a.db.Exec(sqlStr, articleId)
+			_, err = p.db.Exec(sqlStr, articleId)
 			if err != nil {
-				a.xLog.Error(err.Error())
+				p.xLog.Fatalln(err.Error())
 				return
 			}
 		}
-	}
+
+	}(articleId, ip, userId)
 }
 
-func (a *Community) GetClientIP(r *http.Request) string {
+func (p *Community) GetClientIP(r *http.Request) string {
 	ip := strings.TrimSpace(strings.Split(r.Header.Get("X-Forwarded-For"), ",")[0])
 	if ip != "" {
 		return ip
@@ -665,8 +636,8 @@ func (a *Community) GetClientIP(r *http.Request) string {
 	return ""
 }
 
-func (a *Community) ArticleLike(ctx context.Context, articleId int, userId string) (bool, error) {
-	db := a.db
+func (p *Community) ArticleLike(ctx context.Context, articleId int, userId string) (bool, error) {
+	db := p.db
 	tx, _ := db.Begin()
 	sqlStr := "insert into article_like (article_id,user_id) values (?,?)"
 	_, err := tx.Exec(sqlStr, articleId, userId)

@@ -1,70 +1,113 @@
-package core_test
+package core
 
 import (
 	"context"
 	"fmt"
-	"github.com/gabriel-vasile/mimetype"
-	"log"
-	"os"
 	"testing"
 
-	"github.com/goplus/community/internal/core"
+	"github.com/gabriel-vasile/mimetype"
+	"github.com/stretchr/testify/assert"
 )
 
-var c *core.Community
+func TestSaveMedia(t *testing.T) {
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
 
-func TestGetMediaUrl(t *testing.T) {
-	url, err := c.GetMediaUrl(context.Background(), "10")
-	if err != nil {
-		log.Fatalln(err.Error())
-		return
+	// Prepare data
+	tests := []struct {
+		data   []byte
+		userId string
+	}{
+		{
+			data:   []byte("test"),
+			userId: "1",
+		},
 	}
-	log.Println(url)
+	for _, test := range tests {
+		id, err := community.SaveMedia(context.Background(), test.userId, test.data, mimetype.Detect(test.data).String())
+		assert.Nil(t, err)
+		assert.NotEqual(t, 0, id)
+	}
 }
 
-func TestSaveMedia(t *testing.T) {
+func TestGetMediaUrl(t *testing.T) {
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
 
-	conf := &core.Config{}
-	todo := context.TODO()
-	c, err := core.New(todo, conf)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
+	// Prepare data
+	tests := []struct {
+		data   []byte
+		userId string
+	}{
+		{
+			data:   []byte("test"),
+			userId: "1",
+		},
 	}
-	data, err := readFileByte("")
-	if err != nil {
-		log.Fatalln(err.Error())
-		return
-	}
-	id, err := c.SaveMedia(context.Background(), "", data, mimetype.Detect(data).String())
-	if err != nil {
-		log.Fatalln(err.Error())
-		return
-	}
-	log.Println("id:", id)
 
+	for _, test := range tests {
+		id, err := community.SaveMedia(context.Background(), test.userId, test.data, mimetype.Detect(test.data).String())
+		assert.Nil(t, err)
+
+		url, err := community.GetMediaUrl(context.Background(), fmt.Sprintf("%d", id))
+		assert.Nil(t, err)
+		assert.NotEqual(t, "", url)
+	}
 }
 
 func TestDelMeida(t *testing.T) {
-	err := c.DelMedia(context.Background(), "1", "10")
-	if err != nil {
-		log.Fatalln(err.Error())
-		return
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
+
+	// Prepare data
+	tests := []struct {
+		data   []byte
+		userId string
+	}{
+		{
+			data:   []byte("test"),
+			userId: "1",
+		},
 	}
-	log.Println(err.Error())
+
+	for _, test := range tests {
+		id, err := community.SaveMedia(context.Background(), test.userId, test.data, mimetype.Detect(test.data).String())
+		assert.Nil(t, err)
+
+		err = community.DelMedia(context.Background(), test.userId, fmt.Sprintf("%d", id))
+		assert.Nil(t, err)
+	}
 }
 
 func TestDelMedias(t *testing.T) {
-	err := c.DelMedias(context.Background(), "1", []string{"1"})
-	if err != nil {
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
 
-		log.Fatalln(err.Error())
-		return
+	// Prepare data
+	tests := []struct {
+		data   []byte
+		userId string
+	}{
+		{
+			data:   []byte("test"),
+			userId: "1",
+		},
 	}
 
-}
+	for _, test := range tests {
+		id, err := community.SaveMedia(context.Background(), test.userId, test.data, mimetype.Detect(test.data).String())
+		assert.Nil(t, err)
 
-func readFileByte(filePath string) ([]byte, error) {
-	data, err := os.ReadFile(filePath)
-	return data, err
+		err = community.DelMedias(context.Background(), test.userId, []string{fmt.Sprintf("%d", id)})
+		assert.Nil(t, err)
+	}
+
 }

@@ -17,19 +17,25 @@
 package core
 
 import (
-	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestParseJwtToken(t *testing.T) {
-	c, err := New(nil, nil)
-	if err != nil {
-		t.Error(err)
+	tests := []struct {
+		token  string
+		userId string
+	}{
+		{
+			token:  "123",
+			userId: "1",
+		},
 	}
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcHBsaWNhdGlvbiIsImV4cCI6MTY0NzIwNzIwNiwiaWF0IjoxNjQ3MTIwMDA2LCJpc3MiOiJhcHBsaWNhdGlvbiIsIm5iZiI6MTY0NzEyMDAwNiwic3ViIjoiMTIzNDU2Nzg5MCIsInR5cCI6ImF1dGhvcml6YXRpb24ifQ"
-	userId, err := c.ParseJwtToken(token)
-	if err != nil {
-		t.Error(err)
+
+	for _, test := range tests {
+		userId, err := community.ParseJwtToken(test.token)
+		assert.Nil(t, err)
+		assert.Equal(t, test.userId, userId)
 	}
-	fmt.Println(userId)
 }

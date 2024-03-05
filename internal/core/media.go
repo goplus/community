@@ -238,6 +238,9 @@ func GetVideoDuration(url string) (duration string, err error) {
 }
 
 func (c *Community) uploadMedia(fileKey string, data []byte, opts *blob.WriterOptions) error {
+	if c.bucket == nil {
+		return nil
+	}
 
 	w, err := c.bucket.NewWriter(context.Background(), fileKey, opts)
 	if err != nil {

@@ -21,7 +21,10 @@ require (
 	golang.org/x/oauth2 v0.17.0
 )
 
-require github.com/liuscraft/gop-casdoor-account-sdk v1.1.0
+require (
+	github.com/liuscraft/gop-casdoor-account-sdk v1.1.0
+	github.com/mattn/go-sqlite3 v1.14.22
+)
 
 require github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 

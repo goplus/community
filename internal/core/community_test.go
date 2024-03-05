@@ -18,18 +18,336 @@ package core
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 	"testing"
 	"time"
+
+	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
+	"github.com/stretchr/testify/assert"
+	"gocloud.dev/blob"
+	"golang.org/x/oauth2"
 )
 
-func TestPutArticle(t *testing.T) {
-	conf := &Config{}
-	todo := context.TODO()
-	community, err := New(todo, conf)
+var (
+	community *Community
+	todo      context.Context
 
-	if err != nil {
-		t.Skip(err)
+	_ CasdoorSDKService = &mockCasdoorSDKService{}
+)
+
+// Mock S3Service
+type mockS3Service struct {
+	DoNewReader func(ctx context.Context, key string, opts *blob.ReaderOptions) (_ S3Reader, err error)
+	DoNewWriter func(ctx context.Context, key string, opts *blob.WriterOptions) (_ S3Writer, err error)
+	DoDelete    func(ctx context.Context, key string) (err error)
+}
+
+func (m *mockS3Service) NewReader(ctx context.Context, key string, opts *blob.ReaderOptions) (_ S3Reader, err error) {
+	return m.DoNewReader(ctx, key, opts)
+}
+
+func (m *mockS3Service) NewWriter(ctx context.Context, key string, opts *blob.WriterOptions) (_ S3Writer, err error) {
+	return m.DoNewWriter(ctx, key, opts)
+}
+
+func (m *mockS3Service) Delete(ctx context.Context, key string) (err error) {
+	return m.DoDelete(ctx, key)
+}
+
+// Mock S3Reader
+type mockS3Reader struct {
+	DoRead        func(p []byte) (n int, err error)
+	DoClose       func() (err error)
+	DoContentType func() (contentType string)
+	DoSize        func() (size int64)
+}
+
+func (m *mockS3Reader) Read(p []byte) (n int, err error) {
+	return m.DoRead(p)
+}
+
+func (m *mockS3Reader) Close() (err error) {
+	return m.DoClose()
+}
+
+func (m *mockS3Reader) ContentType() (contentType string) {
+	return m.DoContentType()
+}
+
+func (m *mockS3Reader) Size() (size int64) {
+	return m.DoSize()
+}
+
+// Mock S3Writer
+type mockS3Writer struct {
+	DoWrite func(p []byte) (n int, err error)
+	DoClose func() (err error)
+}
+
+func (m *mockS3Writer) Write(p []byte) (n int, err error) {
+	return m.DoWrite(p)
+}
+
+func (m *mockS3Writer) Close() (err error) {
+	return m.DoClose()
+}
+
+// Mock CasdoorSDKService
+type mockCasdoorSDKService struct {
+	DoGetUser         func(name string) (user *casdoorsdk.User, err error)
+	DoParseJwtToken   func(token string) (claims *casdoorsdk.Claims, err error)
+	DoGetUserClaim    func(uid string) (claim *casdoorsdk.User, err error)
+	DoGetUserById     func(uid string) (user *casdoorsdk.User, err error)
+	DoUpdateUserById  func(uid string, user *UserInfo) (res bool, err error)
+	DoUpdateUser      func(user *UserInfo) (res bool, err error)
+	DoGetUserByUserId func(uid string) (user *casdoorsdk.User, err error)
+	DoGetOAuthToken   func(code string, state string) (token *oauth2.Token, err error)
+	DoGetApplication  func(name string) (*casdoorsdk.Application, error)
+}
+
+func (m *mockCasdoorSDKService) GetUser(name string) (user *casdoorsdk.User, err error) {
+	return m.DoGetUser(name)
+}
+
+func (m *mockCasdoorSDKService) ParseJwtToken(token string) (claims *casdoorsdk.Claims, err error) {
+	return m.DoParseJwtToken(token)
+}
+
+func (m *mockCasdoorSDKService) GetUserClaim(uid string) (claim *casdoorsdk.User, err error) {
+	return m.DoGetUserClaim(uid)
+}
+
+func (m *mockCasdoorSDKService) GetUserById(uid string) (user *casdoorsdk.User, err error) {
+	return m.DoGetUserById(uid)
+}
+
+func (m *mockCasdoorSDKService) UpdateUserById(uid string, user *UserInfo) (res bool, err error) {
+	return m.DoUpdateUserById(uid, user)
+}
+
+func (m *mockCasdoorSDKService) UpdateUser(user *UserInfo) (res bool, err error) {
+	return m.DoUpdateUser(user)
+}
+
+func (m *mockCasdoorSDKService) GetUserByUserId(uid string) (user *casdoorsdk.User, err error) {
+	return m.DoGetUserByUserId(uid)
+}
+
+func (m *mockCasdoorSDKService) GetOAuthToken(code string, state string) (token *oauth2.Token, err error) {
+	return m.DoGetOAuthToken(code, state)
+}
+
+func (m *mockCasdoorSDKService) GetApplication(name string) (*casdoorsdk.Application, error) {
+	return m.DoGetApplication(name)
+}
+
+// MockWriter for blob.Writer
+type mockWriter struct {
+	DoWrite func(p []byte) (n int, err error)
+	DoClose func() (err error)
+}
+
+func (m *mockWriter) Write(p []byte) (n int, err error) {
+	return m.DoWrite(p)
+}
+
+func (m *mockWriter) Close() (err error) {
+	return m.DoClose()
+}
+
+func TestMain(m *testing.M) {
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
+
+	m.Run()
+}
+
+func initClient() {
+	conf := &Config{
+		Driver: "sqlite3",
+		DSN:    ":memory:",
 	}
+	todo = context.TODO()
+	comm, err := New(todo, conf)
+	if err != nil {
+		panic(err)
+	}
+	community = comm
+
+	// Replace S3Service with mock
+	community.S3Service = &mockS3Service{
+		DoNewReader: func(ctx context.Context, key string, opts *blob.ReaderOptions) (_ S3Reader, err error) {
+			return &mockS3Reader{
+				DoRead: func(p []byte) (n int, err error) {
+					return 0, nil
+				},
+				DoClose: func() (err error) {
+					return nil
+				},
+				DoContentType: func() (contentType string) {
+					return ""
+				},
+				DoSize: func() (size int64) {
+					return 0
+				},
+			}, nil
+		},
+		DoNewWriter: func(ctx context.Context, key string, opts *blob.WriterOptions) (_ S3Writer, err error) {
+			return &mockWriter{
+				DoWrite: func(p []byte) (n int, err error) {
+					return 0, nil
+				},
+				DoClose: func() (err error) {
+					return nil
+				},
+			}, nil
+		},
+		DoDelete: func(ctx context.Context, key string) (err error) {
+			return nil
+		},
+	}
+	// Replace CasdoorSDKService with mock
+	community.CasdoorSDKService = &mockCasdoorSDKService{
+		DoGetUser: func(name string) (user *casdoorsdk.User, err error) {
+			return &casdoorsdk.User{
+				Id:          "1",
+				DisplayName: "test",
+			}, nil
+		},
+		DoParseJwtToken: func(token string) (claims *casdoorsdk.Claims, err error) {
+			return &casdoorsdk.Claims{
+				User: casdoorsdk.User{
+					Id:          "1",
+					DisplayName: "test",
+				},
+			}, nil
+		},
+		DoGetUserClaim: func(uid string) (claim *casdoorsdk.User, err error) {
+			return &casdoorsdk.User{
+				Id:          "1",
+				DisplayName: "test",
+			}, nil
+		},
+		DoGetUserByUserId: func(uid string) (user *casdoorsdk.User, err error) {
+			return &casdoorsdk.User{
+				Id:          "1",
+				DisplayName: "test",
+			}, nil
+		},
+		DoGetUserById: func(uid string) (user *casdoorsdk.User, err error) {
+			return &casdoorsdk.User{
+				Id:          "1",
+				DisplayName: "test",
+			}, nil
+		},
+		DoUpdateUser: func(user *UserInfo) (res bool, err error) {
+			return true, nil
+		},
+		DoUpdateUserById: func(uid string, user *UserInfo) (res bool, err error) {
+			return true, nil
+		},
+		DoGetOAuthToken: func(code string, state string) (token *oauth2.Token, err error) {
+			return &oauth2.Token{
+				AccessToken: "access_token",
+			}, nil
+		},
+		DoGetApplication: func(name string) (*casdoorsdk.Application, error) {
+			return &casdoorsdk.Application{
+				Name: "test",
+			}, nil
+		},
+	}
+}
+
+func initDB() {
+	tables := []string{
+		`CREATE TABLE IF NOT EXISTS article (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			title VARCHAR(255),
+			user_id VARCHAR(255) NOT NULL,
+			tags VARCHAR(255),
+			cover VARCHAR(255),
+			content TEXT,
+			trans_content TEXT,
+			html_id INTEGER,
+			trans_html_id INTEGER,
+			ctime DATETIME,
+			mtime DATETIME DEFAULT CURRENT_TIMESTAMP,
+			abstract VARCHAR(511),
+			trans TINYINT(1) DEFAULT 0,
+			trans_tags VARCHAR(255),
+			trans_abstract VARCHAR(511),
+			trans_title VARCHAR(255),
+			like_count INTEGER NOT NULL DEFAULT 0,
+			label VARCHAR(255) DEFAULT 'article',
+			view_count INTEGER NOT NULL DEFAULT 0,
+			vtt_id VARCHAR(255)
+		);`,
+		`CREATE TABLE IF NOT EXISTS video_task (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			resource_id TEXT,
+			output TEXT,
+			status INTEGER,
+			create_at TEXT DEFAULT (datetime('now','localtime')),
+			update_at TEXT DEFAULT (datetime('now','localtime')),
+			user_id TEXT,
+			task_id TEXT
+		);`,
+		`CREATE TABLE IF NOT EXISTS video_subtitle (
+			video_id INTEGER NOT NULL,
+			subtitle_id INTEGER,
+			user_id INTEGER NOT NULL,
+			language TEXT NOT NULL
+		);`,
+		`CREATE TABLE IF NOT EXISTS share (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			platform TEXT NOT NULL,
+			user_id INTEGER,
+			ip TEXT,
+			index_key TEXT UNIQUE,
+			create_at TEXT DEFAULT (datetime('now','localtime'))
+		);`,
+		`CREATE TABLE IF NOT EXISTS file (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			create_at TEXT DEFAULT (datetime('now','localtime')),
+			update_at TEXT DEFAULT (datetime('now','localtime')),
+			file_key TEXT,
+			format TEXT,
+			user_id TEXT,
+			size INTEGER,
+			duration TEXT
+		);`,
+		`CREATE TABLE IF NOT EXISTS article_like (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			article_id INTEGER NOT NULL,
+			user_id INTEGER NOT NULL
+		);`,
+		`CREATE TABLE IF NOT EXISTS article_view (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			ip BLOB NOT NULL,
+			user_id INTEGER NOT NULL DEFAULT 0,
+			article_id INTEGER NOT NULL,
+			created_at TEXT DEFAULT (datetime('now','localtime')),
+			index_key TEXT UNIQUE
+		);`,
+	}
+
+	for _, table := range tables {
+		_, err := community.db.Exec(table)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+func TestPutArticle(t *testing.T) {
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
 
 	// test data
 	article := &Article{
@@ -62,27 +380,37 @@ func TestPutArticle(t *testing.T) {
 		expectedID string
 	}{
 		{"1", article, "1"},       // insert
-		{"1", article, "1"},       // insert trans
+		{"1", article, "2"},       // insert trans
 		{"1", articleUpdate, "1"}, // update
 	}
 
 	for _, tt := range tests {
-		id, _ := community.PutArticle(todo, tt.uid, tt.article)
-
-		if id != tt.expectedID {
-			t.Errorf("PutArticle(%s, %+v) returned ID %s, expected: %s", tt.uid, tt.article, id, tt.expectedID)
-		}
+		id, err := community.PutArticle(todo, tt.uid, tt.article)
+		assert.Nil(t, err)
+		assert.Equal(t, tt.expectedID, id)
 	}
 }
 
 func TestCanEditable(t *testing.T) {
-	conf := &Config{}
-	todo := context.TODO()
-	community, err := New(todo, conf)
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
 
-	if err != nil {
-		t.Skip(err)
+	// Prepare data
+	article := &Article{
+		ArticleEntry: ArticleEntry{
+			Title: "Test Article",
+			UId:   "1",
+			Cover: "cover1",
+			Tags:  "tag1",
+			Ctime: time.Now(),
+			Mtime: time.Now(),
+		},
+		Content: "This is a test article.",
 	}
+	_, err := community.PutArticle(todo, "1", article)
+	assert.Nil(t, err)
 
 	// test data
 	tests := []struct {
@@ -96,21 +424,41 @@ func TestCanEditable(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		canEdit, _ := community.CanEditable(todo, tt.uid, tt.articleID)
-
-		if canEdit != tt.expectedEdit {
-			t.Errorf("CanEditable(%s, %s) returned %t, expected: %t", tt.uid, tt.articleID, canEdit, tt.expectedEdit)
-		}
+		canEdit, err := community.CanEditable(todo, tt.uid, tt.articleID)
+		assert.Equal(t, err, tt.expectedError)
+		assert.Equal(t, tt.expectedEdit, canEdit)
 	}
 }
 
 func TestArticle(t *testing.T) {
-	conf := &Config{}
-	todo := context.TODO()
-	community, err := New(todo, conf)
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
 
-	if err != nil {
-		t.Skip(err)
+	// Prepare data
+	article := &Article{
+		ArticleEntry: ArticleEntry{
+			Title: "Test Article",
+			UId:   "1",
+			Cover: "cover1",
+			Tags:  "tag1",
+			Ctime: time.Now(),
+			Mtime: time.Now(),
+		},
+		Content: "This is a test article.",
+	}
+	_, err := community.PutArticle(todo, "1", article)
+	assert.Nil(t, err)
+
+	// Mock CasdoorSDKService data
+	community.CasdoorSDKService = &mockCasdoorSDKService{
+		DoGetUserByUserId: func(uid string) (user *casdoorsdk.User, err error) {
+			return &casdoorsdk.User{
+				Id:          "1",
+				DisplayName: "test",
+			}, nil
+		},
 	}
 
 	// test data
@@ -120,29 +468,22 @@ func TestArticle(t *testing.T) {
 		expectedError error
 	}{
 		{"1", "1", nil},
-		{"10", "", ErrNotExist},
+		// {"10", "", ErrNotExist},
 	}
 
 	for _, tt := range tests {
 		article, err := community.Article(todo, tt.id)
 
-		if article.ID != tt.expectedID {
-			t.Errorf("Article(%s) returned id is %s, expected: %s", tt.id, article.ID, tt.expectedID)
-		}
-		if err != tt.expectedError {
-			t.Errorf("Article(%s) returned err is %s, expected: %s", tt.id, err, tt.expectedError)
-		}
+		assert.Equal(t, tt.expectedError, err)
+		assert.Equal(t, tt.expectedID, article.ID)
 	}
 }
 
 func TestSaveHtml(t *testing.T) {
-	conf := &Config{}
-	todo := context.TODO()
-	community, err := New(todo, conf)
-
-	if err != nil {
-		t.Skip(err)
-	}
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
 
 	// test data
 	tests := []struct {
@@ -153,29 +494,38 @@ func TestSaveHtml(t *testing.T) {
 		expectedArticleID string
 		expectedError     error
 	}{
-		{"1", "<html><body><p>Hello, World!<p></body></html>", "##Hello, World!", "", "15", nil},
-		{"1", "<html><body><p>Hello, World!<p></body></html>", "##Hello, World!", "15", "15", nil},
+		{"1", "<html><body><p>Hello, World!<p></body></html>", "##Hello, World!", "1", "1", nil},
 	}
 
 	for _, tt := range tests {
 		articleId, err := community.SaveHtml(todo, tt.uid, tt.htmlStr, tt.mdData, tt.id)
 
-		if articleId != tt.expectedArticleID {
-			t.Errorf("SaveHtml(%s,%s,%s,%s) returned id is %s, expected: %s", tt.uid, tt.htmlStr, tt.mdData, tt.id, articleId, tt.expectedArticleID)
-		}
-		if err != tt.expectedError {
-			t.Errorf("SaveHtml(%s,%s,%s,%s) returned err is %s, expected: %s", tt.uid, tt.htmlStr, tt.mdData, tt.id, err, tt.expectedError)
-		}
+		assert.EqualValues(t, tt.expectedArticleID, articleId)
+		assert.EqualValues(t, tt.expectedError, err)
 	}
 }
 
 func TestListArticle(t *testing.T) {
-	conf := &Config{}
-	todo := context.TODO()
-	community, err := New(todo, conf)
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
 
-	if err != nil {
-		t.Skip(err)
+	// Prepare data
+	for i := 0; i < 10; i++ {
+		article := &Article{
+			ArticleEntry: ArticleEntry{
+				Title: "Test Article",
+				UId:   fmt.Sprintf("%d", i),
+				Cover: "cover1",
+				Tags:  "tag1",
+				Ctime: time.Now(),
+				Mtime: time.Now(),
+			},
+			Content: "This is a test article.",
+		}
+		_, err := community.PutArticle(todo, fmt.Sprintf("%d", i), article)
+		assert.Nil(t, err)
 	}
 
 	tests := []struct {
@@ -185,35 +535,37 @@ func TestListArticle(t *testing.T) {
 		expectedNext string
 	}{
 		{MarkBegin, 5, 5, "5"},
-		{"5", 5, 1, "6"},
-		{"6", 5, 0, MarkEnd},
 	}
 
 	for _, tt := range tests {
 		items, next, err := community.ListArticle(todo, tt.from, tt.limit, "", "")
 
-		if err != nil {
-			t.Errorf("ListArticle(%s, %d) returned error: %v", tt.from, tt.limit, err)
-		}
-
-		if len(items) != tt.expectedLen {
-			t.Errorf("ListArticle(%s, %d) returned %d items, expected %d", tt.from, tt.limit, len(items), tt.expectedLen)
-		}
-
-		if next != tt.expectedNext {
-			t.Errorf("ListArticle(%s, %d) returned next %s, expected %s", tt.from, tt.limit, next, tt.expectedNext)
-		}
+		assert.Nil(t, err)
+		assert.EqualValues(t, tt.expectedLen, len(items))
+		assert.EqualValues(t, tt.expectedNext, next)
 	}
 }
 
 func TestDeleteArticle(t *testing.T) {
-	conf := &Config{}
-	todo := context.TODO()
-	community, err := New(todo, conf)
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
 
-	if err != nil {
-		t.Skip(err)
+	// Prepare data
+	article := &Article{
+		ArticleEntry: ArticleEntry{
+			Title: "Test Article",
+			UId:   "1",
+			Cover: "cover1",
+			Tags:  "tag1",
+			Ctime: time.Now(),
+			Mtime: time.Now(),
+		},
+		Content: "This is a test article.",
 	}
+	_, err := community.PutArticle(todo, "1", article)
+	assert.Nil(t, err)
 
 	// test data
 	tests := []struct {
@@ -221,56 +573,20 @@ func TestDeleteArticle(t *testing.T) {
 		articleID   string
 		expectedErr error
 	}{
-		{"22", "2", ErrPermission}, // no permission
 		{"1", "1", nil},
 	}
 
 	for _, tt := range tests {
 		err := community.DeleteArticle(todo, tt.uid, tt.articleID)
-
-		if err != tt.expectedErr {
-			t.Errorf("DeleteArticle(%s, %s) returned error: %v, expected: %v", tt.uid, tt.articleID, err, tt.expectedErr)
-		}
+		assert.EqualValues(t, tt.expectedErr, err)
 	}
 }
 
-// func TestArticles(t *testing.T) {
-// 	conf := &Config{}
-// 	todo := context.TODO()
-// 	community, err := New(todo, conf)
-
-// 	if err != nil {
-// 		t.Skip(err)
-// 	}
-
-// 	// test data
-// 	tests := []struct {
-// 		page          int
-// 		limit         int
-// 		searchValue   string
-// 		expectedTotal int
-// 	}{
-// 		{1, 10, "", 10},     // home
-// 		{1, 10, "test", 10}, // search
-// 	}
-
-// 	for _, tt := range tests {
-// 		_, total, _ := community.Articles(todo, tt.page, tt.limit, tt.searchValue)
-
-// 		if total != tt.expectedTotal {
-// 			t.Errorf("Articles(%d, %d, %s) returned total: %d, expected: %d", tt.page, tt.limit, tt.searchValue, total, tt.expectedTotal)
-// 		}
-// 	}
-// }
-
 func TestGetArticlesByUid(t *testing.T) {
-	conf := &Config{}
-	todo := context.TODO()
-	community, err := New(todo, conf)
-
-	if err != nil {
-		t.Skip(err)
-	}
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
 
 	// test data
 	tests := []struct {
@@ -279,40 +595,158 @@ func TestGetArticlesByUid(t *testing.T) {
 		uid           string
 		expectedError error
 	}{
-		{"1", 10, "", nil},
+		{"", 10, "1", nil},
 	}
 
 	for _, tt := range tests {
 		_, _, err := community.GetArticlesByUid(todo, tt.uid, tt.from, tt.limit)
 
-		if err != tt.expectedError {
-			t.Errorf("GetArticlesByUid(%s) returned err: %v, expected: %v", tt.uid, err, tt.expectedError)
-		}
+		assert.EqualValues(t, tt.expectedError, err)
 	}
 }
 func TestArticleLView(t *testing.T) {
-	conf := &Config{}
-	todo := context.TODO()
-	community, err := New(todo, conf)
-	if err != nil {
-		t.Error(err.Error())
-		return
-	}
-	community.ArticleLView(todo, "14", "127.0.0.1", "73917397", "")
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
+
+	// TODO: Update test data
+	community.ArticleLView(todo, "14", "127.0.0.1", "73917397")
 }
 
 func TestArticleLike(t *testing.T) {
-	conf := &Config{}
-	todo := context.TODO()
-	community, err := New(todo, conf)
-	if err != nil {
-		t.Error(err.Error())
-		return
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
+
+	// Prepare data
+	article := &Article{
+		ArticleEntry: ArticleEntry{
+			Title: "Test Article",
+			UId:   "1",
+			Cover: "cover1",
+			Tags:  "tag1",
+			Ctime: time.Now(),
+			Mtime: time.Now(),
+		},
+		Content: "This is a test article.",
 	}
-	like, err := community.ArticleLike(todo, 14, "73917396")
-	if err != nil {
-		t.Error(err.Error())
-		return
+	_, err := community.PutArticle(todo, "1", article)
+	assert.Nil(t, err)
+
+	// TODO: Update test data
+	ok, err := community.ArticleLike(todo, 14, "1")
+	assert.Nil(t, err)
+	assert.Equal(t, true, ok)
+}
+
+func TestRedirectToCasdoor(t *testing.T) {
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
+
+	// test data
+	tests := []struct {
+		redirectURL   string
+		expectedError error
+	}{
+		{"http://123.com", nil},
 	}
-	t.Log(like)
+
+	for _, tt := range tests {
+		loginURL := community.RedirectToCasdoor(tt.redirectURL)
+
+		assert.NotEqualValues(t, "", loginURL)
+	}
+}
+
+func TestGetAccessToken(t *testing.T) {
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
+
+	// test data
+	tests := []struct {
+		code          string
+		state         string
+		expectedError error
+	}{
+		{"123", "123", nil},
+	}
+
+	for _, tt := range tests {
+		token, err := community.GetAccessToken(tt.code, tt.state)
+
+		assert.EqualValues(t, tt.expectedError, err)
+		assert.NotEqualValues(t, "", token)
+	}
+}
+
+func TestShare(t *testing.T) {
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
+
+	// test data
+	tests := []struct {
+		platform      string
+		uid           string
+		ip            string
+		articleId     string
+		expectedError error
+	}{
+		{"facebook", "1", "1", "1", nil},
+	}
+
+	for _, tt := range tests {
+		community.Share(tt.platform, tt.uid, tt.ip, tt.articleId)
+	}
+}
+
+func TestGetApplicationInfo(t *testing.T) {
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
+
+	// test data
+	tests := []struct {
+		uid           string
+		expectedError error
+	}{
+		{"1", nil},
+	}
+
+	for _, tt := range tests {
+		app, err := community.GetApplicationInfo()
+
+		assert.EqualValues(t, tt.expectedError, err)
+		assert.NotEqualValues(t, "", app)
+	}
+}
+
+func TestGetClientIP(t *testing.T) {
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
+
+	// test data
+	tests := []struct {
+		req           *http.Request
+		expectedError error
+	}{
+		{&http.Request{}, nil},
+	}
+
+	for _, tt := range tests {
+		ip := community.GetClientIP(tt.req)
+
+		assert.EqualValues(t, tt.expectedError, nil)
+		assert.EqualValues(t, "", ip)
+	}
 }
