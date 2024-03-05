@@ -945,8 +945,15 @@
         }
 
         function openUnbindPage(url) {
-            let newUrl = "/userUnlink?pv=" + url;
-            window.open(newUrl, '_blank');
+            const requestunlinkOptions = {
+                        method: "GE"
+                    };
+            fetch("/api/user/unlink?pv=" + url, requestunlinkOptions).then(res => {
+                            return res.json();
+                        })
+                        .then(todos => {
+                            window.location.reload()
+                        })
         }
 
         /*======= change theme =======*/
