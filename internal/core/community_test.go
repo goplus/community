@@ -254,6 +254,85 @@ func initClient() {
 				AccessToken: "access_token",
 			}, nil
 		},
+	}
+
+	// Replace S3Service with mock
+	community.S3Service = &mockS3Service{
+		DoNewReader: func(ctx context.Context, key string, opts *blob.ReaderOptions) (_ S3Reader, err error) {
+			return &mockS3Reader{
+				DoRead: func(p []byte) (n int, err error) {
+					return 0, nil
+				},
+				DoClose: func() (err error) {
+					return nil
+				},
+				DoContentType: func() (contentType string) {
+					return ""
+				},
+				DoSize: func() (size int64) {
+					return 0
+				},
+			}, nil
+		},
+		DoNewWriter: func(ctx context.Context, key string, opts *blob.WriterOptions) (_ S3Writer, err error) {
+			return &mockWriter{
+				DoWrite: func(p []byte) (n int, err error) {
+					return 0, nil
+				},
+				DoClose: func() (err error) {
+					return nil
+				},
+			}, nil
+		},
+		DoDelete: func(ctx context.Context, key string) (err error) {
+			return nil
+		},
+	}
+	// Replace CasdoorSDKService with mock
+	community.CasdoorSDKService = &mockCasdoorSDKService{
+		DoGetUser: func(name string) (user *casdoorsdk.User, err error) {
+			return &casdoorsdk.User{
+				Id:          "1",
+				DisplayName: "test",
+			}, nil
+		},
+		DoParseJwtToken: func(token string) (claims *casdoorsdk.Claims, err error) {
+			return &casdoorsdk.Claims{
+				User: casdoorsdk.User{
+					Id:          "1",
+					DisplayName: "test",
+				},
+			}, nil
+		},
+		DoGetUserClaim: func(uid string) (claim *casdoorsdk.User, err error) {
+			return &casdoorsdk.User{
+				Id:          "1",
+				DisplayName: "test",
+			}, nil
+		},
+		DoGetUserByUserId: func(uid string) (user *casdoorsdk.User, err error) {
+			return &casdoorsdk.User{
+				Id:          "1",
+				DisplayName: "test",
+			}, nil
+		},
+		DoGetUserById: func(uid string) (user *casdoorsdk.User, err error) {
+			return &casdoorsdk.User{
+				Id:          "1",
+				DisplayName: "test",
+			}, nil
+		},
+		DoUpdateUser: func(user *UserInfo) (res bool, err error) {
+			return true, nil
+		},
+		DoUpdateUserById: func(uid string, user *UserInfo) (res bool, err error) {
+			return true, nil
+		},
+		DoGetOAuthToken: func(code string, state string) (token *oauth2.Token, err error) {
+			return &oauth2.Token{
+				AccessToken: "access_token",
+			}, nil
+		},
 		DoGetApplication: func(name string) (*casdoorsdk.Application, error) {
 			return &casdoorsdk.Application{
 				Name: "test",

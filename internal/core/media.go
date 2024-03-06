@@ -60,7 +60,7 @@ func (c *Community) DelMedia(ctx context.Context, userId, mediaId string) error 
 	if err != nil {
 		return err
 	}
-	if err := c.bucket.Delete(context.Background(), fileKey); err != nil {
+	if err := c.S3Service.Delete(context.Background(), fileKey); err != nil {
 		return err
 	}
 	// del db media
@@ -176,9 +176,7 @@ func (c *Community) SaveMedia(ctx context.Context, userId string, data []byte, f
 
 // for internal use,no need to add ctx
 func (c *Community) getMediaInfo(fileKey string) (*File, error) {
-
-	bucket := c.bucket
-	r, err := bucket.NewReader(context.Background(), fileKey, nil)
+	r, err := c.S3Service.NewReader(context.Background(), fileKey, nil)
 	defer func() {
 		err = r.Close()
 		if err != nil {
@@ -238,11 +236,11 @@ func GetVideoDuration(url string) (duration string, err error) {
 }
 
 func (c *Community) uploadMedia(fileKey string, data []byte, opts *blob.WriterOptions) error {
-	if c.bucket == nil {
+	if c.S3Service == nil {
 		return nil
 	}
 
-	w, err := c.bucket.NewWriter(context.Background(), fileKey, opts)
+	w, err := c.S3Service.NewWriter(context.Background(), fileKey, nil)
 	if err != nil {
 		return err
 	}

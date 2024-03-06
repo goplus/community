@@ -913,7 +913,7 @@ func (this *community) MainEntry() {
 //line cmd/gopcomm/community_yap.gox:755:1
 		if err != nil {
 //line cmd/gopcomm/community_yap.gox:756:1
-			xLog.Info("Error parsing Referer: %v", err)
+			xLog.Infof("Error parsing Referer: %#v", err)
 //line cmd/gopcomm/community_yap.gox:757:1
 			return
 		}
@@ -945,7 +945,7 @@ func (this *community) MainEntry() {
 //line cmd/gopcomm/community_yap.gox:778:1
 		if err != nil {
 //line cmd/gopcomm/community_yap.gox:779:1
-			xLog.Info("Error parsing Referer: %v", err)
+			xLog.Infof("Error parsing Referer: %#v", err)
 //line cmd/gopcomm/community_yap.gox:780:1
 			return
 		}
@@ -962,7 +962,7 @@ func (this *community) MainEntry() {
 //line cmd/gopcomm/community_yap.gox:791:1
 	this.Get("/login/callback", func(ctx *yap.Context) {
 //line cmd/gopcomm/community_yap.gox:792:1
-		err := core.SetToken(ctx)
+		err := this.community.SetToken(ctx)
 //line cmd/gopcomm/community_yap.gox:793:1
 		if err != nil {
 //line cmd/gopcomm/community_yap.gox:794:1

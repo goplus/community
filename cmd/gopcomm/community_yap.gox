@@ -733,7 +733,7 @@ get "/login", ctx => {
 	// Concatenate the current request page URL from refer
 	refererURL, err := url.Parse(ctx.Request.Referer())
 	if err != nil {
-		xLog.Info("Error parsing Referer: %v", err)
+		xLog.Infof("Error parsing Referer: %#v", err)
 		return
 	}
 
@@ -756,7 +756,7 @@ get "/logout", ctx => {
 
 	refererURL, err := url.Parse(ctx.Request.Referer())
 	if err != nil {
-		xLog.Info("Error parsing Referer: %v", err)
+		xLog.Infof("Error parsing Referer: %#v", err)
 		return
 	}
 
@@ -769,7 +769,7 @@ get "/logout", ctx => {
 }
 
 get "/login/callback", ctx => {
-	err := core.SetToken(ctx)
+	err := community.SetToken(ctx)
 	if err != nil {
 		xLog.Error("set token error:", err)
 	}
