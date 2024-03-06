@@ -32,6 +32,7 @@ type community struct {
 	community *core.Community
 	trans     *translation.Engine
 }
+
 //line cmd/gopcomm/community_yap.gox:30
 func (this *community) MainEntry() {
 //line cmd/gopcomm/community_yap.gox:30:1
@@ -462,9 +463,9 @@ func (this *community) MainEntry() {
 //line cmd/gopcomm/community_yap.gox:367:1
 		id, err = this.community.PutArticle(todo, uid, article)
 //line cmd/gopcomm/community_yap.gox:368:1
-		xLog.Info("sssssssssssssssssssss", err)
-//line cmd/gopcomm/community_yap.gox:369:1
 		if err != nil {
+//line cmd/gopcomm/community_yap.gox:369:1
+			xLog.Info(err)
 //line cmd/gopcomm/community_yap.gox:370:1
 			ctx.Json__1(map[string]interface {
 			}{"code": 0, "err": "add failed"})
