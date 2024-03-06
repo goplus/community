@@ -243,8 +243,7 @@
 
                             <!-- suffix -->
                             <template #suffix>
-                                {{if .User}}
-                                <div class="flex" v-if="UserId === CurrentUser.id">
+                                <div class="flex" v-if="user && user.Id === CurrentUser.id">
                                     <!-- Edit Button -->
                                     <n-button 
                                         tag="a"
@@ -285,7 +284,6 @@
                                         </template>
                                     </n-popconfirm>
                                 </div>
-                                {{end}}
                             </template>
                         </n-list-item>
                     </n-list>
@@ -374,10 +372,9 @@
 
                                 <!-- suffix -->
                                 <template #suffix>
-                                    {{if .User}}
-                                    <div class="flex">
+                                    <div class="flex" v-if="user">
                                         <!-- Regenerate Button -->
-                                            <n-button @click="retryCaptionGenerate({{.UserId}}, item.Id)"
+                                        <n-button @click="retryCaptionGenerate(user.Id, item.Id)"
                                             style="--n-border-radius: 7px; --n-ripple-color: #7ba7d3; 
                                             --n-text-color-hover: #2a82e4; --n-text-color-pressed: #3182ce;
                                             --n-text-color-focus: #2a82e4; --n-border-hover: 1px solid #2a82e4;
@@ -390,7 +387,7 @@
 
                                         <!-- Delete Button -->
                                         <n-popconfirm :show="delVideoId === item.Id"
-                                            v-if="{{.UserId}} === item.UserId">
+                                            v-if="user.Id === CurrentUser.id">
                                             <template #icon>
                                                 <i class="ph-duotone ph-warning" style="color: #f25858;"></i>
                                             </template>
@@ -415,7 +412,6 @@
                                             </template>
                                         </n-popconfirm>
                                     </div>
-                                    {{end}}
                                 </template>
                             </n-list-item>
                         </n-list>
@@ -467,9 +463,8 @@
                                     </div>
                                     <div class="delete">
                                         <div class="image-time">${ item.CreateAt.slice(0,10) }</div>
-                                        {{if .User}}
                                         <n-popconfirm :show="delImageId === item.Id"
-                                            v-if="{{.UserId}} === item.UserId">
+                                            v-if="user && user.Id === CurrentUser.id">
                                             <template #icon>
                                                 <i class="ph-fill ph-siren" style="color: #f25858;"></i>
                                             </template>
@@ -491,7 +486,6 @@
                                                     secondary type="error">Delete</n-button>
                                             </template>
                                         </n-popconfirm>
-                                        {{end}}
                                     </div>
                                 </n-card>
                             </n-gi>
