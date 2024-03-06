@@ -24,6 +24,7 @@
     <link rel="preconnect" href="https://fonts.proxy.ustclug.org">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.proxy.ustclug.org/css2?family=Noto+Sans+SC&display=swap" rel="stylesheet">
+    
     <!-- Plyr组件-->
     <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
 
@@ -35,13 +36,8 @@
     </style>
 
     <!-- markdown -->
-
     <link rel="stylesheet" href="/static/GoplusMarkdown/style.css">
     <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css">
-
-    <!-- Resource Import -->
-    <!-- <script type="module" crossorigin src="/static/assets/index-s63-Szuh.js"></script>
-    <link rel="stylesheet" crossorigin href="/static/assets/index-xg-gy6jf.css"> -->
 </head>
 
 <!-- <script src="https://cdn.plyr.io/3.6.8/plyr.js"></script> -->
@@ -50,15 +46,9 @@
 <script src="/static/GoplusMarkdown/GoplusMarkdown.umd.cjs"></script>
 <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
 
-<script type="importmap">
-    { "imports": { 
-        "vue":        "https://cdnjs.cloudflare.com/ajax/libs/vue/3.2.41/vue.esm-browser.prod.js", 
-        "vue-router": "https://cdnjs.cloudflare.com/ajax/libs/vue-router/4.1.5/vue-router.esm-browser.min.js" 
-    } } 
-</script>
-
 <body>
     {{ template "header" .}}
+
     <div id="app" class="h-full w-full" style="background: url('/static/img/editor-background.svg') top no-repeat;
             background-size: 100% auto;">
         <!-- Header -->
@@ -170,7 +160,8 @@
                         </template>
                         <n-radio-group v-model:value="articleForm.label" name="radiogroup">
                             <n-space>
-                              <n-radio v-for="label in labels" :key="label.value" :value="label.value">
+                              <n-radio v-for="label in labels" :key="label.value" :value="label.value"
+                              :theme-overrides="radioTheme">
                                 ${ label.label }
                               </n-radio>
                             </n-space>
@@ -183,12 +174,12 @@
                             <p class="font-semibold text-gray-900 truncate">Cover</p>
                         </template>
                         <n-upload :max="1" directory-dnd @change="changeCover"
-                            :custom-request="customRequest" :default-file-list="fileList" list-type="image-card">
-                            <n-upload-dragger
-                                style="--n-dragger-border-hover: 1.5px dashed #3182ce; border-radius: 7px;">
+                            :custom-request="customRequest" :default-file-list="fileList" 
+                            :theme-overrides="draggerTheme" list-type="image-card">
+                            <n-upload-dragger>
                                 <div class="mb-1">
-                                    <i class="ph-fill ph-folder-notch-plus"
-                                        style="font-size: 70px; color: #808080;"></i>
+                                    <i class="ph-duotone ph-images"
+                                        style="font-size: 40px; color: #808080;"></i>
                                 </div>
                             </n-upload-dragger>
                         </n-upload>
@@ -535,7 +526,6 @@
             } 
 
             showModal.value = true;
-             
         }
 
         function goBack() {
@@ -604,6 +594,16 @@
             railColorActive: '#3182ce',
             boxShadowFocus: '0 0 0 2px #cee1f5'
         }
+        const radioTheme = {
+            dotColorActive: '#3182ce',
+            boxShadowHover: '0 0 0 1px #7ba7d3',
+            boxShadowFocus: '0 0 0 1px #7ba7d3',
+            boxShadowActive: '0 0 0 1px #3182ce'
+        }
+        const draggerTheme = {
+            borderRadius: '7px',
+            draggerBorderHover: '1px dashed #3182ce'
+        }
 
         /*======= register vue component =======*/
         const app = Vue.createApp({
@@ -627,7 +627,9 @@
                     inputTheme,
                     selectTheme,
                     dynamicTagsTheme,
-                    switchTheme
+                    switchTheme,
+                    radioTheme,
+                    draggerTheme
                 }
             },
             methods: {

@@ -30,626 +30,617 @@
 </head>
 
 <body style="background-color: #f7fafc;">
-    <n-config-provider :theme-overrides="themeOverrides">
-        <div id="app" class="h-full w-full pb-4">
-            <!-- <input style="display: none; " id="usertoken" value="{{.usertoken}}" /> -->
+    <div id="app" class="h-full w-full pb-4">
+        <!-- <input style="display: none; " id="usertoken" value="{{.usertoken}}" /> -->
 
-            <!-- Header -->
-            <header class="bg-cover bg-center"
-                style="height: 30vh; background-image: url('./static/img/home-background.png');">
-                <nav class="border-gray-200 px-4 lg:px-6 py-2.5 dark:bg-gray-800">
-                    <div class="flex justify-between items-center">
-                        <!-- LOGO -->
-                        <a href="/" style="width: 35%;">
-                            <img src="./static/img/logo-community-white.png" style="height: 3vh;" class="mr-3"
-                                alt="Go+ Community Logo" />
-                        </a>
+        <!-- Header -->
+        <header class="bg-cover bg-center"
+            style="height: 30vh; background-image: url('./static/img/home-background.png');">
+            <nav class="border-gray-200 px-4 lg:px-6 py-2.5 dark:bg-gray-800">
+                <div class="flex justify-between items-center">
+                    <!-- LOGO -->
+                    <a href="/" style="width: 35%;">
+                        <img src="./static/img/logo-community-white.png" style="height: 3vh;" class="mr-3"
+                            alt="Go+ Community Logo" />
+                    </a>
 
-                        <!-- Search -->
-                        <div style="width: 30%;">
-                            <n-input-group>
-                                <n-input v-model:value="searchValue" round :style="{ width: '80%' }"
-                                    placeholder="Explore Community" clearable size="large" style="--n-caret-color: #3182ce; --n-border-hover: 1px solid white;
-                                    --n-border-focus: 1px solid white; --n-box-shadow-focus: 0 0 0 1px white;"
-                                    @keypress.enter="handleSearch">
-                                    <template #prefix>
-                                        <i class="ph-bold ph-magnifying-glass"
-                                            style="color: #3182ce; font-size: 15px;"></i>
-                                    </template>
-                                </n-input>
-                                <n-button round strong text-color="white" @click="handleSearch" size="large" style="--n-ripple-color: #bfdbf7; --n-border: 1px solid white;
-                                    --n-border-hover: 1px solid #dfebf7;
-                                    --n-border-pressed: 1px solid #bfdbf7;
-                                    --n-border-focus: 1px solid #dfebf7;">
-                                    Search
-                                </n-button>
-                            </n-input-group>
+                    <!-- Search -->
+                    <div style="width: 30%;">
+                        <n-input-group>
+                            <n-input v-model:value="searchValue" round :style="{ width: '80%' }"
+                                placeholder="Explore Community" clearable size="large" style="--n-caret-color: #3182ce; --n-border-hover: 1px solid white;
+                                --n-border-focus: 1px solid white; --n-box-shadow-focus: 0 0 0 1px white;"
+                                @keypress.enter="handleSearch">
+                                <template #prefix>
+                                    <i class="ph-bold ph-magnifying-glass"
+                                        style="color: #3182ce; font-size: 15px;"></i>
+                                </template>
+                            </n-input>
+                            <n-button round strong text-color="white" @click="handleSearch" size="large" style="--n-ripple-color: #bfdbf7; --n-border: 1px solid white;
+                                --n-border-hover: 1px solid #dfebf7;
+                                --n-border-pressed: 1px solid #bfdbf7;
+                                --n-border-focus: 1px solid #dfebf7;">
+                                Search
+                            </n-button>
+                        </n-input-group>
+                    </div>
+
+                    <!-- Account -->
+                    <div style="width: 35%;" class="flex justify-end">
+                        <div v-if="user">
+                            <n-button  class="mr-3" color="#f7fafc" style="--n-text-color: white;
+                                --n-text-color-hover: #3182ce; --n-text-color-pressed: #3182ce;
+                                --n-text-color-focus: #3182ce" @click="writeArticle">
+                                <i class="ph ph-pencil-line" style="font-size: 18px; margin-right: 5px;"></i>
+                                Write an Article
+                            </n-button>
+                            <n-dropdown :options="userOptions" trigger="hover" width="150" @select="selectDropdown">
+                                <n-avatar round :src="user.Avatar || '/static/img/gop-avatar.png'" style="cursor: pointer;"></n-avatar>
+                            </n-dropdown>
                         </div>
-
-                        <!-- Account -->
-                        <div style="width: 35%;" class="flex justify-end">
-                            <div v-if="user">
-                                <n-button  class="mr-3" color="#f7fafc" style="--n-text-color: white;
-                                    --n-text-color-hover: #3182ce; --n-text-color-pressed: #3182ce;
-                                    --n-text-color-focus: #3182ce" @click="writeArticle">
-                                    <i class="ph ph-pencil-line" style="font-size: 18px; margin-right: 5px;"></i>
-                                    Write an Article
-                                </n-button>
-                                <n-dropdown :options="userOptions" trigger="hover" width="150" @select="selectDropdown">
-                                    <n-avatar round :src="user.Avatar || '/static/img/gop-avatar.png'" style="cursor: pointer;"></n-avatar>
-                                </n-dropdown>
-                            </div>
-                            <div v-else>
-                                <n-button  quaternary color="white" @click="signIn">
-                                    <template #icon>
-                                        <i class="ph-bold ph-user"></i>
-                                    </template>
-                                    Sign In
-                                </n-button>
-                            </div>
+                        <div v-else>
+                            <n-button  quaternary color="white" @click="signIn">
+                                <template #icon>
+                                    <i class="ph-bold ph-user"></i>
+                                </template>
+                                Sign In
+                            </n-button>
                         </div>
                     </div>
-                </nav>
-            </header>
+                </div>
+            </nav>
+        </header>
 
-            <!-- NavBar -->
-            <div class="container px-5 py-6 mx-auto" style="margin-top: -12%;">
-                <n-tabs type="segment" animated v-model:value="tabName" @update:value="onChangeTab"
-                    style="border-radius: 10px;
-                    --n-tab-border-radius: 7px; --n-tab-font-weight-active: 600; --n-tab-gap: 10px;
-                    --n-color-segment: #dfebf7; --n-tab-padding: 5% 0; --n-tab-font-size: 17px;
-                    --n-tab-text-color-active: #3182ce; --n-tab-text-color-hover: #6ea8de;">
-                    <!-- Article -->
-                    <n-tab-pane name="article">
-                        <template #tab>
-                            <img src="./static/img/logo-blog.svg" width="25" height="25" class="mr-3">
-                            ARTICLE
-                        </template>
-                        <!-- Content -->
-                        <div class="container px-5 py-2 mx-auto bg-white rounded-lg"
-                            style="box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05);">
-                            <!-- Empty Status -->
-                            <section v-if="articleList.article === null || articleList.article.length === 0">
-                                <div class="flex w-full flex-col items-center justify-center rounded-lg p-8">
-                                    <div style="margin-top:200px;">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 fill-current text-gray-500"
-                                            viewBox="0 0 24 24">
-                                            <path fill-rule="evenodd"
-                                                d="M0 3.75A.75.75 0 01.75 3h7.497c1.566 0 2.945.8 3.751 2.014A4.496 4.496 0 0115.75 3h7.5a.75.75 0 01.75.75v15.063a.75.75 0 01-.755.75l-7.682-.052a3 3 0 00-2.142.878l-.89.891a.75.75 0 01-1.061 0l-.902-.901a3 3 0 00-2.121-.879H.75a.75.75 0 01-.75-.75v-15zm11.247 3.747a3 3 0 00-3-2.997H1.5V18h6.947a4.5 4.5 0 012.803.98l-.003-11.483zm1.503 11.485V7.5a3 3 0 013-3h6.75v13.558l-6.927-.047a4.5 4.5 0 00-2.823.971z">
-                                            </path>
-                                        </svg>
-                                    </div>
-
-                                    <div class="mt-8 text-center">
-                                        <h1 v-else class="text-4xl"> Have no data!</h1>
-                                    </div>
-
-                                    <button
-                                        class="mt-2 block rounded-lg bg-transparent py-1.5 px-4 font-medium text-blue-600 transition-colors hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50">
-                                        <a href="/">
-                                            Go to add article
-                                        </a>
-                                    </button>
+        <!-- NavBar -->
+        <div class="container px-5 py-6 mx-auto" style="margin-top: -12%;">
+            <n-tabs type="segment" animated v-model:value="tabName" @update:value="onChangeTab"
+                style="border-radius: 10px;
+                --n-tab-border-radius: 7px; --n-tab-font-weight-active: 600; --n-tab-gap: 10px;
+                --n-color-segment: #dfebf7; --n-tab-padding: 5% 0; --n-tab-font-size: 17px;
+                --n-tab-text-color-active: #3182ce; --n-tab-text-color-hover: #6ea8de;">
+                <!-- Article -->
+                <n-tab-pane name="article">
+                    <template #tab>
+                        <img src="./static/img/logo-blog.svg" width="25" height="25" class="mr-3">
+                        ARTICLE
+                    </template>
+                    <!-- Content -->
+                    <div class="container px-5 py-2 mx-auto bg-white rounded-lg"
+                        style="box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05);">
+                        <!-- Empty Status -->
+                        <section v-if="articleList.article === null || articleList.article.length === 0">
+                            <div class="flex w-full flex-col items-center justify-center rounded-lg p-8">
+                                <div style="margin-top:200px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 fill-current text-gray-500"
+                                        viewBox="0 0 24 24">
+                                        <path fill-rule="evenodd"
+                                            d="M0 3.75A.75.75 0 01.75 3h7.497c1.566 0 2.945.8 3.751 2.014A4.496 4.496 0 0115.75 3h7.5a.75.75 0 01.75.75v15.063a.75.75 0 01-.755.75l-7.682-.052a3 3 0 00-2.142.878l-.89.891a.75.75 0 01-1.061 0l-.902-.901a3 3 0 00-2.121-.879H.75a.75.75 0 01-.75-.75v-15zm11.247 3.747a3 3 0 00-3-2.997H1.5V18h6.947a4.5 4.5 0 012.803.98l-.003-11.483zm1.503 11.485V7.5a3 3 0 013-3h6.75v13.558l-6.927-.047a4.5 4.5 0 00-2.823.971z">
+                                        </path>
+                                    </svg>
                                 </div>
-                            </section>
 
-                            <!-- Article List -->
-                            <n-list hoverable v-else>
-                                <!-- Article List Item -->
-                                <n-list-item v-for="(item, i) in articleList.article" class="py-3">
-                                    <!-- left part -->
-                                    <div style="width: 75%;">
-                                        <!-- Title -->
-                                        <div class="text-xl text-gray-900 mb-2" style="font-weight: 500;">
-                                            <a :href="'/article/' + item.ID">
-                                                <p>${ item.Title }</p>
-                                            </a>
-                                        </div>
-
-                                        <!-- Tags -->
-                                        <div class="flex flex-row items-center" v-if="item.Tags">
-                                            <!-- A Tag -->
-                                            <div class="flex flex-row items-center mr-2" v-for="(tag, i) in item.Tags.split(';')">
-                                                <i class="ph-duotone ph-hash" style="color: #3182ce; font-size: 17px;"></i>
-                                                <p class="text-sm ml-1 mr-2">
-                                                    <a class="text-sm" :href="'/search?value=' + tag + '&label=article'">
-                                                        ${ tag }
-                                                    </a>
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <!-- Description -->
-                                        <p class="ellipsis">
-                                            ${ item.Abstract }
-                                        </p>
-
-                                        <!-- Avatar & Nick Name & Update Time -->
-                                        <div class="flex items-center absolute bottom-4">
-                                            <a class="flex items-center" :href="'/user/' + item.User.Id">
-                                                <!-- Avatar -->
-                                                <n-avatar class="mr-2" round :size="28" :src="item.User.Avatar || './static/img/gop-avatar.png'"></n-avatar>
-
-                                                <!-- Nick Name -->
-                                                <p class="mr-2" style="font-size: 15px;">${ item.User.Name }</p>
-                                            </a>
-
-                                            <!-- Update Time -->
-                                            <span class="text-sm" style="color: #A0AEC0;">
-                                                · 
-                                                <span class="ml-1">${ item.Ctime.slice(0,10) }</span>
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <!-- right part -->
-                                    <div style="width: 20%;">
-                                        <!-- Image -->
-                                        <img class="w-full object-cover rounded-lg" style="height: 15vh;" :src="item.Cover || './static/img/default-cover.jpg'" alt="">
-
-
-                                        <!-- Data -->
-                                        <div class="flex justify-center items-center mt-2" style="height: 2vh;">
-                                            <!-- Views -->
-                                            <div class="flex justify-center items-center" style="width: 40%;">
-                                                <i class="ph-duotone ph-eye" style="color: #7ba7d3; font-size: 18px;"></i>
-                                                <span class="ml-1 text-sm"> ${ item.ViewCount }</span>
-                                            </div>
-
-                                            <!-- Likes -->
-                                            <div class="flex justify-center items-center" style="width: 40%;">
-                                                <i class="ph-duotone ph-heart" style="color: #df8282; font-size: 18px;"></i>
-                                                <span class="ml-1 text-sm"> ${ item.LikeCount }</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </n-list-item>
-                            </n-list>
-
-                            <n-back-top :right="50" style="--n-icon-color: #3182ce; --n-icon-color-hover: #d3dfe9;
-                    --n-icon-color-pressed: #3182ce;">
-                                <i class="ph-duotone ph-arrow-line-up" style="color: #3182ce; font-size: 25px;"></i>
-                            </n-back-top>
-                            <!-- Loading Status -->
-                            <div class="mt-2 text-center" key="span">
-                                <n-spin v-if="!isBottom.article" :key="spin" size="small" stroke="#3182ce"></n-spin>
-                                <span v-if="!haveMoreData.article" class="text-xs text-gray-400">No more data🙌</span>
-                            </div>
-                        </div>
-                    </n-tab-pane>
-
-                    <!-- Video -->
-                    <n-tab-pane name="video">
-                        <template #tab>
-                            <img src="./static/img/logo-video.svg" width="25" height="25" class="mr-3">
-                            VIDEO
-                        </template>
-                        <!-- Content -->
-                        <div class="container px-5 py-2 mx-auto bg-white rounded-lg"
-                            style="box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05);">
-                            <!-- Empty Status -->
-                            <section v-if="articleList.video === null || articleList.video.length === 0">
-                                <div class="flex w-full flex-col items-center justify-center rounded-lg p-8">
-                                    <div style="margin-top:200px;">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 fill-current text-gray-500"
-                                            viewBox="0 0 24 24">
-                                            <path fill-rule="evenodd"
-                                                d="M0 3.75A.75.75 0 01.75 3h7.497c1.566 0 2.945.8 3.751 2.014A4.496 4.496 0 0115.75 3h7.5a.75.75 0 01.75.75v15.063a.75.75 0 01-.755.75l-7.682-.052a3 3 0 00-2.142.878l-.89.891a.75.75 0 01-1.061 0l-.902-.901a3 3 0 00-2.121-.879H.75a.75.75 0 01-.75-.75v-15zm11.247 3.747a3 3 0 00-3-2.997H1.5V18h6.947a4.5 4.5 0 012.803.98l-.003-11.483zm1.503 11.485V7.5a3 3 0 013-3h6.75v13.558l-6.927-.047a4.5 4.5 0 00-2.823.971z">
-                                            </path>
-                                        </svg>
-                                    </div>
-
-                                    <div class="mt-8 text-center">
-                                        <h1 v-if="!isBottom.video" class="text-4xl"> Loading data...</h1>
-                                        <h1 v-else class="text-4xl"> Have no data!</h1>
-                                    </div>
-
-                                    <button
-                                        class="mt-2 block rounded-lg bg-transparent py-1.5 px-4 font-medium text-blue-600 transition-colors hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50">
-                                        <a href="/">
-                                            Go to add article
-                                        </a>
-                                    </button>
+                                <div class="mt-8 text-center">
+                                    <h1 v-else class="text-4xl"> Have no data!</h1>
                                 </div>
-                            </section>
 
-                            <!-- Article List -->
-                            <n-list hoverable v-else>
-                                <!-- Article List Item -->
-                                <n-list-item v-for="(item, i) in articleList.video">
-                                    <!-- left part -->
-                                    <div style="width: 80%;">
-                                        <!-- Title -->
-                                        <div class="text-xl font-semibold text-gray-900 title-font mb-1">
-                                            <a :href="'/article/' + item.ID">
-                                                <p>${ item.Title }</p>
-                                            </a>
-                                        </div>
-
-                                        <!-- Tags -->
-                                        <div class="flex flex-row items-center" v-if="item.Tags">
-                                            <!-- A Tag -->
-                                            <div class="flex flex-row items-center mr-2" v-for="(tag, i) in item.Tags.split(';')">
-                                                <i class="ph-duotone ph-hash" style="color: #3182ce; font-size: 17px;"></i>
-                                                <div>
-                                                    <a class="text-sm" :href="'/search?value=' + tag + '&label=video'">
-                                                        ${ tag }
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Description -->
-                                        <p class="leading-7 mt-1 mb-2" style="color: #6b7280; line-height: normal;">
-                                            ${ item.Abstract }
-                                        </p>
-
-                                        <!-- Avatar & Nick Name & Update Time -->
-                                        <div class="flex items-center absolute bottom-4">
-                                            <a class="flex items-center" :href="'/user/' + item.User.Id">
-                                                <!-- Avatar -->
-                                                <n-avatar class="mr-2" round :size="25" :src="item.User.Avatar || './static/img/gop-avatar.png'"></n-avatar>
-
-                                                <!-- Nick Name -->
-                                                <p class="text-sm font-medium mr-1 text-black">${ item.User.Name }</p>
-                                            </a>
-
-                                            <!-- Update Time -->
-                                            <span class="text-xs" style="color: #A0AEC0;">
-                                                · ${ item.Ctime.slice(0,10) }
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <!-- right part -->
-                                    <div style="width: 20%;">
-                                        <!-- Image -->
-                                        <img class="w-full object-cover rounded-lg" style="height: 15vh;" :src="item.Cover || './static/img/default-cover.jpg'" alt="">
-
-                                        <!-- Data -->
-                                        <div class="flex justify-center items-center mt-2" style="height: 2vh;">
-                                            <!-- Views -->
-                                            <div class="flex justify-center items-center" style="width: 40%;">
-                                                <i class="ph-duotone ph-eye" style="color: #6091d2;"></i>
-                                                <span class="ml-1 text-sm">${ item.ViewCount }</span>
-                                            </div>
-
-                                            <!-- Likes -->
-                                            <div class="flex justify-center items-center" style="width: 40%;">
-                                                <i class="ph-duotone ph-thumbs-up" style="color: #6091d2;"></i>
-                                                <span class="ml-1 text-sm">${ item.LikeCount }</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </n-list-item>
-                            </n-list>
-
-                            <n-back-top :right="50" style="--n-icon-color: #3182ce; --n-icon-color-hover: #d3dfe9;
-                    --n-icon-color-pressed: #3182ce;">
-                                <i class="ph-duotone ph-arrow-line-up" style="color: #3182ce; font-size: 25px;"></i>
-                            </n-back-top>
-
-                            <!-- Loading Status -->
-                            <div class="mt-2 text-center" key="span">
-                                <n-spin v-if="!isBottom.video" :key="spin" size="small" stroke="#3182ce"></n-spin>
-                                <span v-if="!haveMoreData.video" class="text-xs text-gray-400">No more data🙌</span>
+                                <button
+                                    class="mt-2 block rounded-lg bg-transparent py-1.5 px-4 font-medium text-blue-600 transition-colors hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50">
+                                    <a href="/">
+                                        Go to add article
+                                    </a>
+                                </button>
                             </div>
-                        </div>
-                    </n-tab-pane>
+                        </section>
 
-                    <!-- STEM -->
-                    <n-tab-pane name="stem">
-                        <template #tab>
-                            <img src="./static/img/logo-stem.svg" width="25" height="25" class="mr-3">
-                            STEM
-                        </template>
-                        <!-- Content -->
-                        <div class="container px-5 py-2 mx-auto bg-white rounded-lg"
-                            style="box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05);">
-                            <!-- Empty Status -->
-                            <section v-if="articleList.stem === null || articleList.stem.length === 0">
-                                <div class="flex w-full flex-col items-center justify-center rounded-lg p-8">
-                                    <div style="margin-top:200px;">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 fill-current text-gray-500"
-                                            viewBox="0 0 24 24">
-                                            <path fill-rule="evenodd"
-                                                d="M0 3.75A.75.75 0 01.75 3h7.497c1.566 0 2.945.8 3.751 2.014A4.496 4.496 0 0115.75 3h7.5a.75.75 0 01.75.75v15.063a.75.75 0 01-.755.75l-7.682-.052a3 3 0 00-2.142.878l-.89.891a.75.75 0 01-1.061 0l-.902-.901a3 3 0 00-2.121-.879H.75a.75.75 0 01-.75-.75v-15zm11.247 3.747a3 3 0 00-3-2.997H1.5V18h6.947a4.5 4.5 0 012.803.98l-.003-11.483zm1.503 11.485V7.5a3 3 0 013-3h6.75v13.558l-6.927-.047a4.5 4.5 0 00-2.823.971z">
-                                            </path>
-                                        </svg>
-                                    </div>
-
-                                    <div class="mt-8 text-center">
-                                        <h1 v-if="!isBottom.stem" class="text-4xl"> Loading data...</h1>
-                                        <h1 v-else class="text-4xl"> Have no data!</h1>
-                                    </div>
-
-                                    <button
-                                        class="mt-2 block rounded-lg bg-transparent py-1.5 px-4 font-medium text-blue-600 transition-colors hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50">
-                                        <a href="/">
-                                            Go to add article
+                        <!-- Article List -->
+                        <n-list hoverable v-else>
+                            <!-- Article List Item -->
+                            <n-list-item v-for="(item, i) in articleList.article" class="py-3">
+                                <!-- left part -->
+                                <div style="width: 75%;">
+                                    <!-- Title -->
+                                    <div class="text-xl text-gray-900 mb-2" style="font-weight: 500;">
+                                        <a :href="'/article/' + item.ID">
+                                            <p>${ item.Title }</p>
                                         </a>
-                                    </button>
+                                    </div>
+
+                                    <!-- Tags -->
+                                    <div class="flex flex-row items-center" v-if="item.Tags">
+                                        <!-- A Tag -->
+                                        <div class="flex flex-row items-center mr-2" v-for="(tag, i) in item.Tags.split(';')">
+                                            <i class="ph-duotone ph-hash" style="color: #3182ce; font-size: 17px;"></i>
+                                            <p class="text-sm ml-1 mr-2">
+                                                <a class="text-sm" :href="'/search?value=' + tag + '&label=article'">
+                                                    ${ tag }
+                                                </a>
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Description -->
+                                    <p class="ellipsis">
+                                        ${ item.Abstract }
+                                    </p>
+
+                                    <!-- Avatar & Nick Name & Update Time -->
+                                    <div class="flex items-center absolute bottom-4">
+                                        <a class="flex items-center" :href="'/user/' + item.User.Id">
+                                            <!-- Avatar -->
+                                            <n-avatar class="mr-2" round :size="28" :src="item.User.Avatar || './static/img/gop-avatar.png'"></n-avatar>
+
+                                            <!-- Nick Name -->
+                                            <p class="mr-2" style="font-size: 15px;">${ item.User.Name }</p>
+                                        </a>
+
+                                        <!-- Update Time -->
+                                        <span class="text-sm" style="color: #A0AEC0;">
+                                            · 
+                                            <span class="ml-1">${ item.Ctime.slice(0,10) }</span>
+                                        </span>
+                                    </div>
                                 </div>
-                            </section>
 
-                            <!-- Article List -->
-                            <n-list hoverable v-else>
-                                <!-- Article List Item -->
-                                <n-list-item v-for="(item, i) in articleList.stem">
-                                    <!-- left part -->
-                                    <div style="width: 80%;">
-                                        <!-- Title -->
-                                        <div class="text-xl font-semibold text-gray-900 title-font mb-1">
-                                            <a :href="'/article/' + item.ID">
-                                                <p>${ item.Title }</p>
-                                            </a>
+                                <!-- right part -->
+                                <div style="width: 20%;">
+                                    <!-- Image -->
+                                    <img class="w-full object-cover rounded-lg" style="height: 17vh;" :src="item.Cover || './static/img/default-cover.jpg'" alt="">
+
+                                    <!-- Data -->
+                                    <div class="flex justify-center items-center mt-2" style="height: 2vh;">
+                                        <!-- Views -->
+                                        <div class="flex justify-center items-center" style="width: 40%;">
+                                            <i class="ph-duotone ph-eye" style="color: #7ba7d3; font-size: 18px;"></i>
+                                            <span class="ml-1 text-sm"> ${ item.ViewCount }</span>
                                         </div>
 
-                                        <!-- Tags -->
-                                        <div class="flex flex-row items-center" v-if="item.Tags">
-                                            <!-- A Tag -->
-                                            <div class="flex flex-row items-center mr-2" v-for="(tag, i) in item.Tags.split(';')">
-                                                <i class="ph-duotone ph-hash" style="color: #3182ce; font-size: 17px;"></i>
-                                                <div>
-                                                    <a class="text-sm" :href="'/search?value=' + tag + '&label=stem'">
-                                                        ${ tag }
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Description -->
-                                        <p class="leading-7 mt-1 mb-2" style="color: #6b7280; line-height: normal;">
-                                            ${ item.Abstract }
-                                        </p>
-
-                                        <!-- Avatar & Nick Name & Update Time -->
-                                        <div class="flex items-center absolute bottom-4">
-                                            <a class="flex items-center" :href="'/user/' + item.User.Id">
-                                                <!-- Avatar -->
-                                                <n-avatar class="mr-2" round :size="25" :src="item.User.Avatar || './static/img/gop-avatar.png'"></n-avatar>
-
-                                                <!-- Nick Name -->
-                                                <p class="text-sm font-medium mr-1 text-black">${ item.User.Name }</p>
-                                            </a>
-
-                                            <!-- Update Time -->
-                                            <span class="text-xs" style="color: #A0AEC0;">
-                                                · ${ item.Ctime.slice(0,10) }
-                                            </span>
+                                        <!-- Likes -->
+                                        <div class="flex justify-center items-center" style="width: 40%;">
+                                            <i class="ph-duotone ph-heart" style="color: #df8282; font-size: 18px;"></i>
+                                            <span class="ml-1 text-sm"> ${ item.LikeCount }</span>
                                         </div>
                                     </div>
+                                </div>
+                            </n-list-item>
+                        </n-list>
 
-                                    <!-- right part -->
-                                    <div style="width: 20%;">
-                                        <!-- Image -->
-                                        <img class="w-full object-cover rounded-lg" style="height: 15vh;" :src="item.Cover || './static/img/default-cover.jpg'" alt="">                                        
-
-                                        <!-- Data -->
-                                        <div class="flex justify-center items-center mt-2" style="height: 2vh;">
-                                            <!-- Views -->
-                                            <div class="flex justify-center items-center" style="width: 40%;">
-                                                <i class="ph-duotone ph-eye" style="color: #6091d2;"></i>
-                                                <span class="ml-1 text-sm">${ item.ViewCount }</span>
-                                            </div>
-
-                                            <!-- Likes -->
-                                            <div class="flex justify-center items-center" style="width: 40%;">
-                                                <i class="ph-duotone ph-thumbs-up" style="color: #6091d2;"></i>
-                                                <span class="ml-1 text-sm">${ item.LikeCount }</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </n-list-item>
-                            </n-list>
-
-                            <n-back-top :right="50" style="--n-icon-color: #3182ce; --n-icon-color-hover: #d3dfe9;
-                    --n-icon-color-pressed: #3182ce;">
-                                <i class="ph-duotone ph-arrow-line-up" style="color: #3182ce; font-size: 25px;"></i>
-                            </n-back-top>
-
-                            <!-- Loading Status -->
-                            <div class="mt-2 text-center" key="span">
-                                <n-spin v-if="!isBottom.stem" :key="spin" size="small" stroke="#3182ce"></n-spin>
-                                <span v-if="!haveMoreData.stem" class="text-xs text-gray-400">No more data🙌</span>
-                            </div>
+                        <n-back-top :right="50" style="--n-icon-color: #3182ce; --n-icon-color-hover: #d3dfe9;
+                --n-icon-color-pressed: #3182ce;">
+                            <i class="ph-duotone ph-arrow-line-up" style="color: #3182ce; font-size: 25px;"></i>
+                        </n-back-top>
+                        <!-- Loading Status -->
+                        <div class="mt-2 text-center" key="span">
+                            <n-spin v-if="!isBottom.article" :key="spin" size="small" stroke="#3182ce"></n-spin>
+                            <span v-if="!haveMoreData.article" class="text-xs text-gray-400">No more data🙌</span>
                         </div>
-                    </n-tab-pane>
-                </n-tabs>
-            </div>
+                    </div>
+                </n-tab-pane>
+
+                <!-- Video -->
+                <n-tab-pane name="video">
+                    <template #tab>
+                        <img src="./static/img/logo-video.svg" width="25" height="25" class="mr-3">
+                        VIDEO
+                    </template>
+                    <!-- Content -->
+                    <div class="container px-5 py-2 mx-auto bg-white rounded-lg"
+                        style="box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05);">
+                        <!-- Empty Status -->
+                        <section v-if="articleList.video === null || articleList.video.length === 0">
+                            <div class="flex w-full flex-col items-center justify-center rounded-lg p-8">
+                                <div style="margin-top:200px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 fill-current text-gray-500"
+                                        viewBox="0 0 24 24">
+                                        <path fill-rule="evenodd"
+                                            d="M0 3.75A.75.75 0 01.75 3h7.497c1.566 0 2.945.8 3.751 2.014A4.496 4.496 0 0115.75 3h7.5a.75.75 0 01.75.75v15.063a.75.75 0 01-.755.75l-7.682-.052a3 3 0 00-2.142.878l-.89.891a.75.75 0 01-1.061 0l-.902-.901a3 3 0 00-2.121-.879H.75a.75.75 0 01-.75-.75v-15zm11.247 3.747a3 3 0 00-3-2.997H1.5V18h6.947a4.5 4.5 0 012.803.98l-.003-11.483zm1.503 11.485V7.5a3 3 0 013-3h6.75v13.558l-6.927-.047a4.5 4.5 0 00-2.823.971z">
+                                        </path>
+                                    </svg>
+                                </div>
+
+                                <div class="mt-8 text-center">
+                                    <h1 v-if="!isBottom.video" class="text-4xl"> Loading data...</h1>
+                                    <h1 v-else class="text-4xl"> Have no data!</h1>
+                                </div>
+
+                                <button
+                                    class="mt-2 block rounded-lg bg-transparent py-1.5 px-4 font-medium text-blue-600 transition-colors hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50">
+                                    <a href="/">
+                                        Go to add article
+                                    </a>
+                                </button>
+                            </div>
+                        </section>
+
+                        <!-- Article List -->
+                        <n-list hoverable v-else>
+                            <!-- Article List Item -->
+                            <n-list-item v-for="(item, i) in articleList.video">
+                                <!-- left part -->
+                                <div style="width: 80%;">
+                                    <!-- Title -->
+                                    <div class="text-xl font-semibold text-gray-900 title-font mb-1">
+                                        <a :href="'/article/' + item.ID">
+                                            <p>${ item.Title }</p>
+                                        </a>
+                                    </div>
+
+                                    <!-- Tags -->
+                                    <div class="flex flex-row items-center" v-if="item.Tags">
+                                        <!-- A Tag -->
+                                        <div class="flex flex-row items-center mr-2" v-for="(tag, i) in item.Tags.split(';')">
+                                            <i class="ph-duotone ph-hash" style="color: #3182ce; font-size: 17px;"></i>
+                                            <div>
+                                                <a class="text-sm" :href="'/search?value=' + tag + '&label=video'">
+                                                    ${ tag }
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Description -->
+                                    <p class="leading-7 mt-1 mb-2" style="color: #6b7280; line-height: normal;">
+                                        ${ item.Abstract }
+                                    </p>
+
+                                    <!-- Avatar & Nick Name & Update Time -->
+                                    <div class="flex items-center absolute bottom-4">
+                                        <a class="flex items-center" :href="'/user/' + item.User.Id">
+                                            <!-- Avatar -->
+                                            <n-avatar class="mr-2" round :size="25" :src="item.User.Avatar || './static/img/gop-avatar.png'"></n-avatar>
+
+                                            <!-- Nick Name -->
+                                            <p class="text-sm font-medium mr-1 text-black">${ item.User.Name }</p>
+                                        </a>
+
+                                        <!-- Update Time -->
+                                        <span class="text-xs" style="color: #A0AEC0;">
+                                            · ${ item.Ctime.slice(0,10) }
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- right part -->
+                                <div style="width: 20%;">
+                                    <!-- Image -->
+                                    <img class="w-full object-cover rounded-lg" style="height: 17vh;" :src="item.Cover || './static/img/default-cover.jpg'" alt="">
+
+                                    <!-- Data -->
+                                    <div class="flex justify-center items-center mt-2" style="height: 2vh;">
+                                        <!-- Views -->
+                                        <div class="flex justify-center items-center" style="width: 40%;">
+                                            <i class="ph-duotone ph-eye" style="color: #6091d2;"></i>
+                                            <span class="ml-1 text-sm">${ item.ViewCount }</span>
+                                        </div>
+
+                                        <!-- Likes -->
+                                        <div class="flex justify-center items-center" style="width: 40%;">
+                                            <i class="ph-duotone ph-thumbs-up" style="color: #6091d2;"></i>
+                                            <span class="ml-1 text-sm">${ item.LikeCount }</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </n-list-item>
+                        </n-list>
+
+                        <n-back-top :right="50" style="--n-icon-color: #3182ce; --n-icon-color-hover: #d3dfe9;
+                --n-icon-color-pressed: #3182ce;">
+                            <i class="ph-duotone ph-arrow-line-up" style="color: #3182ce; font-size: 25px;"></i>
+                        </n-back-top>
+
+                        <!-- Loading Status -->
+                        <div class="mt-2 text-center" key="span">
+                            <n-spin v-if="!isBottom.video" :key="spin" size="small" stroke="#3182ce"></n-spin>
+                            <span v-if="!haveMoreData.video" class="text-xs text-gray-400">No more data🙌</span>
+                        </div>
+                    </div>
+                </n-tab-pane>
+
+                <!-- STEM -->
+                <n-tab-pane name="stem">
+                    <template #tab>
+                        <img src="./static/img/logo-stem.svg" width="25" height="25" class="mr-3">
+                        STEM
+                    </template>
+                    <!-- Content -->
+                    <div class="container px-5 py-2 mx-auto bg-white rounded-lg"
+                        style="box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05);">
+                        <!-- Empty Status -->
+                        <section v-if="articleList.stem === null || articleList.stem.length === 0">
+                            <div class="flex w-full flex-col items-center justify-center rounded-lg p-8">
+                                <div style="margin-top:200px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 fill-current text-gray-500"
+                                        viewBox="0 0 24 24">
+                                        <path fill-rule="evenodd"
+                                            d="M0 3.75A.75.75 0 01.75 3h7.497c1.566 0 2.945.8 3.751 2.014A4.496 4.496 0 0115.75 3h7.5a.75.75 0 01.75.75v15.063a.75.75 0 01-.755.75l-7.682-.052a3 3 0 00-2.142.878l-.89.891a.75.75 0 01-1.061 0l-.902-.901a3 3 0 00-2.121-.879H.75a.75.75 0 01-.75-.75v-15zm11.247 3.747a3 3 0 00-3-2.997H1.5V18h6.947a4.5 4.5 0 012.803.98l-.003-11.483zm1.503 11.485V7.5a3 3 0 013-3h6.75v13.558l-6.927-.047a4.5 4.5 0 00-2.823.971z">
+                                        </path>
+                                    </svg>
+                                </div>
+
+                                <div class="mt-8 text-center">
+                                    <h1 v-if="!isBottom.stem" class="text-4xl"> Loading data...</h1>
+                                    <h1 v-else class="text-4xl"> Have no data!</h1>
+                                </div>
+
+                                <button
+                                    class="mt-2 block rounded-lg bg-transparent py-1.5 px-4 font-medium text-blue-600 transition-colors hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50">
+                                    <a href="/">
+                                        Go to add article
+                                    </a>
+                                </button>
+                            </div>
+                        </section>
+
+                        <!-- Article List -->
+                        <n-list hoverable v-else>
+                            <!-- Article List Item -->
+                            <n-list-item v-for="(item, i) in articleList.stem">
+                                <!-- left part -->
+                                <div style="width: 80%;">
+                                    <!-- Title -->
+                                    <div class="text-xl font-semibold text-gray-900 title-font mb-1">
+                                        <a :href="'/article/' + item.ID">
+                                            <p>${ item.Title }</p>
+                                        </a>
+                                    </div>
+
+                                    <!-- Tags -->
+                                    <div class="flex flex-row items-center" v-if="item.Tags">
+                                        <!-- A Tag -->
+                                        <div class="flex flex-row items-center mr-2" v-for="(tag, i) in item.Tags.split(';')">
+                                            <i class="ph-duotone ph-hash" style="color: #3182ce; font-size: 17px;"></i>
+                                            <div>
+                                                <a class="text-sm" :href="'/search?value=' + tag + '&label=stem'">
+                                                    ${ tag }
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Description -->
+                                    <p class="leading-7 mt-1 mb-2" style="color: #6b7280; line-height: normal;">
+                                        ${ item.Abstract }
+                                    </p>
+
+                                    <!-- Avatar & Nick Name & Update Time -->
+                                    <div class="flex items-center absolute bottom-4">
+                                        <a class="flex items-center" :href="'/user/' + item.User.Id">
+                                            <!-- Avatar -->
+                                            <n-avatar class="mr-2" round :size="25" :src="item.User.Avatar || './static/img/gop-avatar.png'"></n-avatar>
+
+                                            <!-- Nick Name -->
+                                            <p class="text-sm font-medium mr-1 text-black">${ item.User.Name }</p>
+                                        </a>
+
+                                        <!-- Update Time -->
+                                        <span class="text-xs" style="color: #A0AEC0;">
+                                            · ${ item.Ctime.slice(0,10) }
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- right part -->
+                                <div style="width: 20%;">
+                                    <!-- Image -->
+                                    <img class="w-full object-cover rounded-lg" style="height: 17vh;" :src="item.Cover || './static/img/default-cover.jpg'" alt="">                                        
+
+                                    <!-- Data -->
+                                    <div class="flex justify-center items-center mt-2" style="height: 2vh;">
+                                        <!-- Views -->
+                                        <div class="flex justify-center items-center" style="width: 40%;">
+                                            <i class="ph-duotone ph-eye" style="color: #6091d2;"></i>
+                                            <span class="ml-1 text-sm">${ item.ViewCount }</span>
+                                        </div>
+
+                                        <!-- Likes -->
+                                        <div class="flex justify-center items-center" style="width: 40%;">
+                                            <i class="ph-duotone ph-thumbs-up" style="color: #6091d2;"></i>
+                                            <span class="ml-1 text-sm">${ item.LikeCount }</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </n-list-item>
+                        </n-list>
+
+                        <n-back-top :right="50" style="--n-icon-color: #3182ce; --n-icon-color-hover: #d3dfe9;
+                --n-icon-color-pressed: #3182ce;">
+                            <i class="ph-duotone ph-arrow-line-up" style="color: #3182ce; font-size: 25px;"></i>
+                        </n-back-top>
+
+                        <!-- Loading Status -->
+                        <div class="mt-2 text-center" key="span">
+                            <n-spin v-if="!isBottom.stem" :key="spin" size="small" stroke="#3182ce"></n-spin>
+                            <span v-if="!haveMoreData.stem" class="text-xs text-gray-400">No more data🙌</span>
+                        </div>
+                    </div>
+                </n-tab-pane>
+            </n-tabs>
         </div>
+    </div>
 
-        <script>
-            const { reactive, toRefs, ref, h } = Vue;
+    <script>
+        const { reactive, toRefs, ref, h } = Vue;
 
-            const user = {{.User}}
-            const articles = {{.Items}}
-            const value = {{.Value}}
-            const goNext = {{.Next}}
-            const tab = {{.Tab}}
+        const user = {{.User}}
+        const articles = {{.Items}}
+        const value = {{.Value}}
+        const goNext = {{.Next}}
+        const tab = {{.Tab}}
 
-            /*======= user related =======*/
-            function signIn() {
-                window.location.href = '/login';
-            };
+        /*======= user related =======*/
+        function signIn() {
+            window.location.href = '/login';
+        };
 
-            function writeArticle() {
-                window.location.href = '/add';
-            };
+        function writeArticle() {
+            window.location.href = '/add';
+        };
 
-            const userOptions = [
-                {
-                    label: "User Profile",
-                    key: "profile"
-                },
-                {
-                    key: "divider",
-                    type: "divider"
-                },
-                {
-                    label: "Sign Out",
-                    key: "exit"
+        const userOptions = [
+            {
+                label: "User Profile",
+                key: "profile"
+            },
+            {
+                key: "divider",
+                type: "divider"
+            },
+            {
+                label: "Sign Out",
+                key: "exit"
+            }
+        ];
+
+        function selectDropdown(key) {
+            if (key === 'profile') {
+                if (user.Id !== "") {
+                    window.location.href = `/user/${user.Id}`;
                 }
-            ];
+            } else if (key === 'exit') {
+                window.location.href = '/logout';
+            }
+        };
 
-            function selectDropdown(key) {
-                if (key === 'profile') {
-                    if (user.Id !== "") {
-                        window.location.href = `/user/${user.Id}`;
+        function onChangeTab(tab) {
+            tabName = tab
+            console.log("tab", tab)
+            if (!get.value[tab]){
+                loadMore()
+            }
+        }
+
+        /*======= load more data after reaching bottom =======*/
+        // const videoGet = ref(false);
+        // const stemGet = ref(false);
+        const videoList = ref([]);
+        const stemList = ref([]);
+        const articleList = ref({
+            article: articles,
+            video: [],
+            stem: [],
+        });
+        // const isBottom = ref(true);
+
+        const next = ref({
+            article: goNext,
+            video: "",
+            stem: "",
+        })
+        const haveMoreData = ref({
+            article: next.value.article === "eof" ? false : true,
+            video: next.value.video === "eof" ? false : true,
+            stem: next.value.stem === "eof" ? false : true,
+        })
+        const isBottom = ref({
+            article: true,
+            video: true,
+            stem: true,
+        })
+        const get = ref({
+            article: true,
+            video: false,
+            stem: false
+        })
+        // const next = ref("{{.Next}}"); // the page size
+        // const haveMoreData = next.value === "eof" ? ref(false) : ref(true);
+        // const haveMoreVideo = videoNext.value === "eof" ? ref(false) : ref(true);
+        // const haveMoreStem = stemNext.value === "eof" ? ref(false) : ref(true);
+
+        const searchValue = ref(value || "")
+
+        let tabName = tab ||"article"
+
+        function listenBottom() {
+            let scrollTop = window.scrollY;
+            let clientHeight = document.documentElement.clientHeight;
+            let scrollHeight = document.documentElement.scrollHeight;
+            if (isBottom.value[tabName] && haveMoreData.value[tabName] && scrollTop + clientHeight + 10 >= scrollHeight) {
+
+                // reaching bottom detected
+                loadMore();
+            }
+        }
+
+        function loadMore() {
+            console.log('Reach bottom! next is ', next.value[tabName], '. Loading more...');
+
+            // load more data into articleList
+            if (next.value[tabName] !== "eof") {
+                isBottom.value[tabName] = false;
+                window.setTimeout(() => {
+                    const protocolAndHost = window.location.protocol + "//" + window.location.host;
+                    const url = new URL(`${protocolAndHost}/api/articles`)
+                    url.searchParams.set('from', next.value[tabName])
+                    url.searchParams.set('label', tabName)
+                    const searchValue = value
+                    if (searchValue) {
+                        url.searchParams.set('value', encodeURIComponent(searchValue))
                     }
-                } else if (key === 'exit') {
-                    window.location.href = '/logout';
-                }
-            };
-
-            function onChangeTab(tab) {
-                tabName = tab
-                console.log("tab", tab)
-                if (!get.value[tab]){
-                    loadMore()
-                }
-            }
-
-            /*======= load more data after reaching bottom =======*/
-            // const videoGet = ref(false);
-            // const stemGet = ref(false);
-            const videoList = ref([]);
-            const stemList = ref([]);
-            const articleList = ref({
-                article: articles,
-                video: [],
-                stem: [],
-            });
-            // const isBottom = ref(true);
-
-            const next = ref({
-                article: goNext,
-                video: "",
-                stem: "",
-            })
-            const haveMoreData = ref({
-                article: next.value.article === "eof" ? false : true,
-                video: next.value.video === "eof" ? false : true,
-                stem: next.value.stem === "eof" ? false : true,
-            })
-            const isBottom = ref({
-                article: true,
-                video: true,
-                stem: true,
-            })
-            const get = ref({
-                article: true,
-                video: false,
-                stem: false
-            })
-            // const next = ref("{{.Next}}"); // the page size
-            // const haveMoreData = next.value === "eof" ? ref(false) : ref(true);
-            // const haveMoreVideo = videoNext.value === "eof" ? ref(false) : ref(true);
-            // const haveMoreStem = stemNext.value === "eof" ? ref(false) : ref(true);
-
-            const searchValue = ref(value || "")
-
-            let tabName = tab ||"article"
-
-            function listenBottom() {
-                let scrollTop = window.scrollY;
-                let clientHeight = document.documentElement.clientHeight;
-                let scrollHeight = document.documentElement.scrollHeight;
-                if (isBottom.value[tabName] && haveMoreData.value[tabName] && scrollTop + clientHeight + 10 >= scrollHeight) {
-
-                    // reaching bottom detected
-                    loadMore();
-                }
-            }
-
-            function loadMore() {
-                console.log('Reach bottom! next is ', next.value[tabName], '. Loading more...');
-
-                // load more data into articleList
-                if (next.value[tabName] !== "eof") {
-                    isBottom.value[tabName] = false;
-                    window.setTimeout(() => {
-                        const protocolAndHost = window.location.protocol + "//" + window.location.host;
-                        const url = new URL(`${protocolAndHost}/api/articles`)
-                        url.searchParams.set('from', next.value[tabName])
-                        url.searchParams.set('label', tabName)
-                        const searchValue = value
-                        if (searchValue) {
-                            url.searchParams.set('value', encodeURIComponent(searchValue))
-                        }
-                        // console.log("url", url)
-                        // load a new page of articles, and append it to the articleList
-                        fetch(url)
-                            .then(res => {
-                                return res.json();
-                            })
-                            .then(todos => {
-                                if (todos.code === 200) {
-                                    console.log("todos.next", todos.next)
-                                    articleList.value[tabName].push(...todos.items);
-                                    next.value[tabName] = todos.next;
-                                    if (todos.next === "eof") {
-                                        haveMoreData.value[tabName] = false;
-                                    }
-                                    isBottom.value[tabName] = true
+                    // console.log("url", url)
+                    // load a new page of articles, and append it to the articleList
+                    fetch(url)
+                        .then(res => {
+                            return res.json();
+                        })
+                        .then(todos => {
+                            if (todos.code === 200) {
+                                console.log("todos.next", todos.next)
+                                articleList.value[tabName].push(...todos.items);
+                                next.value[tabName] = todos.next;
+                                if (todos.next === "eof") {
+                                    haveMoreData.value[tabName] = false;
                                 }
-                            });
-                    }, 500)
-                } else {
-                    isBottom.value[tabName] = true
-                    haveMoreData.value[tabName] = false;
-                }
-            };
-
-            function handleSearch() {
-                const protocolAndHost = window.location.protocol + "//" + window.location.host;
-                const url = new URL(`${protocolAndHost}/search`)
-                url.searchParams.set('value', encodeURIComponent(searchValue.value))
-
-                window.location.href = url
+                                isBottom.value[tabName] = true
+                            }
+                        });
+                }, 500)
+            } else {
+                isBottom.value[tabName] = true
+                haveMoreData.value[tabName] = false;
             }
+        };
 
-            /*======= register vue component =======*/
-            const app = Vue.createApp({
-                mounted() {
-                    window.addEventListener('scroll', listenBottom, true);
-                },
-                destroyed() {
-                    window.removeEventListener('scroll', listenBottom, false)
-                },
-                data() {
-                    return {
-                        userOptions,
-                        articleList,
-                        isBottom,
-                        haveMoreData,
-                        searchValue,
-                        tabName,
-                        user
-                    }
-                },
-                methods: {
-                    signIn,
-                    writeArticle,
-                    selectDropdown,
-                    listenBottom,
-                    loadMore,
-                    handleSearch,
-                    onChangeTab
+        function handleSearch() {
+            const protocolAndHost = window.location.protocol + "//" + window.location.host;
+            const url = new URL(`${protocolAndHost}/search`)
+            url.searchParams.set('value', encodeURIComponent(searchValue.value))
+
+            window.location.href = url
+        }
+
+        /*======= register vue component =======*/
+        const app = Vue.createApp({
+            mounted() {
+                window.addEventListener('scroll', listenBottom, true);
+            },
+            destroyed() {
+                window.removeEventListener('scroll', listenBottom, false)
+            },
+            data() {
+                return {
+                    userOptions,
+                    articleList,
+                    isBottom,
+                    haveMoreData,
+                    searchValue,
+                    tabName,
+                    user
                 }
-            });
+            },
+            methods: {
+                signIn,
+                writeArticle,
+                selectDropdown,
+                listenBottom,
+                loadMore,
+                handleSearch,
+                onChangeTab
+            }
+        });
 
-            app.use(naive)
-            app.config.compilerOptions.delimiters = ['${', '}']
-            app.mount('#app')
-        </script>
-    </n-config-provider>
-
-    <!-- Footer -->
-    <!-- <p class="fixed bottom-0 left-1/2 transform -translate-x-1/2" style="font-size: xx-small;">
-        ©2024, provided by
-        <a href="https://www.qiniu.com/" target="_blank" style="color: #3182ce;">Qiniu Tech</a>
-    </p> -->
+        app.use(naive)
+        app.config.compilerOptions.delimiters = ['${', '}']
+        app.mount('#app')
+    </script>
 </body>
 
 </html>
