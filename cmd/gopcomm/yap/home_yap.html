@@ -67,19 +67,20 @@
 
                     <!-- Account -->
                     <div style="width: 35%;" class="flex justify-end">
-                        <div v-if="user">
-                            <n-button  class="mr-3" color="#f7fafc" style="--n-text-color: white;
+                        <div v-if="user" class="flex items-center">
+                            <n-button class="mr-3" color="#f7fafc" style="--n-text-color: white;
                                 --n-text-color-hover: #3182ce; --n-text-color-pressed: #3182ce;
                                 --n-text-color-focus: #3182ce" @click="writeArticle">
                                 <i class="ph ph-pencil-line" style="font-size: 18px; margin-right: 5px;"></i>
                                 Write an Article
                             </n-button>
+                            
                             <n-dropdown :options="userOptions" trigger="hover" width="150" @select="selectDropdown">
                                 <n-avatar round :src="user.Avatar || '/static/img/gop-avatar.png'" style="cursor: pointer;"></n-avatar>
                             </n-dropdown>
                         </div>
                         <div v-else>
-                            <n-button  quaternary color="white" @click="signIn">
+                            <n-button quaternary color="white" @click="signIn">
                                 <template #icon>
                                     <i class="ph-bold ph-user"></i>
                                 </template>
