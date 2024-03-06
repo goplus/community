@@ -1,13 +1,14 @@
 <script setup>
 
 </script>
+    
 <template>
+    
     <div id="markdown-container"></div>
 </template>
 <script>
 import Cherry from 'cherry-markdown'
 import axios from 'axios'
-
 
 import Plyr from 'plyr';
 import 'plyr/dist/plyr.css'
@@ -188,7 +189,10 @@ function urlProcessor(url, srcType) {
         
 function afterChange(text, html) {
     this.content = text
-    const p = new Plyr('video', {captions: {active: true}});
+    let video = document.querySelectorAll('video');
+    for (var i = 0; i < video.length; i++) {
+        const player = new Plyr(video[i], {captions: {active: true, update: true, language: 'en'}});
+    }
 }
 
 function onCopyCode(event, code) {
@@ -257,6 +261,7 @@ function initCherryMD(value, config) {
                     if(matchResult[1]){
                         vtt_src = matchResult[1].replace("(","").replace(")","")
                     }
+                    const p = new Plyr('video', {captions: {active: true}});
                     return `<div><video controls="" crossorigin="" playsinline="" data-poster=${poster}><source src=${video_src} type=${fileType} size="576"/><track kind="captions" label="English" srclang="en" src=${vtt_src} default/><a href=${video_src} download>Download</a></video></div>`
                     
                 } else {
@@ -270,7 +275,8 @@ function initCherryMD(value, config) {
         rule(str) {
             return {
                 // reg: /^!video.*.mp4\)/
-                reg: /^!video.*\)/
+                // reg: /^!video.*\)/
+                reg: /!video\[.*?\]\(.*?\)\(.*?\)/g
             }
         },
     });
@@ -416,6 +422,10 @@ function initCherryMD(value, config) {
                     src: 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js', // 如果使用MathJax plugins，则需要使用该url通过script标签引入
                     plugins: true // 默认加载插件
                 },
+                toc: {
+                    /** 默认只渲染一个目录 */
+                    allowMultiToc: false,
+                },
                 header: {
                     /**
                      * 标题的样式：
@@ -429,10 +439,6 @@ function initCherryMD(value, config) {
                     engine: 'MathJax',
                     // katex或MathJax
                     src: 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js' // 如果使用MathJax plugins，则需要使用该url通过script标签引入
-                },
-                toc: {
-                    /** 默认只渲染一个目录 */
-                    allowMultiToc: false
                 },
                 header: {
                     /**
@@ -504,8 +510,12 @@ function initCherryMD(value, config) {
                 'color'
             ],
             // array or false
-            "float": ['h1', 'h2', 'h3', '|', 'checklist', 'quote', 'quickTable', 'code'], // array or false
-            sidebar: ['mobilePreview', 'theme'], // 'copy',
+            float: ['h1', 'h2', 'h3', '|', 'checklist', 'quote', 'quickTable', 'code'], // array or false
+            toc: {
+              updateLocationHash: false, // 要不要更新URL的hash
+              defaultModel: 'full', // pure: 精简模式/缩略模式，只有一排小点； full: 完整模式，会展示所有标题
+            },
+            sidebar: ['mobilePreview', 'theme', 'copy'], // 'copy',
             customMenu: {
                 // customMenuAName: customMenuA,
                 // customMenuBName: customMenuB,

@@ -22,7 +22,7 @@
                     Home
                 </div>
             </n-breadcrumb-item>
-            <n-breadcrumb-item href="/user/{{.User.Id}}">
+            <n-breadcrumb-item :href="'/user/'+user.Id">
                 <div class="flex items-center">
                     <div>
                         <span></span>
@@ -207,13 +207,16 @@
 
     <script>
         const { reactive, toRefs, ref, h } = Vue;
+        
+        const userProfile = ref({{.CurrentUser}}) 
+        const application = {{.Application}}
+        const accountBinds = {{.Binds}}
+        const user = {{.User}}
 
         /*======= user =======*/
-        const userProfile = ref(JSON.parse("{{.CurrentUser}}"))
         if (userProfile.value.birthday === "" || userProfile.value.birthday === "undefined"){
             userProfile.value.birthday = undefined
         }
-        console.log(userProfile)
         const genderOptions = [
             {
                 label: "Male",
@@ -312,7 +315,6 @@
         function editProfile() {
             this.$refs.formRef?.validate((errors) => {
                 if (!errors) {
-                    console.log(userProfile.value)
                     userProfile.value.avatar = avatarUrl
                     const formData = objectToFormData(userProfile.value);
 
@@ -326,7 +328,6 @@
                             return res.json();
                         })
                         .then(todos => {
-                            console.log("todos", todos)
                             if (todos.code === 200) {
                                 window.location.href = "/user/" + userProfile.value.id
                             }
@@ -336,8 +337,7 @@
         }
 
         /*======= account =======*/
-        const application = JSON.parse("{{.Application}}")
-        const accountBinds = JSON.parse("{{.Binds}}")
+
 
         const authInfo = {
             Google: {
@@ -1045,6 +1045,7 @@
                     userProfile,
                     genderOptions,
                     fileList,
+                    user,
                     accountList: [
                         {
                             img: "static/img/social_github.png",

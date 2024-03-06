@@ -1,187 +1,284 @@
 <script setup>
 
 </script>
-<template>
-    <div>
-        <div v-html="content"></div>
-        <!-- <div>{{ message }}</div> -->
-    </div>
-</template>
+
 <script>
-import CherryEngine from 'cherry-markdown/dist/cherry-markdown.engine.core'
-// import Plyr from 'plyr';
-// import 'plyr/dist/plyr.css'
-const cherryEngineInstance = new CherryEngine();
+import Plyr from 'plyr';
+import 'plyr/dist/plyr.css'
+
+var cherrInstance = null
+
+var vtt_src = ""
+
+let fileType = "video/mp4"
+
+
+function initCherryMD(value, config) {
+    var defaultValue = value || ""
+
+    var myBlockHook = Cherry.createSyntaxHook('myBlock', Cherry.constants.HOOKS_TYPE_LIST.PAR, {
+        makeHtml(str) {
+            return str.replace(this.RULE.reg, function(whole, m1) {
+                // []
+                const regexType = /\[(.*?)\]/g; 
+                const matchType = whole.match(regexType); // 使用 match 函数进行匹配
+                if (matchType){
+                    fileType = matchType[0].replace("[","").replace("]","")
+                }
+                // ()
+                console.log("all video ", whole)
+                const regex = /\((.*?)\)/g; // 定义正则表达式，其中 \() 表示左括号，(.*?) 表示非贪婪模式匹配任意字符，\)) 表示右括号
+                const matchResult = whole.match(regex); // 使用 match 函数进行匹配
+                if (matchResult) {
+                    let video_src = matchResult[0].replace("(","").replace(")","")
+                    console.log("video src", video_src)
+                    let poster = video_src + "/vframe/jpg/offset/7"
+                    if(matchResult[1]){
+                        vtt_src = matchResult[1].replace("(","").replace(")","")
+                    }
+                    const p = new Plyr('video', {captions: {active: true}});
+                    return `<div><video controls="" crossorigin="" playsinline="" data-poster=${poster}><source src=${video_src} type=${fileType} size="576"/><track kind="captions" label="English" srclang="en" src=${vtt_src} default/><a href=${video_src} download>Download</a></video></div>`
+                    
+                } else {
+                    console.log("can't match ()");
+                    let r = "show video failed"
+                    return `<div style="border: 1px solid;border-radius: 15px;background: gold;">${r}</div>`;
+                }
+            });
+        },
+        
+        rule(str) {
+            return {
+                // reg: /^!video.*.mp4\)/
+                // reg: /^!video.*\)/
+                reg: /!video\[.*?\]\(.*?\)\(.*?\)/g
+            }
+        },
+    });
+
+    // import 'https://unpkg.com/vue@2.6.12/dist/vue.min.js'
+    var CustomHookA = Cherry.createSyntaxHook('important', Cherry.constants.HOOKS_TYPE_LIST.SEN, {
+        makeHtml(str) {
+            console.log("custom hook", str)
+            return str.replace(this.RULE.reg, function(whole, m1, m2) {
+                return `<span style="color: green;"><strong>${m2}</strong></span>`;
+            });
+        },
+        rule(str) {
+            console.log("rule", str)
+            return { reg: /(\*\*\*)([^\*]+)\1/g };
+        },
+    })
+    
+    cherrInstance = new Cherry({
+        id: 'markdown-container',                    
+        value: defaultValue,
+        customSyntax: {
+            importHook: {
+                syntaxClass: CustomHookA, // 将自定义语法对象挂载到 importHook.syntaxClass上
+                force: true, // true： 当cherry自带的语法中也有一个“importHook”时，用自定义的语法覆盖默认语法； false：不覆盖
+                before: 'fontEmphasis', // 定义该自定义语法的执行顺序，当前例子表明在加粗/斜体语法前执行该自定义语法
+            },
+            myBlock: {
+                syntaxClass: myBlockHook,
+                force: true,
+                before: 'blockquote',
+            },
+        },
+        externals: { // externals
+        },
+        // 解析引擎配置
+        engine: {
+            global: {
+                urlProcessor(url, srcType) {
+                    console.log(`url-processor`, url, srcType);
+                    return url;
+                },
+            },
+            // 内置语法配置
+            syntax: {
+                // 语法开关
+                // 'hookName': false,
+                // 语法配置
+                // 'hookName': {
+                //
+                // }
+                autoLink: {
+                    /** 是否开启短链接 */
+                    enableShortLink: true,
+    
+                    /** 短链接长度 */
+                    shortLinkLength: 20
+                },
+                list: {
+                    listNested: false,
+                    // 同级列表类型转换后变为子级
+                    indentSpace: 2 // 默认2个空格缩进
+                },
+                table: {
+                    enableChart: false // chartRenderEngine: EChartsTableEngine,
+                    // externals: ['echarts'],
+
+                },
+                inlineCode: {
+                    theme: 'red'
+                },
+                codeBlock: {
+                    theme: 'dark',
+                    // 默认为深色主题
+                    wrap: true,
+                    // 超出长度是否换行，false则显示滚动条
+                    lineNumber: true,
+                    // 默认显示行号
+                    copyCode: true,
+                    // 是否显示“复制”按钮
+                    customRenderer: { // 自定义语法渲染器
+                        // 创建自定义渲染函数
+                        gop: {
+                            render: (src, sign, cherryEnding)=> {
+                                console.log("custom render", src)
+                                // return `<p style="color: red">${src}</p>`;
+                                return `<goplus-code half-code language="gop" style="width: 85vw">${src}</goplus-code>`;
+                            }
+                        }
+                    },
+                    mermaid: {
+                        svg2img: false, // 是否将mermaid生成的画图变成img格式
+                    },
+                    indentedCodeBlock: true
+                },
+                emoji: {
+                    useUnicode: false, // 是否使用unicode进行渲染
+                    customResourceURL: 'https://github.githubassets.com/images/icons/emoji/unicode/${code}.png?v8',
+                    upperCase: true,
+                },
+                fontEmphasis: {
+                    /**
+                     * 是否允许首尾空格
+                     * 首尾、前后的定义： 语法前**语法首+内容+语法尾**语法后
+                     * 例：
+                     *    true:
+                     *           __ hello __  ====>   <strong> hello </strong>
+                     *           __hello__    ====>   <strong>hello</strong>
+                     *    false:
+                     *           __ hello __  ====>   <em>_ hello _</em>
+                     *           __hello__    ====>   <strong>hello</strong>
+                     */
+                    allowWhitespace: false
+                },
+                strikethrough: {
+                    /**
+                     * 是否必须有前后空格
+                     * 首尾、前后的定义： 语法前**语法首+内容+语法尾**语法后
+                     * 例：
+                     *    true:
+                     *            hello wor~~l~~d     ====>   hello wor~~l~~d
+                     *            hello wor ~~l~~ d   ====>   hello wor <del>l</del> d
+                     *    false:
+                     *            hello wor~~l~~d     ====>   hello wor<del>l</del>d
+                     *            hello wor ~~l~~ d     ====>   hello wor <del>l</del> d
+                     */
+                    needWhitespace: false
+                },
+                mathBlock: {
+                    engine: 'MathJax',
+                    // katex或MathJax
+                    src: 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js', // 如果使用MathJax plugins，则需要使用该url通过script标签引入
+                    plugins: true // 默认加载插件
+                },
+                toc: {
+                    /** 默认只渲染一个目录 */
+                    allowMultiToc: false,
+                },
+                header: {
+                    /**
+                     * 标题的样式：
+                     *  - default       默认样式，标题前面有锚点
+                     *  - autonumber    标题前面有自增序号锚点
+                     *  - none          标题没有锚点
+                     */
+                    anchorStyle: 'default',
+                },
+                inlineMath: {
+                    engine: 'MathJax',
+                    // katex或MathJax
+                    src: 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js' // 如果使用MathJax plugins，则需要使用该url通过script标签引入
+                },
+                header: {
+                    /**
+                     * 标题的样式：
+                     *  - default       默认样式，标题前面有锚点
+                     *  - autonumber    标题前面有自增序号锚点
+                     *  - none          标题没有锚点
+                     */
+                    anchorStyle: 'default'
+                }
+            },
+            customSyntax: {
+                myBlock: {
+                    syntaxClass: myBlockHook,
+                    before: 'blockquote',
+                },
+            },
+        },
+        toolbars: {
+            toolbar: false,
+        },
+        editor: {
+            defaultModel: 'previewOnly',
+        },
+        previewer: {
+            // 自定义markdown预览区域class
+            className: 'viewer'
+        },
+        keydown: [],
+        // 外层容器不存在时，是否强制输出到body上
+        forceAppend: true,
+        // The locale Cherry is going to use. Locales live in /src/locales/
+        locale: "en_US",
+    })
+
+}
 
 export default {
         name: "MarkdownViewer",
         props: {
-            "md": String
+            "md": String    
         },
         components: {
             
         },
         data() {
-            return {
-                content: "",
-                vtts: [],
-                videos: [],
-                types: [],
-            }
         },
         watch: {
             md(newValue) {
-                console.log("update markdown", newValue)
-                this.computeOut(newValue)
-
+                cherrInstance.setMarkdown(newValue)
             }
         },
         beforeMount() {
-            this.computeOut(this.md)
+           initCherryMD(this.md)
         },
         mounted() {
-
+        //    this.insert()
 
         },
         methods: {  
-            computeOut(md) {
-                // const cherryEngineInstance = new CherryEngine();
-                var html = this.getVttfile(md)
-                console.log("++++++++", html)
-                var htmlContent = cherryEngineInstance.makeHtml(html);
-                console.log("html content", htmlContent)
-                htmlContent = this.replaceVideo(htmlContent)
-                htmlContent = this.replaceGoplus(htmlContent)
-                this.content = htmlContent
-                console.log("result", htmlContent)
-            },  
-            replaceVideo(htmlContent) {
-                var regex = /<video(.*?)<\/video>/g
-                var matches = htmlContent.match(regex); // 使用match()函数获取匹配结果
-                console.log("m", matches)
-                let now_s = this.videos
-                let now_v = this.vtts
-                let now_t = this.types
-                if(matches) {
-                    for(let i=0; i<matches.length; i++) {
-                        console.log("match", matches[i])
-                        // htmlContent = htmlContent.replace(matches[i], "video replace" )
-                        htmlContent = htmlContent.replace(matches[i], function(h) { 
-                            let src_a = now_s[i]
-                            // console.log("---------", this.videos)
-                            let vtt_a = now_v[i]
-                            let type_a = now_t[i]
-                            console.log("=========duibi", vtt_a, src_a)
-                            // console.log("src", src)
-                            // return `<div><video controls crossorigin playsinline data-poster="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg" id="player"><source src=${src_a} type="video/mp4" size="576"/><track kind="captions" label="English" srclang="en" src=${vtt_a} default/><track kind="captions" label="Français" srclang="fr" src=${vtt_a}/><a href=${src_a} download>Download</a></video></div>`
-                            let poster = src_a + "/vframe/jpg/offset/7"
-                            // poster = "https://th.bing.com/th/id/OIP.YwQZJ_SoLGm-kVT-e-Xc2AHaEo?rs=1&pid=ImgDetMain"
-                            return `<div><video controls="" crossorigin="" playsinline="" data-poster=${poster}><source src=${src_a} type=${type_a} size="576"/><track kind="captions" label="English" srclang="en" src=${vtt_a} default/><a href=${src_a} download>Download</a></video></div>`
-
-                        })
-                    }
-                    console.log("replace")
-                } else {
-
-                }
-                return htmlContent
-            },
-            getVttfile(mdContent) {
-                // let reg1 = /^!video.*\)/g
-                let reg1 = /!video(.*?)\((.*?)\)\((.*?)\)/g
-                let sttt = reg1.exec(mdContent)
-                // console.log("sttt", sttt)
-                var replace_vtt = ""
-                if(sttt) {
-                    for(let i = 0; i<sttt.length; i++) {
-                        let p_str = sttt[i]
-                        const regexType = /\[(.*?)\]/g; 
-                        const matchType = p_str.match(regexType); // 使用 match 函数进行匹配
-                        let fileType = "video/mp4"
-                        if (matchType){
-                            fileType = matchType[0].replace("[","").replace("]","")
-                            if (fileType === "video") {
-                                fileType = "video/mp4"
-                            }
-                        }
-                        const regex = /\((.*?)\)/g; // 定义正则表达式，其中 \() 表示左括号，(.*?) 表示非贪婪模式匹配任意字符，\)) 表示右括号
-                        const matchResult = p_str.match(regex); // 使用 match 函数进行匹配
-                        if (matchResult) {
-                            console.log("matchResult" , matchResult);
-                            matchResult[0] = matchResult[0].replace("(", "").replace(")", "")
-                            replace_vtt = mdContent.replace(matchResult[1], "")
-
-                            if (matchResult[1]){
-                                matchResult[1] = matchResult[1].replace("(", "").replace(")", "")
-                                this.vtts.push(matchResult[1])
-                                this.videos.push(matchResult[0])
-                                this.types.push(fileType)
-                                console.log('have vtt', replace_vtt)
-                                
-                            } else{
-                                replace_vtt = mdContent.replace(matchResult[1], "")
-                                this.vtts.push("")
-                                this.videos.push(matchResult[0])
-                                this.types.push(fileType)
-                                console.log('have no vtt', replace_vtt)
-                            }
-                        } 
-                    }
-                    return replace_vtt
-                }
-                
-                console.log(this.videos, this.vtts)
-                return mdContent
-            },
-            replaceGoplus(htmlContent) {    
-                // 获取 data-lang 如果是gop 就进行匹配
-                var regex_l = /data-lang="(.*?)"/
-                var m_lan = htmlContent.match(regex_l)
-                console.log("language", m_lan)
-                if(m_lan) {
-                    // 如果有gop 才替换
-                    if(m_lan[1] == 'gop') {
-                        var regex = /<code(.*?)<\/code>/g
-                        var matches = htmlContent.match(regex); // 使用match()函数获取匹配结果
-                        console.log("goplus")
-                        if(matches) {
-                            for(let i=0; i<matches.length; i++) {
-                                console.log("match", matches[i])
-                                htmlContent = htmlContent.replace(matches[i], function(h) { 
-                                    // var regex1 = /<code(.*?)<\/code>/
-                                    var regex1 = /<code class="language-javascript wrap">(.*?)<\/code>/
-                                    let src = matches[i].match(regex1)[1]
-                                    console.log("src", src)
-                                    var regex2 = /<span class="code-line">(.*?)<\/span>/g
-                                    let s_match = src.match(regex2)
-                                    var iner_src = ""
-                                    if(s_match) {
-                                        for(let i = 0; i<s_match.length; i++) {
-                                            var regex3 = /<span class="code-line">(.*?)<\/span>/
-                                            let temp_s = s_match[i].match(regex3)[1]
-                                            iner_src += temp_s
-                                            iner_src += '\n'
-                                        }
-                                    }
-                                    console.log("iner", iner_src)
-                                    return `<goplus-code half-code language="gop" style="width: 85vw">${iner_src}</goplus-code>`
-                                })
-                            }
-                            console.log(htmlContent)
-                        } 
-                        htmlContent = htmlContent.replace(/<pre(.*?)>/, "")
-                        htmlContent = htmlContent.replace(/<\/pre>/, "")
-                    }
-                }
-                return htmlContent
-            }          
-            
         }
 }
 
-
-
 </script>
   
-<style>
+ <style>
+    #markdown {
+      border: none;
+      background: #ffffff;
+    }
+    .cherry.cherry--no-toolbar .cherry-editor, .cherry.cherry--no-toolbar .cherry-previewer {
+        background: #ffffff;
+        border: none;
+        box-shadow: 0 0px 0px #ffffff;
+    }
+    .cherry{
+        box-shadow: none;
+    }
 </style>

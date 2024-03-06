@@ -32,7 +32,7 @@
 <body style="background-color: #f7fafc;">
     <n-config-provider :theme-overrides="themeOverrides">
         <div id="app" class="h-full w-full pb-4">
-            <input style="display: none; " id="usertoken" value="{{.usertoken}}" />
+            <!-- <input style="display: none; " id="usertoken" value="{{.usertoken}}" /> -->
 
             <!-- Header -->
             <header class="bg-cover bg-center"
@@ -68,28 +68,25 @@
 
                         <!-- Account -->
                         <div style="width: 35%;" class="flex justify-end">
-                            {{if .User}}
-                            <n-button class="mr-3" color="#f7fafc" style="--n-text-color: white;
-                                --n-text-color-hover: #3182ce; --n-text-color-pressed: #3182ce;
-                                --n-text-color-focus: #3182ce" @click="writeArticle">
-                                <i class="ph ph-pencil-line" style="font-size: 18px; margin-right: 5px;"></i>
-                                Write an Article
-                            </n-button>
-                            <n-dropdown :options="userOptions" trigger="hover" width="150" @select="selectDropdown">
-                                {{if .User.Avatar}}
-                                <n-avatar round src="{{ .User.Avatar }}" style="cursor: pointer;"></n-avatar>
-                                {{else}}
-                                <n-avatar round src="/static/img/gop-avatar.png" style="cursor: pointer;"></n-avatar>
-                                {{end}}
-                            </n-dropdown>
-                            {{else}}
-                            <n-button quaternary color="white" @click="signIn">
-                                <template #icon>
-                                    <i class="ph-bold ph-user"></i>
-                                </template>
-                                Sign In
-                            </n-button>
-                            {{end}}
+                            <div v-if="user">
+                                <n-button  class="mr-3" color="#f7fafc" style="--n-text-color: white;
+                                    --n-text-color-hover: #3182ce; --n-text-color-pressed: #3182ce;
+                                    --n-text-color-focus: #3182ce" @click="writeArticle">
+                                    <i class="ph ph-pencil-line" style="font-size: 18px; margin-right: 5px;"></i>
+                                    Write an Article
+                                </n-button>
+                                <n-dropdown :options="userOptions" trigger="hover" width="150" @select="selectDropdown">
+                                    <n-avatar round :src="user.Avatar || '/static/img/gop-avatar.png'" style="cursor: pointer;"></n-avatar>
+                                </n-dropdown>
+                            </div>
+                            <div v-else>
+                                <n-button  quaternary color="white" @click="signIn">
+                                    <template #icon>
+                                        <i class="ph-bold ph-user"></i>
+                                    </template>
+                                    Sign In
+                                </n-button>
+                            </div>
                         </div>
                     </div>
                 </nav>
@@ -465,6 +462,12 @@
         <script>
             const { reactive, toRefs, ref, h } = Vue;
 
+            const user = {{.User}}
+            const articles = {{.Items}}
+            const value = {{.Value}}
+            const goNext = {{.Next}}
+            const tab = {{.Tab}}
+
             /*======= user related =======*/
             function signIn() {
                 window.location.href = '/login';
@@ -491,8 +494,8 @@
 
             function selectDropdown(key) {
                 if (key === 'profile') {
-                    if ("{{.UserId}}" !== "") {
-                        window.location.href = '/user/{{ .UserId }}';
+                    if (user.Id !== "") {
+                        window.location.href = `/user/${user.Id}`;
                     }
                 } else if (key === 'exit') {
                     window.location.href = '/logout';
@@ -502,7 +505,6 @@
             function onChangeTab(tab) {
                 tabName = tab
                 console.log("tab", tab)
-                console.log("get.value[tab]", get.value[tab])
                 if (!get.value[tab]){
                     loadMore()
                 }
@@ -514,14 +516,14 @@
             const videoList = ref([]);
             const stemList = ref([]);
             const articleList = ref({
-                article: JSON.parse("{{.Items}}"),
+                article: articles,
                 video: [],
                 stem: [],
             });
             // const isBottom = ref(true);
 
             const next = ref({
-                article: "{{.Next}}",
+                article: goNext,
                 video: "",
                 stem: "",
             })
@@ -545,9 +547,9 @@
             // const haveMoreVideo = videoNext.value === "eof" ? ref(false) : ref(true);
             // const haveMoreStem = stemNext.value === "eof" ? ref(false) : ref(true);
 
-            const searchValue = ref("{{.Value}}" || "")
+            const searchValue = ref(value || "")
 
-            let tabName = "{{.Tab}}"||"article"
+            let tabName = tab ||"article"
 
             function listenBottom() {
                 let scrollTop = window.scrollY;
@@ -571,7 +573,7 @@
                         const url = new URL(`${protocolAndHost}/api/articles`)
                         url.searchParams.set('from', next.value[tabName])
                         url.searchParams.set('label', tabName)
-                        const searchValue = "{{.Value}}"
+                        const searchValue = value
                         if (searchValue) {
                             url.searchParams.set('value', encodeURIComponent(searchValue))
                         }
@@ -622,7 +624,8 @@
                         isBottom,
                         haveMoreData,
                         searchValue,
-                        tabName
+                        tabName,
+                        user
                     }
                 },
                 methods: {

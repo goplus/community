@@ -326,11 +326,13 @@
     </div>
 
     <script>
-        const p = new Plyr('video', { captions: { active: true } });
+        // const p = new Plyr('video', { captions: { active: true } });
 
         // import '/static/GoplusMarkdown/vue-plyr.css'
 
         const { reactive, toRefs, ref, h } = Vue;
+
+        const goArticle = {{.Article}}
 
         /*======= article info =======*/
         const showBothNotice = ref(false);
@@ -377,8 +379,7 @@
 
         // edit
         const isAdd = window.location.href.indexOf("edit") !== -1 ? ref(false) : ref(true)
-        const article = isAdd.value ? {} : JSON.parse("{{.Article}}")
-        console.log("article", article)
+        const article = isAdd.value ? {} : goArticle
         // article.Cover = "https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg"
         const fileList = (isAdd.value || article.Cover === '') ? ref([]) : ref([{
             id: "cover",
@@ -482,7 +483,6 @@
 
         function customRequest(option) {
             canSubmit.value = false
-            console.log("option", option)
             const file = option.file
             const coverData = new FormData();
             coverData.append('file', file.file);
@@ -499,7 +499,6 @@
                     return res.json();
                 })
                 .then(todos => {
-                    console.log("cover", todos)
                     fetch('/api/media/' + todos + "/url")
                         .then(resUrl => {
                             return resUrl.json();
@@ -531,7 +530,7 @@
             let template = document.createElement('div');
             template.innerHTML = cherryHtml;
             const firstParagraph = template.querySelector('p[data-type="p"]')
-            if (firstParagraph) {
+            if (isAdd.value && firstParagraph) {
                 articleForm.value.abstract = firstParagraph.innerText.trim().slice(0,100) || "";
             } 
 
@@ -691,6 +690,13 @@
 <style>
     a:hover {
         color: #3182ce;
+    }
+    .cherry-markdown ul li, .cherry-markdown ol li {
+        list-style: disc;
+    }
+
+    .cherry .cherry-highlight-line {
+        background-color: #cee4f9;
     }
 
     body {
