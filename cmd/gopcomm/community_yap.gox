@@ -491,7 +491,6 @@ put "/api/user", ctx => {
 
 get "/api/user/unlink", ctx => {
 	pv := ctx.param("pv")
-	println("unlink")
 	token, err := core.GetToken(ctx)
 	if err != nil {
 		ctx.json {
@@ -836,7 +835,6 @@ run(endpoint, func(h http.Handler) http.Handler {
 		defer func() {
 
 			if err := recover(); err != nil {
-				println(err)
 				xLog.Error(err)
 				http.Redirect(w, r, "/failed", http.StatusFound)
 			}
