@@ -17,17 +17,19 @@
 package translation
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"net/url"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/qiniu/go-sdk/v7/auth"
+	"github.com/qiniu/go-sdk/v7/client"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/text"
@@ -51,12 +53,26 @@ const (
 	userAgent   = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 )
 
+// HTTPClient for translation, for mock
+type NiuTransClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
+// QiNiuSDKClient for qiniu, for mock
+type QiNiuSDKClient interface {
+	CredentialedCallWithJson(ctx context.Context, cred *auth.Credentials, tokenType auth.TokenType, ret interface{},
+		method, reqUrl string, headers http.Header, param interface{}) error
+}
+
 // Engine is the config of translation server
 type Engine struct {
 	translationAPIKey string            // api key of translation server
 	qiniuAccessKey    string            // access key of qiniu
 	qiniuSecretKey    string            // secret key of qiniu
 	qiniuCred         *auth.Credentials // credentials of qiniu
+
+	HTTPClient     NiuTransClient // http client for translation
+	QiNiuSDKClient QiNiuSDKClient // qiniu client
 }
 
 // translateResponse is the response of translation server
@@ -66,6 +82,15 @@ type translateResponse struct {
 	TgtText string `json:"tgt_text"`
 }
 
+// translateErrorResponse is the error response of translation server
+type translateErrorResponse struct {
+	ErrorCode string `json:"error_code"`
+	ErrorMsg  string `json:"error_msg"`
+	From      string `json:"from"`
+	To        string `json:"to"`
+	SrcText   string `json:"src_text"`
+}
+
 // New create a new TranslateConfig
 func New(translationAPIKey string, qiniuAccessKey string, qiniuSecretKey string) *Engine {
 	e := &Engine{
@@ -73,6 +98,8 @@ func New(translationAPIKey string, qiniuAccessKey string, qiniuSecretKey string)
 		qiniuAccessKey:    qiniuAccessKey,
 		qiniuSecretKey:    qiniuSecretKey,
 		qiniuCred:         auth.New(qiniuAccessKey, qiniuSecretKey),
+		HTTPClient:        http.DefaultClient,
+		QiNiuSDKClient:    client.DefaultClient,
 	}
 
 	return e
@@ -129,7 +156,8 @@ func (e *Engine) TranslateMarkdown(src []byte, from string, to language.Tag) (re
 	// Replace text
 	resultVec := strings.Split(translatedStr, translationSep)
 	if len(resultVec) != len(translationVec) {
-		return nil, ErrTranslationNotMatch
+		// Try to return origin data
+		return src, ErrTranslationNotMatch
 	}
 
 	result := make([]byte, 0)
@@ -162,7 +190,6 @@ func (e *Engine) TranslateWebVTT(src *SimpleWebVTT, from string, to language.Tag
 	var translatedStr string
 	// Judge whether to use batch translate(over 5000 characters)
 	toBeTranslatedStrList := joinWithMaxLength(translationVec, fmt.Sprintf("\n%s\n", translationSep), maxContentLength)
-	fmt.Printf("toBeTranslatedStrList: %#v\n", toBeTranslatedStrList)
 	if len(toBeTranslatedStrList) == 1 {
 		translatedStr, err = e.TranslatePlainText(toBeTranslatedStrList[0], from, to)
 		if err != nil {
@@ -179,7 +206,9 @@ func (e *Engine) TranslateWebVTT(src *SimpleWebVTT, from string, to language.Tag
 
 	// Replace text
 	resultVec := strings.Split(translatedStr, translationSep)
-	if len(resultVec) != len(translationVec) {
+	// TODO: Fix the bug of translation not match
+	if len(resultVec) != len(toBeTranslatedStrList) {
+		// Try to return origin data
 		return ErrTranslationNotMatch
 	}
 
@@ -216,7 +245,10 @@ func joinWithMaxLength(src []string, sep string, maxLen int) []string {
 }
 
 func generateSeparator() string {
-	return fmt.Sprintf("%d", time.Now().Unix())
+	// return fmt.Sprintf("%d", time.Now().Unix())
+
+	// Use fixed Separator
+	return fmt.Sprintf("%d", math.MaxInt64)
 }
 
 // Translate translate sequence of bytes
@@ -247,7 +279,8 @@ func (e *Engine) TranslatePlainText(src string, from string, to language.Tag) (r
 	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("User-Agent", userAgent)
 
-	resp, err := http.DefaultClient.Do(req)
+	// Request from api server
+	resp, err := e.HTTPClient.Do(req)
 	if err != nil {
 		return "", err
 	}
