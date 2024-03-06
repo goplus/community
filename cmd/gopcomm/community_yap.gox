@@ -493,7 +493,9 @@ get "/api/user/unlink", ctx => {
 	pv := ctx.param("pv")
 	token, err := core.GetToken(ctx)
 	if err != nil {
-		http.Redirect(ctx.ResponseWriter, ctx.Request, "/login", http.StatusTemporaryRedirect)
+		ctx.json {
+			"code": 200,
+		}
 		return
 	}
 	switch pv {
@@ -508,7 +510,9 @@ get "/api/user/unlink", ctx => {
 	if err == nil {
 		gac.UnLink(pv)
 	}
-	http.Redirect(ctx.ResponseWriter, ctx.Request, "/user/edit", http.StatusTemporaryRedirect)
+	ctx.json {
+		"code": 200,
+	}
 }
 
 get "/api/user/:id/articles", ctx => {
@@ -829,6 +833,7 @@ run(endpoint, func(h http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
+
 			if err := recover(); err != nil {
 				xLog.Error(err)
 				http.Redirect(w, r, "/failed", http.StatusFound)
