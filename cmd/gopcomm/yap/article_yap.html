@@ -65,9 +65,9 @@
     {{ template "header" .}}
 
     <!-- Content -->
-    <div id="app" class="h-full w-full" style="padding: 10px 30px;">
+    <div id="app" class="h-full w-full" >
         <!-- Breadcrumb -->
-        <n-breadcrumb class="mb-3">
+        <n-breadcrumb class="mb-3" style="padding: 10px 30px 0 30px;">
             <n-breadcrumb-item href="/">
                 <i class="ph-duotone ph-house" style="font-size: 18px; margin-right: 5px;"></i>
                 Home
@@ -85,8 +85,7 @@
 
         <!-- Article -->
         <div class="flex flex-col items-center">
-            <div style="border-radius: 10px; background: white; width: 70%;
-            box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05); padding: 20px 50px;">
+            <div id="container">
                 <!-- Header -->
                 <header class="mb-4 not-format">
                     <div class="flex flex-row" :style="{'justify-content': article.Tags ? 'space-between' : 'right'}">
@@ -151,9 +150,8 @@
 
                     <!-- Button Group -->
                     <div class="flex items-center justify-between">
-                        {{if .User}}
                         <!-- Like Button -->
-                        <div class="flex items-center">
+                        <div class="flex items-center" v-if="user">
                             <!-- Like Button -->
                             <n-tooltip trigger="hover" placement="bottom" v-if="!isLiked">
                                 <template #trigger>
@@ -181,13 +179,11 @@
                             <!-- Like numbers -->
                             <n-badge :value="likeCount" color="transparent" style="margin-left: -5px; --n-font-size: 15px;" show-zero></n-badge>
                         </div>
-                        {{ else }}
-                        <div class="flex items-center justify-between">
+                        <div class="flex items-center justify-between" v-else>
                             <i class="ph-bold ph-heart" style="font-size: 20px; color: #ef4444;"></i>
                             <n-badge :value="likeCount" color="transparent" style="margin-left: -2px; --n-font-size: 15px;" show-zero></n-badge>
                             <!-- <p class="ml-1 text-sm" style="color: #a0aec0;">${ likeCount }</p> -->
                         </div>
-                        {{ end }}
                         <!-- Quick Sharing -->
                         <div class="flex items-center">
                             <span class="mr-2" style="color: #a0aec0;">Share to</span>
@@ -240,18 +236,12 @@
                     <hr class="hr-edge-weak" style="margin: 15px 0;">
                 </header>
 
-                <!-- Cover -->
-                <!-- <div class="img-container">
-                    <img class="w-12 h-12" :src="article.Cover" alt="Article Cover" />
-                </div> -->
-
-                <!-- Content -->
                 <markdown-viewer :md="article.Content"></markdown-viewer>
             </div>
         </div>
 
         <!-- The End -->
-        <p class="text-xs text-center mt-3" style="color: #a0aec0;">- THE END -</p>
+        <!-- <p class="text-xs text-center mt-3" style="color: #a0aec0;">- THE END -</p> -->
 
         <!-- Back Top -->
         <n-back-top :right="50" style="--n-icon-color: #3182ce; --n-icon-color-hover: #d3dfe9;
@@ -260,18 +250,14 @@
         </n-back-top>
     </div>
 
-    <script>
-        const parseArticle = JSON.parse("{{.Article}}");
-        const parseLikeState = "{{.LikeState}}"
-        // const parseUser = "{{.User}}"
-    </script>
-
     <script type="module">
         const { reactive, toRefs, ref, h } = Vue;
 
         /*======= article related =======*/
-        const article = ref(parseArticle);
-        const originArticle = parseArticle;
+        const originArticle = {{.Article}};
+        const likeState = {{.LikeState}}
+        const user = {{.User}}
+        const article = ref(originArticle);
 
         let transArticle = {}
         const transOptions = [
@@ -318,10 +304,9 @@
             }
         };
 
-        const isLiked = ref(parseLikeState === "true" ? true : false)
+        const isLiked = ref(likeState === "true" || likeState ? true : false)
         const likeCount =ref(article.value.LikeCount || 0)
         function likeArticle(id) {
-            console.log(article.value.ID)
             const options = {
                 method: 'POST',
             }
@@ -389,6 +374,7 @@
                     transOptions,
                     isLiked,
                     likeCount,
+                    user,
                 }
             },
             methods: {
@@ -401,9 +387,12 @@
                 MarkdownViewer: window.GoplusMarkdown.MarkdownViewer
             },
             mounted() {
-                const p = new Plyr('video', { captions: { active: true } });
-                var htmlStr = document.documentElement.outerHTML; // 获取完整的HTML结构
-                console.log("===============", htmlStr)
+                // every video must new plyr
+                const video = document.querySelectorAll('video');
+                for (var i = 0; i < video.length; i++) {
+                    const player = new Plyr(video[i], {captions: {active: true, update: true, language: 'en'}});
+                }
+                var htmlStr = document.documentElement.outerHTML; 
             }
         });
 
@@ -416,6 +405,27 @@
 </html>
 
 <style>
+    #container {
+        border-radius: 10px 10px 0 0;
+        background: white; 
+        width: 68%;
+        box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05); 
+        position: relative;
+        padding: 30px 35px 0 35px;
+        margin: auto;
+    }
+    #markdown-container {
+        border-radius: 0 0 10px 10px; 
+        background: white; 
+        width: 68%;
+        box-shadow: 0px 10px 14px rgba(0, 0, 0, 0.05); 
+        position: relative;
+        padding: 0 50px 10px 50px;
+        margin: auto;
+    }
+    .cherry.cherry--no-toolbar .cherry-editor, .cherry.cherry--no-toolbar .cherry-previewer{
+        padding: 0 20px;
+    }
     a:hover {
         color: #3182ce;
     }
@@ -424,6 +434,14 @@
         font-size: revert !important;
         font-weight: revert !important;
     }
+
+    .cherry-markdown ul li, .cherry-markdown ol li {
+        list-style: disc;
+    }
+
+    .cherry .cherry-highlight-line {
+        background-color: #cee4f9;
+    }   
 
     .n-breadcrumb-item__link {
         display: flex;

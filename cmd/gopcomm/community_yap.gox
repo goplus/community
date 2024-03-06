@@ -1,6 +1,5 @@
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -95,14 +94,14 @@ get "/", ctx => {
 	if err != nil {
 		xLog.Error("get article error:", err)
 	}
-	articlesJson, err := json.Marshal(&articles)
+	// articlesJson, err := json.Marshal(&articles)
 	if err != nil {
 		xLog.Error("json marshal error:", err)
 	}
 	ctx.yap "home", {
 		"UserId": userId,
 		"User":   user,
-		"Items":  string(articlesJson),
+		"Items":  articles,
 		"Next":   next,
 	}
 }
@@ -137,11 +136,11 @@ get "/article/:id", ctx => {
 	}
 	ip := community.GetClientIP(ctx.Request)
 	community.ArticleLView(todo, id, ip, userId)
-	articleJson, _ := json.Marshal(&article)
+	// articleJson, _ := json.Marshal(&article)
 	ctx.yap "article", {
 		"UserId":    userId,
 		"User":      user,
-		"Article":   string(articleJson),
+		"Article":   article,
 		"LikeState": likeState,
 	}
 }
@@ -194,7 +193,7 @@ get "/edit/:id", ctx => {
 			xLog.Error("get article error:", err)
 			http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
 		}
-		articleJson, err := json.Marshal(&article)
+		// articleJson, err := json.Marshal(&article)
 		if err != nil {
 			xLog.Error("json marshal error:", err)
 			http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
@@ -202,7 +201,7 @@ get "/edit/:id", ctx => {
 		ctx.yap "edit", {
 			"UserId":  userId,
 			"User":    user,
-			"Article": string(articleJson),
+			"Article": article,
 		}
 	}
 }
@@ -231,14 +230,14 @@ get "/search", ctx => {
 	if err != nil {
 		xLog.Error("get article error:", err)
 	}
-	articlesJson, err := json.Marshal(&articles)
+	// articlesJson, err := json.Marshal(&articles)
 	if err != nil {
 		xLog.Error("json marshal error:", err)
 	}
 	ctx.yap "home", {
 		"UserId": userId,
 		"User":   user,
-		"Items":  string(articlesJson),
+		"Items":  articles,
 		"Value":  searchValue,
 		"Next":   next,
 		"Tab":    label,
@@ -405,19 +404,11 @@ get "/user/:id", ctx => {
 	if err != nil {
 		xLog.Error("get article list error:", err)
 	}
-	userClaimJson, err := json.Marshal(&userClaim)
-	if err != nil {
-		xLog.Error("json marshal error:", err)
-	}
-	itemsJson, err := json.Marshal(&items)
-	if err != nil {
-		xLog.Error("json marshal error:", err)
-	}
 	ctx.yap "user", {
 		"Id":          id,
-		"CurrentUser": string(userClaimJson),
+		"CurrentUser": userClaim,
 		"User":        user,
-		"Items":       string(itemsJson),
+		"Items":       items,
 		"UserId":      userId,
 		"Next":        next,
 	}
@@ -453,38 +444,17 @@ get "/user/edit", ctx => {
 		xLog.Info("gac", err)
 		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
 	}
-	// fullUser, err := gac.GetUser()
-	// if err != nil {
-	// 	xLog.Error("get user error:", err)
-	// 	http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
-	// }
 	appInfo, err := community.GetApplicationInfo()
 	if err != nil {
 		xLog.Error("get application info error:", err)
 		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
 	}
-	appInfoStr, err := json.Marshal(*appInfo)
-	if err != nil {
-		xLog.Error("json marshal error:", err)
-		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
-	}
-	binds, err := json.Marshal(gac.GetProviderBindStatus())
-	if err != nil {
-		xLog.Error("json marshal error:", err)
-		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
-	}
-	currentUser, err := json.Marshal(userClaim)
-	if err != nil {
-		xLog.Error("json marshal error:", err)
-		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
-	}
-	// user := gac.GetUserSimple()
 	ctx.yap "user_edit", {
 		"UserId":      userId,
 		"User":        user,
-		"CurrentUser": string(currentUser),
-		"Application": string(appInfoStr),
-		"Binds":       string(binds),
+		"CurrentUser": userClaim,
+		"Application": appInfo,
+		"Binds":       gac.GetProviderBindStatus(),
 	}
 }
 
@@ -631,7 +601,7 @@ delete "/api/media/:id", ctx => {
 get "/api/translation/:id", ctx => {
 	id := ctx.param("id")
 	article, err := community.GetTranslateArticle(todo, id)
-	
+
 	if err != nil {
 		xLog.Info(err)
 		ctx.json {

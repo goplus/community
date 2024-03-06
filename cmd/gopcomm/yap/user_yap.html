@@ -46,7 +46,7 @@
                         Home
                     </div>
                 </n-breadcrumb-item>
-                <n-breadcrumb-item href="/user/{{.UserId}}">
+                <n-breadcrumb-item href="'/user/'+user.Id">
                     <div class="flex items-center">
                         <div>
                             <span></span>
@@ -127,15 +127,13 @@
                     <!-- Edit Button & Followers -->
                     <n-gi :span="2" class="flex flex-col justify-between items-end">
                         <!-- Edit Button -->
-                        {{ if .UserId }}
-                        <n-button v-if="UserId === CurrentUser.id" text color="#3182ce" size="large"
+                        <n-button v-if="user && user.Id === CurrentUser.id" text color="#3182ce" size="large"
                             onclick="window.location.href='/user/edit'" class="mb-4">
                             <template #icon>
                                 <i class="ph ph-gear" style="color: #3182ce;"></i>
                             </template>
                             Settings
                         </n-button>
-                        {{ end }}
 
                         <!-- Following & Followers -->
                         <!-- <div class="flex items-center mt-3">
@@ -245,8 +243,7 @@
 
                                 <!-- suffix -->
                                 <template #suffix>
-                                    {{if .User}}
-                                    <div class="flex" v-if="UserId === CurrentUser.id">
+                                    <div class="flex" v-if="user && user.Id === CurrentUser.id">
                                         <!-- Edit Button -->
                                         <n-button 
                                             tag="a"
@@ -287,7 +284,6 @@
                                             </template>
                                         </n-popconfirm>
                                     </div>
-                                    {{end}}
                                 </template>
                                 
                             </n-list-item>
@@ -382,10 +378,9 @@
 
                                     <!-- suffix -->
                                     <template #suffix>
-                                        {{if .User}}
-                                        <div class="flex">
+                                        <div class="flex" v-if="user">
                                             <!-- Regenerate Button -->
-                                                <n-button @click="retryCaptionGenerate({{.UserId}}, item.Id)"
+                                            <n-button @click="retryCaptionGenerate(user.Id, item.Id)"
                                                 style="--n-border-radius: 7px; --n-ripple-color: #7ba7d3; 
                                                 --n-text-color-hover: #2a82e4; --n-text-color-pressed: #3182ce;
                                                 --n-text-color-focus: #2a82e4; --n-border-hover: 1px solid #2a82e4;
@@ -398,7 +393,7 @@
 
                                             <!-- Delete Button -->
                                             <n-popconfirm :show="delVideoId === item.Id"
-                                                v-if="{{.UserId}} === item.UserId">
+                                                v-if="user.Id === CurrentUser.id">
                                                 <template #icon>
                                                     <i class="ph-duotone ph-warning" style="color: #f25858;"></i>
                                                 </template>
@@ -423,7 +418,6 @@
                                                 </template>
                                             </n-popconfirm>
                                         </div>
-                                        {{end}}
                                     </template>
                                 </n-list-item>
                             </n-list>
@@ -475,9 +469,8 @@
                                         </div>
                                         <div class="delete">
                                             <div class="image-time">${ item.CreateAt.slice(0,10) }</div>
-                                            {{if .User}}
                                             <n-popconfirm :show="delImageId === item.Id"
-                                                v-if="{{.UserId}} === item.UserId">
+                                                v-if="user && user.Id === CurrentUser.id">
                                                 <template #icon>
                                                     <i class="ph-fill ph-siren" style="color: #f25858;"></i>
                                                 </template>
@@ -499,7 +492,6 @@
                                                         secondary type="error">Delete</n-button>
                                                 </template>
                                             </n-popconfirm>
-                                            {{end}}
                                         </div>
                                     </n-card>
                                 </n-gi>
@@ -520,14 +512,15 @@
             const { reactive, toRefs, ref, h } = Vue;
 
             // User
-            let CurrentUser = ref(JSON.parse("{{.CurrentUser}}"))
-            console.log("CurrentUser",CurrentUser)
-            const UserId = ref("{{.UserId}}")
+            const CurrentUser = ref({{.CurrentUser}})
+            const articleList = ref({{.Items}});
+            const next = ref({{.Next}});
+            const user = ref({{.User}});
+
 
             // Article List
-            let articleList = ref(JSON.parse("{{.Items}}"));
+            
             const isBottom = ref(true);
-            const next = ref("{{.Next}}"); // the page size
             const haveMoreData = next.value === "eof" ? ref(false) : ref(true);
 
             // Video List
@@ -585,12 +578,12 @@
             }
 
             function handleImagePageChange(page) {
-                console.log("pageimage", page)
+                curImagePage.value = page
                 getMedias("image", page)
             }
 
             function handleVideoPageChange(page) {
-                console.log("pagevideo", page)
+                curVideoPage.value = page
                 getMedias("video", page)
             }
 
@@ -652,8 +645,10 @@
                     if (todos.code === 200) {
                         if (format === "video") {
                             videoList.value = videoList.value.filter(item => item.Id !== id)
+                            getMedias("video", curVideoPage.value)
                         } else {
                             imageList.value = imageList.value.filter(item => item.Id !== id)
+                            getMedias("image", curImagePage.value)
                         }
                     }
                     delImageId = 0
@@ -679,7 +674,6 @@
                     isBottom.value = false;
                     window.setTimeout(() => {
                         let url = "/api/user/"+ CurrentUser.value.id + "/articles" + "?from=" + next.value;
-                        console.log("url", url)
                         // load a new page of articles, and append it to the articleList
                         fetch(url)
                             .then(res => {
@@ -726,7 +720,7 @@
                         delImageId,
                         delVideoId,
                         themeOverrides,
-                        UserId,
+                        user,
                         haveMoreData,
                         isBottom,
                     }
@@ -809,14 +803,14 @@
 
             border-radius: 8px;
             overflow: hidden;
+            width: 100%;
+            height: 100%;
 
-            max-height: 200px;
 
             .image-item {
                 transition: all 0.5s;
                 background-color: #000000;
                 width: 100%;
-                height: 200px;
             }
 
             .image-item:hover {
