@@ -146,19 +146,24 @@ func (c *Community) SaveMedia(ctx context.Context, userId string, data []byte, f
 	opts := &blob.WriterOptions{}
 	// upload cloud oss
 	fileKey := uuid.New().String()
-	c.xLog.Info(fileKey)
+
 	if isTranscoding(fileExt) {
-		encoding := base64.URLEncoding.EncodeToString([]byte(c.bucketName + ":" + fileKey))
+		fileExt = ".mp4"
+		encoding := base64.URLEncoding.EncodeToString([]byte(c.bucketName + ":" + fileKey + fileExt))
 		opts.Metadata = make(map[string]string)
 		opts.Metadata["persistent-ops"] = "avthumb/mp4/vcodec/libx264|saveas/" + encoding
 	}
+	fileKey = fileKey + fileExt
+	c.xLog.Info(fileKey)
 	err := c.uploadMedia(fileKey, data, opts)
 	if err != nil {
+		c.xLog.Warn(err.Error())
 		return 0, err
 	}
 	// get fileInfo
 	fileInfo, err := c.getMediaInfo(fileKey)
 	if err != nil {
+		c.xLog.Warn(err.Error())
 		return 0, err
 	}
 
@@ -166,17 +171,20 @@ func (c *Community) SaveMedia(ctx context.Context, userId string, data []byte, f
 	if fileInfo.Format == "video/mp4" {
 		duration, err = GetVideoDuration(c.domain + fileKey + "?avinfo")
 		if err != nil {
+			c.xLog.Warn(err.Error())
 			return 0, err
 		}
 	}
 	// save
 	stem, err := c.db.Prepare(`insert into file (file_key,format,size,user_id,create_at,update_at,duration) VALUES (?,?,?,?,?,?,?)`)
 	if err != nil {
+		c.xLog.Warn(err.Error())
 		return 0, err
 	}
 	res, err := stem.Exec(fileKey, fileInfo.Format, fileInfo.Size, userId, time.Now(), time.Now(), duration)
 
 	if err != nil {
+		c.xLog.Warn(err.Error())
 		return 0, err
 	}
 
