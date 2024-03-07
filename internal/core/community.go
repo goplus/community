@@ -466,7 +466,7 @@ func (p *Community) ListArticle(ctx context.Context, from string, limit int, sea
 
 // GetArticlesByUid get articles by user id.
 func (p *Community) GetArticlesByUid(ctx context.Context, uid string, from string, limit int) (items []*ArticleEntry, next string, err error) {
-	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label, like_count, view_count from article where user_id = ? and label like ? order by ctime desc limit ? offset ?"
+	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label, like_count, view_count from article where user_id = ?  or tags like ? and label like ? order by ctime desc limit ? offset ?"
 	return p.getPageArticles(sqlStr, from, limit, uid, "%")
 }
 
