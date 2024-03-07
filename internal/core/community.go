@@ -300,7 +300,7 @@ func (p *Community) CanEditable(ctx context.Context, uid, id string) (editable b
 
 // SaveHtml upload origin html(string) to media for html id and save id to database
 func (p *Community) SaveHtml(ctx context.Context, uid, htmlStr, mdData, id string) (articleId string, err error) {
-	htmlId, err := p.SaveMedia(ctx, uid, []byte(htmlStr), "")
+	htmlId, _, err := p.SaveMedia(ctx, uid, []byte(htmlStr), "")
 	if err != nil {
 		return "", err
 	}
