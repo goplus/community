@@ -258,7 +258,7 @@ func (c *Community) updateASRResult(ctx context.Context, resourceId string, task
 		}
 
 		// Upload ASR result
-		captionId, err := c.SaveMedia(ctx, task.UserId, buffer.Bytes(), ".vtt")
+		captionId, _, err := c.SaveMedia(ctx, task.UserId, buffer.Bytes(), ".vtt")
 		if err != nil {
 			c.xLog.Errorf("TimedCheckVideoTask SaveMedia failed, resourceId: %s, err: %v", resourceId, err)
 			// Can not save ASR result
