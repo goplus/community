@@ -90,7 +90,7 @@
                                 Write an Article
                             </n-button>
                             <n-dropdown :options="userOptions" trigger="hover" width="150" @select="selectDropdown">
-                                <n-avatar round src="{{ .User.Avatar }}" style="cursor: pointer;"></n-avatar>
+                                <n-avatar round src="{{ if .User.Avatar }}{{ .User.Avatar }}{{ else }}../static/img/gop-avatar.png{{ end }}" style="cursor: pointer;"></n-avatar>
                             </n-dropdown>
                             {{else}}
                             <n-button quaternary color="white" @click="signIn">
