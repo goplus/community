@@ -202,6 +202,22 @@
                                             <i class="ph-duotone ph-heart" style="color: #df8282; font-size: 18px;"></i>
                                             <span class="ml-1 text-sm"> ${ item.LikeCount }</span>
                                         </div>
+                                        <template v-for="(p,i) in item.PlatformCount">
+
+                                            <div class="flex justify-center items-center" style="width: 40%;" v-if="p.Platform === 'wechat'">
+                                                <i class="ph-duotone ph-wechat-logo" style="color: #3182ce;"></i>
+                                                <span class="ml-1 text-sm">${ p.ViewCount }</span>
+                                            </div>
+
+                                            <div class="flex justify-center items-center" style="width: 40%;" v-if="p.Platform === 'twitter'">
+                                                <i class="ph-duotone ph-twitter-logo" style="color: #3182ce;"></i>
+                                                <span class="ml-1 text-sm">${ p.ViewCount }</span>
+                                            </div>
+                                            <div class="flex justify-center items-center" style="width: 40%;" v-if="p.Platform === 'facebook'">
+                                                <i class="ph-duotone ph-facebook-logo" style="color: #3182ce;"></i>
+                                                <span class="ml-1 text-sm">${ p.ViewCount }</span>
+                                            </div>
+                                        </template>
                                     </div>
                                 </div>
                             </template>
