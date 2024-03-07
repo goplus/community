@@ -35,7 +35,7 @@ func TestSaveMedia(t *testing.T) {
 		log.Fatalln(err.Error())
 		return
 	}
-	id, err := c.SaveMedia(context.Background(), "", data, ".flv")
+	id, _, err := c.SaveMedia(context.Background(), "", data, ".flv")
 	if err != nil {
 		log.Fatalln(err.Error())
 		return
