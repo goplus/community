@@ -662,21 +662,6 @@ get "/api/video/:id", ctx => {
 			"err":  err.Error(),
 		}
 	}
-	match, _ := regexp.MatchString("^video", format)
-	if match {
-		subtitle, status, err := community.GetVideoSubtitle(todo, id)
-		if err != nil {
-			if err != nil {
-				ctx.json {
-					"code": 500,
-					"err":  err.Error(),
-				}
-			}
-			return
-		}
-		m["subtitle"] = domain + subtitle
-		m["status"] = status
-	}
 	htmlUrl := fmt.Sprintf("%s%s", domain, fileKey)
 	if err != nil {
 		ctx.json {
@@ -686,6 +671,22 @@ get "/api/video/:id", ctx => {
 	}
 	m["fileKey"] = htmlUrl
 	m["type"] = format
+	m["subtitle"] = domain + id
+	m["status"] = "0"
+	match, _ := regexp.MatchString("^video", format)
+	if match {
+		subtitle, status, err := community.GetVideoSubtitle(todo, id)
+		if err != nil {
+			ctx.json {
+				"code": 200,
+				"url":  m,
+			}
+		}
+		if status == "1" {
+			m["subtitle"] = domain + subtitle
+		}
+		m["status"] = status
+	}
 	ctx.json {
 		"code": 200,
 		"url":  m,

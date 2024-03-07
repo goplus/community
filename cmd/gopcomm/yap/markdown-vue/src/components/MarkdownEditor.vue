@@ -12,13 +12,6 @@ import axios from 'axios'
 
 import Plyr from 'plyr';
 import 'plyr/dist/plyr.css'
-// const player = new Plyr('#player');
-// const p = new Plyr('video', {captions: {active: true}});
-
-
-// let v_s = "https://cdn.plyr.io/3.6.8/plyr.js"
-//             let v_css = "https://cdn.plyr.io/3.6.8/plyr.css"
-// import {  UploadOutlined, SendOutlined } from '@ant-design/icons-vue';
 
 
 // axios.defaults.baseURL = 'http://localhost:8080/';
@@ -29,7 +22,7 @@ var vtt_src = ""
 
 let fileType = "video/mp4"
 
-let vtt_id = ""
+let vtt_id = []
 
 function getFileTypeByExtension(fileName) {
     var extension = fileName.split('.').pop().toLowerCase();
@@ -52,29 +45,27 @@ function getFileTypeByExtension(fileName) {
 }
 
 function fileUpload(file) {
-    // 提交的时候代码
     let type = getFileTypeByExtension(file.name)
     console.log("upload", type)
 
-    if(type.includes("video") && checkVideo()){
-        console.log("only can upload a video.")
-        return 
-    }
+    // if(type.includes("video") && checkVideo()){
+    //     console.log("only can upload a video.")
+    //     return 
+    // }
 
     var formData = new FormData()
     formData.append('file', file)
     // axios post 请求                
     axios({
         method: 'post',
-        url: '/api/media', // 后端接口地址，需要根据实际情况修改
+        url: '/api/media',
         data: formData,
         headers: {
-            'Content-Type': 'multipart/form-data' // 设置请求头部类型为 multipart/form-data
+            'Content-Type': 'multipart/form-data'
         }
     })
         .then(response => {
-            console.log(response.data); // 输出服务器返回的数据（可选） 获取 返回的ID  
-            // 根据类型执行不同的请求
+            console.log(response.data); 
             if(type.includes("video")) {
                 axios({
                     method: 'get',
@@ -86,12 +77,11 @@ function fileUpload(file) {
                     let status = res.data.url.status
                     let newType = res.data.url.type
                     if(status !== "1"){
-                        vtt_id = response.data
+                        vtt_id.push(response.data)
                     }
                     vtt_src = stitle
                     
                     console.log("URL", url)
-                    // 返回文件地址的话需要
                     onloadCallback(newType, url)                       
                 })
             } else {
@@ -101,7 +91,6 @@ function fileUpload(file) {
                 }).then(res => {
                     let url = res.data.url
                     console.log(url)
-                    // 返回文件地址的话需要
                     onloadCallback(type, url)                        
                 })
             }
@@ -111,50 +100,12 @@ function fileUpload(file) {
             console.error('文件上传失败！');
             console.error(error);
         });
-
-    // // 本地测试代码
-    // console.log("type", file.type)
-    // let type = file.type
-    // let url = 'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4'
-    // vtt_src = "https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt"
-    // onloadCallback(type, url)                        
-
 }
 
-// function getVtt(id, type, url){
-//     if(vtt_status !== "1" && vttGetCount < 10) {
-//         vttGetCount = vttGetCount+1
-//         axios({
-//             method: 'get',
-//             url: '/api/vtt/'+id,
-//         }).then(res => {
-//             if(res.code === 200){
-//                 let stitle = res.data.subtitle
-//                 vtt_status = res.data.status
-//                 console.log("setTimeout - stitle",stitle)
-//                 console.log("setTimeout - vtt_status",vtt_status)
-//                 // finish vtt
-//                 if(vtt_status === "1"){
-//                     vtt_src = stitle
-//                     vttGetCount = 0
-//                     onVttCallback(type, url)  
-//                 }else{
-//                     this.timer = setTimeout(getVtt(id, type, url), 5000)   
-//                 }    
-//             }                     
-//         })
-//     }
-// }
-
-// function onVttCallback(type, url){
-//     let md = getMarkdown()
-//     md.replace(videoMd, `!video[${type}](${url})(${vtt_src})`)
-//     setMarkdown(md)
-// }
 
 function checkVideo(){
     const md = getCherryContent()
-    const regex = /!video\[[^\]]*\]\([^)]*\)(\([^)]*\))?/; // 匹配 !video[]()() 格式的字符串
+    const regex = /!video\[[^\]]*\]\([^)]*\)(\([^)]*\))?/;
 
     if (regex.test(md)) {
         console.log("have video")
@@ -170,15 +121,13 @@ function onloadCallback(type, url) {
     fileType = type
     if (/mp4|avi|rmvb|mov|wmv|flv|avi|webm/i.test(type.toLowerCase())) {
         // replace <video controls src=""> <video> into !video
-        imgMdStr = `!video[${type}](${url})(${vtt_src})`;
-        // to replace vtt
-        // videoMd = imgMdStr
+        imgMdStr = `!video[${type}](${url})(${vtt_src})\n`;
     } else if (/mp3/i.test(type)) {
-        imgMdStr = `!audio[${type}](${url})`;
+        imgMdStr = `!audio[${type}](${url})\n`;
     } else if (/bmp|gif|jpg|jpeg|png/i.test(type)) {
-        imgMdStr = `![${type}](${url})`
+        imgMdStr = `![${type}](${url})\n`
     } else {
-        imgMdStr = `[${type}](${url})`
+        imgMdStr = `[${type}](${url})\n`
     } 
     cherrInstance.insert(imgMdStr) 
 }
@@ -196,24 +145,16 @@ function afterChange(text, html) {
 }
 
 function onCopyCode(event, code) {
-    // 阻止默认的粘贴事件
-    // return false;
-    // 对复制内容进行额外处理
     return code;
 }
-// 获取中文的拼音
+
 function changeString2Pinyin(string) {
-    /**
-     * 推荐使用这个组件：https://github.com/liu11hao11/pinyin_js
-     *
-     * 可以在 ../scripts/pinyin/pinyin_dist.js 里直接引用
-     */
     var pinyin = require("./pinyin/pinyin.js");
     return pinyin.pinyin(string, " ");
 }
 function setMarkdown(content) {
     console.log("setMarkdown", content)
-    if (!cherrInstance) { // 未加载则重新初始化
+    if (!cherrInstance) { 
         initCherryMD(content)
         return
     }
@@ -223,11 +164,11 @@ function setMarkdown(content) {
 }
 
 function getCherryContent() {
-    if (!cherrInstance) { // 未加载则重新初始化
+    if (!cherrInstance) { 
         initCherryMD("")
         // return
     }
-    var result = cherrInstance.getMarkdown() // 获取markdown内容
+    var result = cherrInstance.getMarkdown()
     return result
 }
 
@@ -238,8 +179,6 @@ function getCherryHtml() {
 
 function initCherryMD(value, config) {
     var defaultValue = value || ""
-    //  测试数据
-    // !video[video/mp4](https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4)
 
     var myBlockHook = Cherry.createSyntaxHook('myBlock', Cherry.constants.HOOKS_TYPE_LIST.PAR, {
         makeHtml(str) {
@@ -257,7 +196,7 @@ function initCherryMD(value, config) {
                 if (matchResult) {
                     let video_src = matchResult[0].replace("(","").replace(")","")
                     console.log("video src", video_src)
-                    let poster = video_src + "/vframe/jpg/offset/7"
+                    let poster = video_src + "?vframe/jpg/offset/7"
                     if(matchResult[1]){
                         vtt_src = matchResult[1].replace("(","").replace(")","")
                     }
@@ -274,8 +213,6 @@ function initCherryMD(value, config) {
         
         rule(str) {
             return {
-                // reg: /^!video.*.mp4\)/
-                // reg: /^!video.*\)/
                 reg: /!video\[.*?\]\(.*?\)\(.*?\)/g
             }
         },
