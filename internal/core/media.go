@@ -144,7 +144,7 @@ func (c *Community) GetVideoSubtitle(ctx context.Context, mediaId string) (strin
 	return fileKey, status, nil
 }
 
-func (c *Community) SaveMedia(ctx context.Context, userId string, data []byte, fileExt string) (int64, error) {
+func (c *Community) SaveMedia(ctx context.Context, userId string, data []byte, fileExt string) (int64, string, error) {
 	opts := &blob.WriterOptions{}
 	// upload cloud oss
 	fileKey := uuid.New().String()
@@ -160,13 +160,13 @@ func (c *Community) SaveMedia(ctx context.Context, userId string, data []byte, f
 	err := c.uploadMedia(fileKey, data, opts)
 	if err != nil {
 		c.xLog.Warn(err.Error())
-		return 0, err
+		return 0, fileExt, err
 	}
 	// get fileInfo
 	fileInfo, err := c.getMediaInfo(fileKey)
 	if err != nil {
 		c.xLog.Warn(err.Error())
-		return 0, err
+		return 0, fileExt, err
 	}
 
 	var duration string = ""
@@ -174,23 +174,23 @@ func (c *Community) SaveMedia(ctx context.Context, userId string, data []byte, f
 		duration, err = GetVideoDuration(c.domain + fileKey + "?avinfo")
 		if err != nil {
 			c.xLog.Warn(err.Error())
-			return 0, err
+			return 0, fileExt, err
 		}
 	}
 	// save
 	stem, err := c.db.Prepare(`insert into file (file_key,format,size,user_id,create_at,update_at,duration) VALUES (?,?,?,?,?,?,?)`)
 	if err != nil {
 		c.xLog.Warn(err.Error())
-		return 0, err
+		return 0, fileExt, err
 	}
 	res, err := stem.Exec(fileKey, fileInfo.Format, fileInfo.Size, userId, time.Now(), time.Now(), duration)
 
 	if err != nil {
 		c.xLog.Warn(err.Error())
-		return 0, err
+		return 0, fileExt, err
 	}
-
-	return res.LastInsertId()
+	id, err := res.LastInsertId()
+	return id, fileExt, err
 }
 
 // for internal use,no need to add ctx
@@ -326,7 +326,7 @@ func (c *Community) UploadFile(ctx *yap.Context) {
 		ctx.JSON(500, err.Error())
 	}
 	ext := filepath.Ext(filename)
-	id, err := c.SaveMedia(context.Background(), uid, bytes, ext)
+	id, ext, err := c.SaveMedia(context.Background(), uid, bytes, ext)
 	if err != nil {
 		xLog.Error("save file", err.Error())
 		ctx.JSON(500, err.Error())
@@ -334,8 +334,7 @@ func (c *Community) UploadFile(ctx *yap.Context) {
 	}
 
 	// Judge the file type and start the corresponding task
-	fileType := http.DetectContentType(bytes)
-	if strings.Contains(fileType, "video") {
+	if strings.Contains(ext, ".mp4") {
 		// Start captioning task
 		err := c.NewVideoTask(context.Background(), uid, strconv.FormatInt(id, 10))
 		if err != nil {

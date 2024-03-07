@@ -322,7 +322,7 @@
         }
     
         /*======= share related functions =======*/
-        const currentHref = ref(window.location.href);
+        const currentHref = ref(window.location.href+"?platform=wechat");
 
         function shareToFacebook() {
             var w = 900;
@@ -331,7 +331,7 @@
             wTop = window.screenTop ? window.screenTop : window.screenY;
             var left = wLeft + (window.innerWidth / 2) - (w / 2);
             var top = wTop + (window.innerHeight / 2) - (h / 2);
-            var url = window.location.href;
+            var url = window.location.href+"?platform=facebook";
             var shareUrl = "http://www.facebook.com/sharer/sharer.php?u=" + url;
             var title = 'facebook';
 
@@ -356,7 +356,8 @@
         function shareToTwitter() {
             // var url = encodeURIComponent('http://8.130.26.238/animation/fb.html');
             // var text = encodeURIComponent('Linz');
-            var url = window.location.href;
+            var url = window.location.href+"?platform=twitter";
+
             var hashtags = "GoplusComminty";
             var intentUrl = "https://twitter.com/intent/tweet?url=" + encodeURIComponent(url)
                 + "&hashtags=" + encodeURIComponent(hashtags);

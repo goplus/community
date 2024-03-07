@@ -184,8 +184,7 @@
                         <!-- Article List Item -->
                         <n-list-item v-for="(item,i) in articleList">
                             <!-- prefix -->
-                            <template #prefix>
-                                <div style="height: 20vh; width: 30vh;">
+                            <div style="width: 20%; margin-right: 20px;">
                                     <!-- Image -->
                                     <img class="w-full object-cover rounded" style="height: 85%;"  :src="item.Cover || '/static/img/default-cover.jpg'" alt="">
                                 
@@ -194,20 +193,55 @@
                                         <!-- Views -->
                                         <div class="flex justify-center items-center" style="width: 40%;">
                                             <i class="ph-duotone ph-eye" style="color: #7ba7d3; font-size: 18px;"></i>
-                                            <span class="ml-1 text-sm"> ${ item.ViewCount }</span>
+                                            <span class="ml-1 text-sm">${ item.ViewCount }</span>
                                         </div>
 
                                         <!-- Likes -->
                                         <div class="flex justify-center items-center" style="width: 40%;">
                                             <i class="ph-duotone ph-heart" style="color: #df8282; font-size: 18px;"></i>
-                                            <span class="ml-1 text-sm"> ${ item.LikeCount }</span>
+                                            <span class="ml-1 text-sm">${ item.LikeCount }</span>
+                                        </div>
+
+                                        <!-- Shares -->
+                                        <div class="flex justify-center items-center" style="width: 40%;">
+                                            <i class="ph-duotone ph-share-fat" style="color: #15aabf; font-size: 18px;"></i>
+                                            <span class="ml-1 mr-1 text-sm">
+                                                ${ item.ShareCount }
+                                            </span>
+
+                                            <n-tooltip placement="bottom" trigger="hover" v-if="item.PlatformCount">
+                                                <template #trigger>
+                                                    <i class="ph ph-question" style="color: #9ca3af; cursor: pointer;"></i>
+                                                </template>
+                                                <div v-for="(p, i) in item.PlatformCount">
+                                                    <!-- Facebook -->
+                                                    <div class="flex items-center" v-if="p.Platform === 'facebook'">
+                                                        <i class="ph-duotone ph-facebook-logo" style="color: white; font-size: 17px;"></i>
+                                                        <span class="ml-1 text-sm">Facebook: </span>
+                                                        <span class="ml-1 text-sm">${ p.ViewCount }</span>
+                                                    </div>
+        
+                                                    <!-- Twitter -->
+                                                    <div class="flex items-center" v-if="p.Platform === 'twitter'">
+                                                        <i class="ph-duotone ph-twitter-logo" style="color: white; font-size: 17px;"></i>
+                                                        <span class="ml-1 text-sm">Twitter / X: </span>
+                                                        <span class="ml-1 text-sm">${ p.ViewCount }</span>
+                                                    </div>
+                                                    
+                                                    <!-- WeChat -->
+                                                    <div class="flex items-center" v-if="p.Platform === 'wechat'">
+                                                        <i class="ph-duotone ph-wechat-logo" style="color: white; font-size: 17px;"></i>
+                                                        <span class="ml-1 text-sm">WeChat: </span>
+                                                        <span class="ml-1 text-sm">${ p.ViewCount }</span>
+                                                    </div>
+                                                </div>
+                                            </n-tooltip>
                                         </div>
                                     </div>
-                                </div>
-                            </template>
+                            </div>
 
                             <!-- content -->
-                            <div class="flex flex-col items-start">
+                            <div style="width: 55%; margin-right: 30px;">
                                 <div class="absolute top-4" style="width: 60%;">
                                     <!-- Title -->
                                     <div class="text-xl font-semibold text-gray-900 title-font mb-2">
@@ -228,7 +262,7 @@
                                     </div>
 
                                     <!-- Description -->
-                                    <p class="text-sm mt-2" style="color: #6b7280; line-height: normal;">
+                                    <p class="ellipsis">
                                         ${ item.Abstract }
                                     </p>
                                 </div>
@@ -242,7 +276,7 @@
                             </div>
 
                             <!-- suffix -->
-                            <template #suffix>
+                            <div style="width: 20%;" class="flex justify-end">
                                 <div class="flex" v-if="user && user.Id === CurrentUser.id">
                                     <!-- Edit Button -->
                                     <n-button 
@@ -284,7 +318,7 @@
                                         </template>
                                     </n-popconfirm>
                                 </div>
-                            </template>
+                            </div>
                         </n-list-item>
                     </n-list>
 
@@ -518,7 +552,6 @@
         const next = ref({{.Next}});
         const user = ref({{.User}});
 
-
         // Article List
         
         const isBottom = ref(true);
@@ -702,9 +735,28 @@
             }
         };
 
+        function addShareCount() {
+            articleList.value.forEach(item => {
+                if (item.PlatformCount) {
+                    item.ShareCount = calcShare(item.PlatformCount);
+                } else {
+                    item.ShareCount = 0;
+                }
+            });
+        };
+
+        function calcShare(platform) {
+            let sum = 0;
+            for (let i = 0; i < platform.length; i++) {
+                sum += parseInt(platform[i].ViewCount);
+            }
+            return sum;
+        }
+
         const app = Vue.createApp({
             mounted() {
                 window.addEventListener('scroll', listenBottom, true);
+                addShareCount();
             },
             destroyed() {
                 window.removeEventListener('scroll', listenBottom, false)
@@ -736,7 +788,7 @@
                 deleteMedia,
                 retryCaptionGenerate,
                 onChangeTab,
-                showModal
+                showModal,
             },
             watch: {
                 curVideoPage(newValue) {
@@ -784,6 +836,19 @@
     .n-card>.n-card__content:first-child,
     .n-card>.n-card__footer:first-child {
         padding: 0;
+    }
+
+    .ellipsis {
+        margin: 7px 0 20px 0;
+        color: #80878e; 
+        font-size: 15px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2; /* 控制文本的行数 */
+        -webkit-box-orient: vertical;
+        /* max-height: 50px; 根据行高和行数调整 */
+        /* line-height: 18px; 示例行高 */
     }
 
     img {
