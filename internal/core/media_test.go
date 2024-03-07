@@ -7,6 +7,8 @@ import (
 
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSaveMedia(t *testing.T) {

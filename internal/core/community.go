@@ -29,6 +29,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/goplus/community/translation"
 	"github.com/qiniu/x/xlog"
 
@@ -43,6 +44,9 @@ import (
 var (
 	ErrNotExist   = os.ErrNotExist
 	ErrPermission = os.ErrPermission
+	Twitter       = "twitter"
+	FaceBook      = "facebook"
+	WeChat        = "wechat"
 )
 
 // S3Service is the interface for s3 service and easy to mock
@@ -125,6 +129,7 @@ type Community struct {
 	// Casdoor Service for mock
 	CasdoorSDKService CasdoorSDKService
 	S3Service         S3Service
+	bucketName        string
 }
 type CasdoorConfig struct {
 	endPoint         string
@@ -184,10 +189,28 @@ func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 	if err != nil {
 		xLog.Error(err)
 	}
+	bucketName, err := getBucketName(bus, "@", "?")
+
 	s3Service := &S3ServiceAdapter{bucket: bucket}
 	casdoorSDKService := &CasdoorSDKServiceAdapter{}
 
-	return &Community{db, domain, casdoorConf, xLog, translationEngine, casdoorSDKService, s3Service}, nil
+	return &Community{db, domain, casdoorConf, xLog, translationEngine, casdoorSDKService, s3Service, bucketName}, nil
+}
+
+func getBucketName(url, startSymbol, endSymbol string) (string, error) {
+	startIndex := strings.Index(url, startSymbol)
+	if startIndex == -1 {
+		return "", fmt.Errorf("start symbol '%s' not found", startSymbol)
+	}
+
+	startIndex += len(startSymbol)
+
+	endIndex := strings.Index(url[startIndex:], endSymbol)
+	if endIndex == -1 {
+		return "", fmt.Errorf("end symbol '%s' not found", endSymbol)
+	}
+
+	return url[startIndex : startIndex+endIndex], nil
 }
 
 func (p *Community) TranslateMarkdownText(ctx context.Context, src string, from string, to language.Tag) (string, error) {
@@ -324,7 +347,8 @@ func (p *Community) CanEditable(ctx context.Context, uid, id string) (editable b
 
 // SaveHtml upload origin html(string) to media for html id and save id to database
 func (p *Community) SaveHtml(ctx context.Context, uid, htmlStr, mdData, id string) (articleId string, err error) {
-	htmlId, err := p.SaveMedia(ctx, uid, []byte(htmlStr))
+	ext := mimetype.Detect([]byte(htmlStr)).String()
+	htmlId, err := p.SaveMedia(ctx, uid, []byte(htmlStr), ext)
 	if err != nil {
 		return "", err
 	}
@@ -592,8 +616,9 @@ func (p *Community) GetApplicationInfo() (*casdoorsdk.Application, error) {
 	}
 	return a2, err
 }
-func (p *Community) ArticleLView(ctx context.Context, articleId, ip, userId string) {
-	go func(articleId, ip, userId string) {
+func (p *Community) ArticleLView(ctx context.Context, articleId, ip, userId, platform string) {
+	if platform == Twitter || platform == FaceBook || platform == WeChat || platform == "" {
+		p.xLog.Debugf("user: %s, ip: %s, share to platform: %s, articleId: %s", userId, ip, platform, articleId)
 		userIdInt, err := strconv.Atoi(userId)
 		if err != nil {
 			userIdInt = 0
@@ -603,19 +628,18 @@ func (p *Community) ArticleLView(ctx context.Context, articleId, ip, userId stri
 			p.xLog.Error(err.Error())
 			return
 		}
-		sqlStr := "INSERT INTO article_view (ip,user_id,article_id,created_at,`index`) values (?,?,?,?,?)"
-		index := articleId + userId + ip
-		if _, err = p.db.Exec(sqlStr, ip, userIdInt, articleIdInt, time.Now(), index); err == nil {
+		sqlStr := "INSERT INTO article_view (ip,user_id,article_id,created_at,`index`,platform) values (?,?,?,?,?,?)"
+		index := articleId + userId + ip + platform
+		if _, err = p.db.Exec(sqlStr, ip, userIdInt, articleIdInt, time.Now(), index, platform); err == nil {
 			// success article views incr
 			sqlStr = "update article set view_count = view_count + 1 where id=?"
 			_, err = p.db.Exec(sqlStr, articleId)
 			if err != nil {
-				p.xLog.Fatalln(err.Error())
+				p.xLog.Error(err.Error())
 				return
 			}
 		}
-
-	}(articleId, ip, userId)
+	}
 }
 
 func (p *Community) GetClientIP(r *http.Request) string {

@@ -254,6 +254,11 @@ func initClient() {
 				AccessToken: "access_token",
 			}, nil
 		},
+		DoGetApplication: func(name string) (*casdoorsdk.Application, error) {
+			return &casdoorsdk.Application{
+				Name: "test",
+			}, nil
+		},
 	}
 
 	// Replace S3Service with mock

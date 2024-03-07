@@ -33,6 +33,7 @@ type CasdoorSDKService interface {
 	UpdateUser(user *UserInfo) (res bool, err error)
 	GetUserByUserId(uid string) (user *casdoorsdk.User, err error)
 	GetOAuthToken(code string, state string) (token *oauth2.Token, err error)
+	GetApplication(name string) (*casdoorsdk.Application, error)
 }
 
 // Adapter for mock
@@ -68,6 +69,10 @@ func (c *CasdoorSDKServiceAdapter) GetUserByUserId(uid string) (user *casdoorsdk
 
 func (c *CasdoorSDKServiceAdapter) GetOAuthToken(code string, state string) (token *oauth2.Token, err error) {
 	return casdoorsdk.GetOAuthToken(code, state)
+}
+
+func (c *CasdoorSDKServiceAdapter) GetApplication(name string) (*casdoorsdk.Application, error) {
+	return casdoorsdk.GetApplication(name)
 }
 
 // Init casdoor parser
