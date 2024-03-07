@@ -279,7 +279,7 @@ func TestGetArticlesByUid(t *testing.T) {
 		uid           string
 		expectedError error
 	}{
-		{"", 10, "1", nil},
+		{"1", 10, "", nil},
 	}
 
 	for _, tt := range tests {
@@ -298,7 +298,7 @@ func TestArticleLView(t *testing.T) {
 		t.Error(err.Error())
 		return
 	}
-	community.ArticleLView(todo, "14", "127.0.0.1", "73917397")
+	community.ArticleLView(todo, "14", "127.0.0.1", "73917397", "")
 }
 
 func TestArticleLike(t *testing.T) {

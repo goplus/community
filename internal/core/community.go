@@ -42,6 +42,9 @@ import (
 var (
 	ErrNotExist   = os.ErrNotExist
 	ErrPermission = os.ErrPermission
+	Twitter       = "twitter"
+	FaceBook      = "facebook"
+	WeChat        = "wechat"
 )
 
 type Config struct {
@@ -51,19 +54,26 @@ type Config struct {
 	BlobUS string // blob URL scheme
 }
 
+type PlatformCount struct {
+	ArticleId string
+	Platform  string
+	ViewCount string
+}
+
 type ArticleEntry struct {
-	ID        string
-	Title     string
-	UId       string
-	Cover     string
-	Tags      string
-	User      User
-	Abstract  string
-	Label     string
-	Ctime     time.Time
-	Mtime     time.Time
-	ViewCount int
-	LikeCount int
+	ID            string
+	Title         string
+	UId           string
+	Cover         string
+	Tags          string
+	User          User
+	Abstract      string
+	Label         string
+	Ctime         time.Time
+	Mtime         time.Time
+	ViewCount     int
+	LikeCount     int
+	PlatformCount []PlatformCount
 }
 
 type ArticleLike struct {
@@ -431,9 +441,11 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 	defer rows.Close()
 
 	var rowLen int
+	var articleIds []string
 	for rows.Next() {
 		article := &ArticleEntry{}
 		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Abstract, &article.Cover, &article.Label, &article.LikeCount, &article.ViewCount)
+		articleIds = append(articleIds, article.ID)
 		if err != nil {
 			return []*ArticleEntry{}, from, err
 		}
@@ -447,10 +459,33 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 		items = append(items, article)
 		rowLen++
 	}
+
 	// have no article
 	if rowLen == 0 {
 		return []*ArticleEntry{}, MarkEnd, nil
 	}
+	sqlStr = "SELECT article_id, platform, COUNT(*) AS view_count FROM article_view WHERE article_id IN (" + strings.Join(articleIds, ",") + ") AND platform IS NOT NULL AND platform <> '' GROUP BY article_id, platform;"
+	rows, err = p.db.Query(sqlStr)
+	if err != nil {
+		return []*ArticleEntry{}, MarkEnd, nil
+	}
+	var m = make(map[string][]PlatformCount)
+	for rows.Next() {
+		p1 := PlatformCount{}
+		err := rows.Scan(&p1.ArticleId, &p1.Platform, &p1.ViewCount)
+		if err != nil {
+			return []*ArticleEntry{}, from, err
+		}
+		if _, ok := m[p1.ArticleId]; !ok {
+			m[p1.ArticleId] = make([]PlatformCount, 0)
+		}
+		m[p1.ArticleId] = append(m[p1.ArticleId], p1)
+	}
+
+	for _, article := range items {
+		article.PlatformCount = m[article.ID]
+	}
+
 	if rowLen < limit {
 		return items, MarkEnd, nil
 	}
@@ -525,16 +560,22 @@ func (a *Community) GetAccessToken(code, state string) (token *oauth2.Token, err
 
 // share count
 func (a *Community) Share(ip, platform, userId, articleId string) {
-	go func(ip, platform, userId, articleId string) {
-		sqlStr := "INSERT INTO share (platform,user_Id,ip,index_key,create_at) values (?,?,?,?,?)"
-		index := ip + platform + articleId
-		_, err := a.db.Exec(sqlStr, platform, userId, ip, index, time.Now())
-		if err != nil {
-			a.xLog.Fatalln(err.Error())
-			return
-		}
-		a.xLog.Printf("user: %s, ip: %s, share to platform: %s, articleId: %s", userId, ip, platform, articleId)
-	}(ip, platform, userId, articleId)
+
+	if platform == Twitter || platform == FaceBook || platform == WeChat {
+		go func(ip, platform, userId, articleId string) {
+			a.xLog.Printf("user: %s, ip: %s, share to platform: %s, articleId: %s", userId, ip, platform, articleId)
+			if userId == "" {
+				userId = "0"
+			}
+			sqlStr := "INSERT INTO share (platform,user_Id,ip,index_key,create_at,article_id) values (?,?,?,?,?,?)"
+			index := ip + platform + articleId
+			_, err := a.db.Exec(sqlStr, platform, userId, ip, index, time.Now(), articleId)
+			if err != nil {
+				return
+			}
+
+		}(ip, platform, userId, articleId)
+	}
 }
 
 // get community application information
@@ -545,30 +586,32 @@ func (a *Community) GetApplicationInfo() (*casdoorsdk.Application, error) {
 	}
 	return a2, err
 }
-func (a *Community) ArticleLView(ctx context.Context, articleId, ip, userId string) {
-	go func(articleId, ip, userId string) {
-		userIdInt, err := strconv.Atoi(userId)
-		if err != nil {
-			userIdInt = 0
-		}
-		articleIdInt, err := strconv.Atoi(articleId)
-		if err != nil {
-			a.xLog.Error(err.Error())
-			return
-		}
-		sqlStr := "INSERT INTO article_view (ip,user_id,article_id,created_at,`index`) values (?,?,?,?,?)"
-		index := articleId + userId + ip
-		if _, err = a.db.Exec(sqlStr, ip, userIdInt, articleIdInt, time.Now(), index); err == nil {
-			// success article views incr
-			sqlStr = "update article set view_count = view_count + 1 where id=?"
-			_, err = a.db.Exec(sqlStr, articleId)
+func (a *Community) ArticleLView(ctx context.Context, articleId, ip, userId, platform string) {
+	if platform == Twitter || platform == FaceBook || platform == WeChat {
+		go func(articleId, ip, userId, platform string) {
+			a.xLog.Printf("user: %s, ip: %s, share to platform: %s, articleId: %s", userId, ip, platform, articleId)
+			userIdInt, err := strconv.Atoi(userId)
 			if err != nil {
-				a.xLog.Fatalln(err.Error())
+				userIdInt = 0
+			}
+			articleIdInt, err := strconv.Atoi(articleId)
+			if err != nil {
+				a.xLog.Error(err.Error())
 				return
 			}
-		}
-
-	}(articleId, ip, userId)
+			sqlStr := "INSERT INTO article_view (ip,user_id,article_id,created_at,`index`,platform) values (?,?,?,?,?,?)"
+			index := articleId + userId + ip + platform
+			if _, err = a.db.Exec(sqlStr, ip, userIdInt, articleIdInt, time.Now(), index, platform); err == nil {
+				// success article views incr
+				sqlStr = "update article set view_count = view_count + 1 where id=?"
+				_, err = a.db.Exec(sqlStr, articleId)
+				if err != nil {
+					a.xLog.Error(err.Error())
+					return
+				}
+			}
+		}(articleId, ip, userId, platform)
+	}
 }
 
 func (a *Community) GetClientIP(r *http.Request) string {
