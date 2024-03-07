@@ -240,18 +240,26 @@ func (p *Community) Article(ctx context.Context, id string) (article *Article, e
 	}
 	// vtt don't finished when adding
 	if article.Vtt_id != "" {
-		row := p.db.QueryRow(`select output, status from video_task where resource_id = ?`, article.Vtt_id)
+		save_vid := []string{}
+		vids := strings.Split(article.Vtt_id, ";")
 		var fileKey string
 		var status string
-		err = row.Scan(&fileKey, &status)
-		if err != nil {
-			return article, err
+		for _, vid := range vids {
+			row := p.db.QueryRow(`select output, status from video_task where resource_id = ?`, vid)
+			err = row.Scan(&fileKey, &status)
+			if err != nil {
+				return article, err
+			}
+			// vtt finish
+			if status == "1" {
+				article.Content = strings.Replace(article.Content, "("+p.domain+vid+")", "("+p.domain+fileKey+")", -1)
+			} else {
+				save_vid = append(save_vid, vid)
+			}
 		}
-		// vtt finish
-		if status == "1" {
-			article.Content = strings.Replace(article.Content, "("+p.domain+")", "("+p.domain+fileKey+")", -1)
+		if len(save_vid) != len(vids) {
 			sqlStr := "update article set content=?, vtt_id=? where id=?"
-			_, err := p.db.Exec(sqlStr, article.Content, "", id)
+			_, err := p.db.Exec(sqlStr, article.Content, strings.Join(save_vid, ";"), id)
 			if err != nil {
 				return article, err
 			}

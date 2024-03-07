@@ -32,7 +32,7 @@ function initCherryMD(value, config) {
                 if (matchResult) {
                     let video_src = matchResult[0].replace("(","").replace(")","")
                     console.log("video src", video_src)
-                    let poster = video_src + "/vframe/jpg/offset/7"
+                    let poster = video_src + "?vframe/jpg/offset/7"
                     if(matchResult[1]){
                         vtt_src = matchResult[1].replace("(","").replace(")","")
                     }

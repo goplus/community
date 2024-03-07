@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
-	"gocloud.dev/blob"
 	"io"
 	"net/http"
 	"os"
@@ -13,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"gocloud.dev/blob"
 
 	"github.com/google/uuid"
 	"github.com/goplus/yap"
@@ -57,6 +58,7 @@ type File struct {
 	CreateAt time.Time
 	UpdateAt time.Time
 	Duration *string
+	Vtt      string
 }
 
 func (c *Community) DelMedias(ctx context.Context, userId string, ids []string) error {
@@ -378,6 +380,13 @@ func (c *Community) ListMediaByUserId(ctx context.Context, userId string, format
 			return files, 0, err
 		}
 		file.FileKey = c.domain + file.FileKey
+		if format == "video" {
+			vtt, status, _ := c.GetVideoSubtitle(ctx, strconv.Itoa(file.Id))
+			if status == "1" {
+				file.Vtt = c.domain + vtt
+			}
+		}
+
 		files = append(files, file)
 
 	}
