@@ -423,7 +423,7 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 		return []*ArticleEntry{}, from, err
 	}
 
-	rows, err := p.db.Query(sqlStr, value, label, limit, fromInt)
+	rows, err := p.db.Query(sqlStr, value, value, label, limit, fromInt)
 	if err != nil {
 		return []*ArticleEntry{}, from, err
 	}
@@ -460,7 +460,7 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 
 // ListArticle lists articles from a position.
 func (p *Community) ListArticle(ctx context.Context, from string, limit int, searchValue string, label string) (items []*ArticleEntry, next string, err error) {
-	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label, like_count, view_count from article where title like ? and label like ? order by ctime desc limit ? offset ?"
+	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label, like_count, view_count from article where title like ? or tags like ?  and label like ? order by ctime desc limit ? offset ?"
 	return p.getPageArticles(sqlStr, from, limit, "%"+searchValue+"%", "%"+label+"%")
 }
 
