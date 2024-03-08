@@ -15,7 +15,7 @@ require (
 replace github.com/goplus/yap v0.7.2 => github.com/LiusCraft/yap v0.8.6
 
 require (
-	github.com/casdoor/casdoor-go-sdk v0.35.1
+	github.com/casdoor/casdoor-go-sdk v0.37.0
 	github.com/qiniu/go-cdk-driver v0.1.0
 	github.com/qiniu/x v1.13.8
 	golang.org/x/oauth2 v0.17.0
@@ -23,7 +23,7 @@ require (
 
 require github.com/liuscraft/gop-casdoor-account-sdk v1.1.0
 
-require github.com/gabriel-vasile/mimetype v1.4.3 // indirect
+require github.com/gabriel-vasile/mimetype v1.4.3
 
 replace github.com/qiniu/go-cdk-driver v0.1.0 => github.com/xhyqaq/go-cdk-driver v1.0.0
 
