@@ -5,10 +5,10 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
+	"github.com/gabriel-vasile/mimetype"
 	"io"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -20,26 +20,6 @@ import (
 	_ "github.com/qiniu/go-cdk-driver/kodoblob"
 	"github.com/qiniu/x/xlog"
 )
-
-var transcodeType = map[string]bool{
-	".wmv":  true,
-	".asx":  true,
-	".asf":  true,
-	".rmvb": true,
-	".rm":   true,
-	".3gp":  true,
-	".m4v":  true,
-	".avi":  true,
-	".mov":  true,
-	".dat":  true,
-	".mkv":  true,
-	".vob":  true,
-	".flv":  true,
-}
-
-func isTranscoding(fileType string) bool {
-	return transcodeType[fileType]
-}
 
 // todo
 type VideoSubtitle struct {
@@ -144,12 +124,12 @@ func (c *Community) GetVideoSubtitle(ctx context.Context, mediaId string) (strin
 	return fileKey, status, nil
 }
 
-func (c *Community) SaveMedia(ctx context.Context, userId string, data []byte, fileExt string) (int64, string, error) {
+func (c *Community) SaveMedia(ctx context.Context, userId string, data []byte, fileExt string) (int64, error) {
 	opts := &blob.WriterOptions{}
 	// upload cloud oss
 	fileKey := uuid.New().String()
-
-	if isTranscoding(fileExt) {
+	c.xLog.Info(fileKey)
+	if strings.Contains(fileExt, "video") {
 		fileExt = ".mp4"
 		encoding := base64.URLEncoding.EncodeToString([]byte(c.bucketName + ":" + fileKey + fileExt))
 		opts.Metadata = make(map[string]string)
@@ -160,13 +140,13 @@ func (c *Community) SaveMedia(ctx context.Context, userId string, data []byte, f
 	err := c.uploadMedia(fileKey, data, opts)
 	if err != nil {
 		c.xLog.Warn(err.Error())
-		return 0, fileExt, err
+		return 0, err
 	}
 	// get fileInfo
 	fileInfo, err := c.getMediaInfo(fileKey)
 	if err != nil {
 		c.xLog.Warn(err.Error())
-		return 0, fileExt, err
+		return 0, err
 	}
 
 	var duration string = ""
@@ -174,23 +154,23 @@ func (c *Community) SaveMedia(ctx context.Context, userId string, data []byte, f
 		duration, err = GetVideoDuration(c.domain + fileKey + "?avinfo")
 		if err != nil {
 			c.xLog.Warn(err.Error())
-			return 0, fileExt, err
+			return 0, err
 		}
 	}
 	// save
 	stem, err := c.db.Prepare(`insert into file (file_key,format,size,user_id,create_at,update_at,duration) VALUES (?,?,?,?,?,?,?)`)
 	if err != nil {
 		c.xLog.Warn(err.Error())
-		return 0, fileExt, err
+		return 0, err
 	}
 	res, err := stem.Exec(fileKey, fileInfo.Format, fileInfo.Size, userId, time.Now(), time.Now(), duration)
 
 	if err != nil {
 		c.xLog.Warn(err.Error())
-		return 0, fileExt, err
+		return 0, err
 	}
 	id, err := res.LastInsertId()
-	return id, fileExt, err
+	return id, err
 }
 
 // for internal use,no need to add ctx
@@ -325,8 +305,8 @@ func (c *Community) UploadFile(ctx *yap.Context) {
 	if err != nil {
 		ctx.JSON(500, err.Error())
 	}
-	ext := filepath.Ext(filename)
-	id, ext, err := c.SaveMedia(context.Background(), uid, bytes, ext)
+	ext := mimetype.Detect(bytes).String()
+	id, err := c.SaveMedia(context.Background(), uid, bytes, ext)
 	if err != nil {
 		xLog.Error("save file", err.Error())
 		ctx.JSON(500, err.Error())
@@ -334,7 +314,7 @@ func (c *Community) UploadFile(ctx *yap.Context) {
 	}
 
 	// Judge the file type and start the corresponding task
-	if strings.Contains(ext, ".mp4") {
+	if strings.Contains(ext, "video") {
 		// Start captioning task
 		err := c.NewVideoTask(context.Background(), uid, strconv.FormatInt(id, 10))
 		if err != nil {

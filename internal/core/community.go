@@ -20,6 +20,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/gabriel-vasile/mimetype"
 	"net"
 	"net/http"
 	"net/url"
@@ -318,7 +319,8 @@ func (p *Community) CanEditable(ctx context.Context, uid, id string) (editable b
 
 // SaveHtml upload origin html(string) to media for html id and save id to database
 func (p *Community) SaveHtml(ctx context.Context, uid, htmlStr, mdData, id string) (articleId string, err error) {
-	htmlId, _, err := p.SaveMedia(ctx, uid, []byte(htmlStr), "")
+	ext := mimetype.Detect([]byte(htmlStr)).String()
+	htmlId, err := p.SaveMedia(ctx, uid, []byte(htmlStr), ext)
 	if err != nil {
 		return "", err
 	}

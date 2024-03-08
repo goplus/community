@@ -23,6 +23,8 @@ require (
 
 require github.com/liuscraft/gop-casdoor-account-sdk v1.1.0
 
+require github.com/gabriel-vasile/mimetype v1.4.3 // indirect
+
 replace github.com/qiniu/go-cdk-driver v0.1.0 => github.com/xhyqaq/go-cdk-driver v1.0.0
 
 require (
