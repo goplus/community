@@ -3,6 +3,7 @@ package core_test
 import (
 	"context"
 	"fmt"
+	"github.com/gabriel-vasile/mimetype"
 	"log"
 	"os"
 	"testing"
@@ -35,7 +36,7 @@ func TestSaveMedia(t *testing.T) {
 		log.Fatalln(err.Error())
 		return
 	}
-	id, _, err := c.SaveMedia(context.Background(), "", data, ".flv")
+	id, err := c.SaveMedia(context.Background(), "", data, mimetype.Detect(data).String())
 	if err != nil {
 		log.Fatalln(err.Error())
 		return
