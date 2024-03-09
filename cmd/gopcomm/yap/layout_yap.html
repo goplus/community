@@ -1,116 +1,96 @@
 {{ define "header" }}
+
 <!DOCTYPE html>
 <html>
-  <head>
+
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Go+ Community</title>
     <link rel="icon" href="static/img/favicon.svg">
 
     <!-- UI -->
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css"
-      rel="stylesheet"
-    />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
     <script src="https://unpkg.com/vue"></script>
     <script src="https://unpkg.com/naive-ui"></script>
 
     <!-- Icon -->
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/bold/style.css"
-    />
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/bold/style.css" />
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
     <!-- Font -->
     <link href="https://fonts.cdnfonts.com/css/inter" rel="stylesheet" />
     <link rel="preconnect" href="https://fonts.proxy.ustclug.org" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.proxy.ustclug.org/css2?family=Noto+Sans+SC&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.proxy.ustclug.org/css2?family=Noto+Sans+SC&display=swap" rel="stylesheet" />
     <style type="text/css" media="screen, print">
-      body {
-        font-family: "Inter", "Noto Sans SC";
-      }
+        body {
+            font-family: "Inter", "Noto Sans SC";
+        }
     </style>
-  </head>
+</head>
 
-  <body style="background-color: #f7fafc">
+<body>
+    <div id="layoutApp" class="w-full h-full px-4 flex justify-between items-center"
+        style="height: 8vh; background-image: url('/static/img/home-background.png'); background-size: 100% 100%;">
+        <!-- <input style="display: none; " id="usertoken" value="{{.usertoken}}" /> -->
 
-    <n-config-provider :theme-overrides="themeOverrides">
-        <div id="layoutApp" class="w-full pb-4">
-            <!-- <input style="display: none; " id="usertoken" value="{{.usertoken}}" /> -->
+        <!-- LOGO -->
+        <a href="/" style="width: 35%;">
+            <img src="/static/img/logo-community-white.png" style="height: 3vh;" alt="Go+ Community Logo" />
+        </a>
 
-            <!-- Header -->
-            <header class="bg-cover bg-center"
-                style="height: 8vh; background-image: url('/static/img/home-background.png');">
-                <nav class="border-gray-200 px-4 lg:px-6 py-2.5 dark:bg-gray-800">
-                    <div class="flex justify-between items-center">
-                        <!-- LOGO -->
-                        <a href="/" style="width: 35%;">
-                            <img src="/static/img/logo-community-white.png" style="height: 3vh;" class="mr-3"
-                                alt="Go+ Community Logo" />
-                        </a>
-
-                        <!-- Search -->
-                        <div style="width: 30%;">
-                            <n-input-group>
-                                <n-input v-model:value="searchValue" round :style="{ width: '80%' }"
-                                    placeholder="Explore Community" clearable size="large"
-                                    style="--n-caret-color: #3182ce; --n-border-hover: 1px solid white;
-                                    --n-border-focus: 1px solid white; --n-box-shadow-focus: 0 0 0 1px white;"
-                                    @keypress.enter="handleSearch"
-                                >
-                                    <template #prefix>
-                                        <i class="ph-bold ph-magnifying-glass" style="color: #3182ce; font-size: 15px;"></i>
-                                    </template>
-                                </n-input>
-                                <n-button round strong text-color="white" @click="handleSearch" size="large"
-                                    style="--n-ripple-color: #bfdbf7; --n-border: 1px solid white;
-                                    --n-border-hover: 1px solid #dfebf7;
-                                    --n-border-pressed: 1px solid #bfdbf7;
-                                    --n-border-focus: 1px solid #dfebf7;">
-                                    Search
-                                </n-button>
-                            </n-input-group>
-                        </div>
-
-                        <!-- Account -->
-                        <div style="width: 35%;" class="flex justify-end">
-                            {{if .User}}
-                            <n-button class="mr-3" color="#f7fafc" style="--n-text-color: white;
-                                --n-text-color-hover: #3182ce; --n-text-color-pressed: #3182ce;
-                                --n-text-color-focus: #3182ce" @click="writeArticle"
-                            >
-                                <i class="ph ph-pencil-line" style="font-size: 18px; margin-right: 5px;"></i>
-                                Write an Article
-                            </n-button>
-                            <n-dropdown :options="userOptions" trigger="hover" width="150" @select="selectDropdown">
-                                <n-avatar round src="{{ if .User.Avatar }}{{ .User.Avatar }}{{ else }}../static/img/gop-avatar.png{{ end }}" style="cursor: pointer;"></n-avatar>
-                            </n-dropdown>
-                            {{else}}
-                            <n-button quaternary color="white" @click="signIn">
-                                <template #icon>
-                                    <i class="ph-bold ph-user"></i>
-                                  </template>
-                                Sign In
-                            </n-button>
-                            {{end}}
-                        </div>
-                    </div>
-                </nav>
-            </header>
-
+        <!-- Search -->
+        <div style="width: 30%;">
+            <n-input-group>
+                <n-input v-model:value="searchValue" round :style="{ width: '80%' }" placeholder="Explore Community"
+                    clearable size="large" style="--n-caret-color: #3182ce; --n-border-hover: 1px solid white;
+                    --n-border-focus: 1px solid white; --n-box-shadow-focus: 0 0 0 1px white;"
+                    @keypress.enter="handleSearch">
+                    <template #prefix>
+                        <i class="ph-bold ph-magnifying-glass" style="color: #3182ce; font-size: 15px;"></i>
+                    </template>
+                </n-input>
+                <n-button round strong text-color="white" @click="handleSearch" size="large" style="--n-ripple-color: #bfdbf7; --n-border: 1px solid white;
+                    --n-border-hover: 1px solid #dfebf7;
+                    --n-border-pressed: 1px solid #bfdbf7;
+                    --n-border-focus: 1px solid #dfebf7;">
+                    Search
+                </n-button>
+            </n-input-group>
         </div>
-    </n-config-provider>
+
+        <!-- Account -->
+        <div style="width: 35%;" class="flex items-center justify-end">
+            {{if .User}}
+            <n-button class="mr-3" color="#f7fafc" style="--n-text-color: white;
+                --n-text-color-hover: #3182ce; --n-text-color-pressed: #3182ce;
+                --n-text-color-focus: #3182ce" @click="writeArticle">
+                <i class="ph ph-pencil-line" style="font-size: 18px; margin-right: 5px;"></i>
+                Write an Article
+            </n-button>
+            <n-dropdown :options="userOptions" trigger="hover" width="150" @select="selectDropdown">
+                <n-avatar round size="large"
+                    src="{{ if .User.Avatar }}{{ .User.Avatar }}{{ else }}../static/img/gop-avatar.png{{ end }}"
+                    style="cursor: pointer;"></n-avatar>
+            </n-dropdown>
+            {{else}}
+            <n-button quaternary color="white" @click="signIn">
+                <template #icon>
+                    <i class="ph-bold ph-user"></i>
+                </template>
+                Sign In
+            </n-button>
+            {{end}}
+        </div>
+    </div>
+
     <script>
-            (()=>{
-                const { ref, h } = Vue;
+        (() => {
+            const { ref, h } = Vue;
             const searchValue = ref("{{.Value}}" || "")
+
             /*======= user related =======*/
             function signIn() {
                 window.location.href = '/login';
@@ -120,10 +100,56 @@
                 window.location.href = '/add';
             };
 
+            function renderCustomHeader() {
+                return h(
+                    'div',
+                    {
+                        style: 'display: flex; align-items: center; padding: 8px 12px;'
+                    },
+                    [
+                        h('img', {
+                            style: 'width: 40px; height: 40px; border-radius: 20px; margin-right: 10px;',
+                            src: user.Avatar || '/static/img/gop-avatar.png'
+                        }),
+                        h('div', 
+                            {
+                                style: 'max-width: 75px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'
+                            }, 
+                            h(
+                                'span',
+                                { style: 'font-weight: 500; font-size: 15px;' },
+                                user.Name
+                            ),
+                        )
+                    ]
+                )
+            }
+
+            const renderIcon = (iconClass) => {
+                return () => {
+                    return h('i', { class: iconClass, style: 'font-size: 16px; margin-left: 10px; margin-right: 5px;' });
+                };
+            };
+
             const userOptions = [
                 {
+                    key: "header",
+                    type: "render",
+                    render: renderCustomHeader
+                },
+                {
+                    key: "header-divider",
+                    type: "divider"
+                },
+                {
                     label: "User Profile",
-                    key: "profile"
+                    key: "profile",
+                    icon: renderIcon('ph-bold ph-user')
+                },
+                {
+                    label: "Settings",
+                    key: "settings",
+                    icon: renderIcon('ph-bold ph-gear-six')
                 },
                 {
                     key: "divider",
@@ -131,24 +157,24 @@
                 },
                 {
                     label: "Sign Out",
-                    key: "exit"
+                    key: "exit",
+                    icon: renderIcon('ph-bold ph-sign-out')
                 }
             ];
             
             function selectDropdown(key) {
                 if (key === 'profile') {
-                    if ("{{.UserId}}" !== ""){
+                    if ("{{.UserId}}" !== "") {
                         window.location.href = '/user/{{ .UserId }}';
                     }
+                } else if (key === 'settings') {
+                    window.location.href = '/user/edit';
                 } else if (key === 'exit') {
                     window.location.href = '/logout';
                 }
             };
 
-
-
-
-            function handleSearch(){
+            function handleSearch() {
                 const protocolAndHost = window.location.protocol + "//" + window.location.host;
                 const url = new URL(`${protocolAndHost}/search`)
                 url.searchParams.set('value', encodeURIComponent(searchValue.value))
@@ -176,8 +202,10 @@
             layoutApp.use(naive)
             layoutApp.config.compilerOptions.delimiters = ['${', '}']
             layoutApp.mount('#layoutApp')
-            })()
-        </script>
-  </body>
+        })()
+    </script>
+</body>
+
 </html>
+
 {{ end }}
