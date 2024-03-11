@@ -1,1 +1,1 @@
-./community.exe -config ./config.env
+.\commnuity.exe -config .\config.env
