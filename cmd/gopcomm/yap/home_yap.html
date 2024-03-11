@@ -131,69 +131,73 @@
                             <!-- Article List Item -->
                             <n-list-item v-for="(item, i) in articleList.article" style="padding: 20px 10px;">
                                 <!-- left part -->
-                                <div style="width: 75%;">
-                                    <!-- Title -->
-                                    <div class="text-xl font-semibold text-gray-900 title-font mb-2">
-                                        <a :href="'/article/' + item.ID">
-                                            <p>${ item.Title }</p>
-                                        </a>
+                                <div style="width: 78%; display: flex; flex-direction: column; justify-content: space-between;">
+                                    <div>
+                                        <!-- Title -->
+                                        <div class="text-xl font-semibold text-gray-900 title-font mb-2">
+                                            <a :href="'/article/' + item.ID">
+                                                <p>${ item.Title }</p>
+                                            </a>
+                                        </div>
+
+                                        <!-- Tags -->
+                                        <div class="flex flex-row items-center" v-if="item.Tags">
+                                            <span v-for="(tag, index) in item.Tags.split(';')" class="flex flex-row items-center">
+                                                <n-tag :bordered="false" size="small" class="mr-2">
+                                                    <a class="text-sm" :href="'/search?value=' + tag + '&label=article'">
+                                                        ${ tag }
+                                                    </a>
+                                                </n-tag>
+                                            </span>
+                                        </div>
+
+                                        <!-- Description -->
+                                        <p class="ellipsis">
+                                            ${ item.Abstract }
+                                        </p>
                                     </div>
 
-                                    <!-- Tags -->
-                                    <div class="flex flex-row items-center" v-if="item.Tags">
-                                        <span v-for="(tag, index) in item.Tags.split(';')" class="flex flex-row items-center">
-                                            <n-tag :bordered="false" size="small" class="mr-2">
-                                                <a class="text-sm" :href="'/search?value=' + tag + '&label=article'">
-                                                    ${ tag }
-                                                </a>
-                                            </n-tag>
-                                        </span>
-                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <!-- Avatar & Nick Name & Update Time -->
+                                        <div class="flex items-center">
+                                            <a class="flex items-center" :href="'/user/' + item.User.Id">
+                                                <!-- Avatar -->
+                                                <n-avatar class="mr-2" round :size="28"
+                                                    :src="item.User.Avatar || './static/img/gop-avatar.png'"></n-avatar>
+    
+                                                <!-- Nick Name -->
+                                                <p class="mr-2" style="font-size: 15px;">${ item.User.Name }</p>
+                                            </a>
+    
+                                            <!-- Update Time -->
+                                            <span class="text-sm" style="color: #A0AEC0;">
+                                                ·
+                                                <span class="ml-1">${ item.Ctime.slice(0,10) }</span>
+                                            </span>
+                                        </div>
+                                        
+                                        <!-- Data -->
+                                        <div class="flex items-center">
+                                            <!-- Views -->
+                                            <div class="flex justify-center items-center mr-3">
+                                                <i class="ph-duotone ph-eye" style="color: #7ba7d3; font-size: 18px;"></i>
+                                                <span class="ml-1 text-sm"> ${ item.ViewCount }</span>
+                                            </div>
 
-                                    <!-- Description -->
-                                    <p class="ellipsis">
-                                        ${ item.Abstract }
-                                    </p>
-
-                                    <!-- Avatar & Nick Name & Update Time -->
-                                    <div class="flex items-center absolute bottom-4">
-                                        <a class="flex items-center" :href="'/user/' + item.User.Id">
-                                            <!-- Avatar -->
-                                            <n-avatar class="mr-2" round :size="28"
-                                                :src="item.User.Avatar || './static/img/gop-avatar.png'"></n-avatar>
-
-                                            <!-- Nick Name -->
-                                            <p class="mr-2" style="font-size: 15px;">${ item.User.Name }</p>
-                                        </a>
-
-                                        <!-- Update Time -->
-                                        <span class="text-sm" style="color: #A0AEC0;">
-                                            ·
-                                            <span class="ml-1">${ item.Ctime.slice(0,10) }</span>
-                                        </span>
+                                            <!-- Likes -->
+                                            <div class="flex justify-center items-center ml-1">
+                                                <i class="ph-duotone ph-heart" style="color: #df8282; font-size: 18px;"></i>
+                                                <span class="ml-1 text-sm"> ${ item.LikeCount }</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <!-- right part -->
                                 <div style="width: 20%;">
                                     <!-- Image -->
-                                    <img class="w-full object-cover rounded-lg" style="height: 17vh;"
+                                    <img class="w-full object-cover rounded-lg" style="height: 20vh;"
                                         :src="item.Cover || './static/img/default-cover.jpg'" alt="">
-
-                                    <!-- Data -->
-                                    <div class="flex justify-center items-center mt-2" style="height: 2vh;">
-                                        <!-- Views -->
-                                        <div class="flex justify-center items-center" style="width: 40%;">
-                                            <i class="ph-duotone ph-eye" style="color: #7ba7d3; font-size: 18px;"></i>
-                                            <span class="ml-1 text-sm"> ${ item.ViewCount }</span>
-                                        </div>
-
-                                        <!-- Likes -->
-                                        <div class="flex justify-center items-center" style="width: 40%;">
-                                            <i class="ph-duotone ph-heart" style="color: #df8282; font-size: 18px;"></i>
-                                            <span class="ml-1 text-sm"> ${ item.LikeCount }</span>
-                                        </div>
-                                    </div>
                                 </div>
                             </n-list-item>
                         </n-list>
@@ -251,69 +255,73 @@
                             <!-- Article List Item -->
                             <n-list-item v-for="(item, i) in articleList.video" style="padding: 20px 10px;">
                                 <!-- left part -->
-                                <div style="width: 75%;">
-                                    <!-- Title -->
-                                    <div class="text-xl font-semibold text-gray-900 title-font mb-2">
-                                        <a :href="'/article/' + item.ID">
-                                            <p>${ item.Title }</p>
-                                        </a>
+                                <div style="width: 78%; display: flex; flex-direction: column; justify-content: space-between;">
+                                    <div>
+                                        <!-- Title -->
+                                        <div class="text-xl font-semibold text-gray-900 title-font mb-2">
+                                            <a :href="'/article/' + item.ID">
+                                                <p>${ item.Title }</p>
+                                            </a>
+                                        </div>
+
+                                        <!-- Tags -->
+                                        <div class="flex flex-row items-center" v-if="item.Tags">
+                                            <span v-for="(tag, index) in item.Tags.split(';')" class="flex flex-row items-center">
+                                                <n-tag :bordered="false" size="small" class="mr-2">
+                                                    <a class="text-sm" :href="'/search?value=' + tag + '&label=video'">
+                                                        ${ tag }
+                                                    </a>
+                                                </n-tag>
+                                            </span>
+                                        </div>
+
+                                        <!-- Description -->
+                                        <p class="ellipsis">
+                                            ${ item.Abstract }
+                                        </p>
                                     </div>
 
-                                    <!-- Tags -->
-                                    <div class="flex flex-row items-center" v-if="item.Tags">
-                                        <span v-for="(tag, index) in item.Tags.split(';')" class="flex flex-row items-center">
-                                            <n-tag :bordered="false" size="small" class="mr-2">
-                                                <a class="text-sm" :href="'/search?value=' + tag + '&label=video'">
-                                                    ${ tag }
-                                                </a>
-                                            </n-tag>
-                                        </span>
-                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <!-- Avatar & Nick Name & Update Time -->
+                                        <div class="flex items-center">
+                                            <a class="flex items-center" :href="'/user/' + item.User.Id">
+                                                <!-- Avatar -->
+                                                <n-avatar class="mr-2" round :size="28"
+                                                    :src="item.User.Avatar || './static/img/gop-avatar.png'"></n-avatar>
+    
+                                                <!-- Nick Name -->
+                                                <p class="mr-2" style="font-size: 15px;">${ item.User.Name }</p>
+                                            </a>
+    
+                                            <!-- Update Time -->
+                                            <span class="text-sm" style="color: #A0AEC0;">
+                                                ·
+                                                <span class="ml-1">${ item.Ctime.slice(0,10) }</span>
+                                            </span>
+                                        </div>
+                                        
+                                        <!-- Data -->
+                                        <div class="flex items-center">
+                                            <!-- Views -->
+                                            <div class="flex justify-center items-center mr-3">
+                                                <i class="ph-duotone ph-eye" style="color: #7ba7d3; font-size: 18px;"></i>
+                                                <span class="ml-1 text-sm"> ${ item.ViewCount }</span>
+                                            </div>
 
-                                    <!-- Description -->
-                                    <p class="ellipsis">
-                                        ${ item.Abstract }
-                                    </p>
-
-                                    <!-- Avatar & Nick Name & Update Time -->
-                                    <div class="flex items-center absolute bottom-4">
-                                        <a class="flex items-center" :href="'/user/' + item.User.Id">
-                                            <!-- Avatar -->
-                                            <n-avatar class="mr-2" round :size="28"
-                                                :src="item.User.Avatar || './static/img/gop-avatar.png'"></n-avatar>
-
-                                            <!-- Nick Name -->
-                                            <p class="mr-2" style="font-size: 15px;">${ item.User.Name }</p>
-                                        </a>
-
-                                        <!-- Update Time -->
-                                        <span class="text-sm" style="color: #A0AEC0;">
-                                            ·
-                                            <span class="ml-1">${ item.Ctime.slice(0,10) }</span>
-                                        </span>
+                                            <!-- Likes -->
+                                            <div class="flex justify-center items-center ml-1">
+                                                <i class="ph-duotone ph-heart" style="color: #df8282; font-size: 18px;"></i>
+                                                <span class="ml-1 text-sm"> ${ item.LikeCount }</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <!-- right part -->
                                 <div style="width: 20%;">
                                     <!-- Image -->
-                                    <img class="w-full object-cover rounded-lg" style="height: 17vh;"
+                                    <img class="w-full object-cover rounded-lg" style="height: 20vh;"
                                         :src="item.Cover || './static/img/default-cover.jpg'" alt="">
-
-                                    <!-- Data -->
-                                    <div class="flex justify-center items-center mt-2" style="height: 2vh;">
-                                        <!-- Views -->
-                                        <div class="flex justify-center items-center" style="width: 40%;">
-                                            <i class="ph-duotone ph-eye" style="color: #7ba7d3; font-size: 18px;"></i>
-                                            <span class="ml-1 text-sm"> ${ item.ViewCount }</span>
-                                        </div>
-
-                                        <!-- Likes -->
-                                        <div class="flex justify-center items-center" style="width: 40%;">
-                                            <i class="ph-duotone ph-heart" style="color: #df8282; font-size: 18px;"></i>
-                                            <span class="ml-1 text-sm"> ${ item.LikeCount }</span>
-                                        </div>
-                                    </div>
                                 </div>
                             </n-list-item>
                         </n-list>
@@ -371,69 +379,73 @@
                             <!-- Article List Item -->
                             <n-list-item v-for="(item, i) in articleList.stem" style="padding: 20px 10px;">
                                 <!-- left part -->
-                                <div style="width: 75%;">
-                                    <!-- Title -->
-                                    <div class="text-xl font-semibold text-gray-900 title-font mb-2">
-                                        <a :href="'/article/' + item.ID">
-                                            <p>${ item.Title }</p>
-                                        </a>
+                                <div style="width: 78%; display: flex; flex-direction: column; justify-content: space-between;">
+                                    <div>
+                                        <!-- Title -->
+                                        <div class="text-xl font-semibold text-gray-900 title-font mb-2">
+                                            <a :href="'/article/' + item.ID">
+                                                <p>${ item.Title }</p>
+                                            </a>
+                                        </div>
+
+                                        <!-- Tags -->
+                                        <div class="flex flex-row items-center" v-if="item.Tags">
+                                            <span v-for="(tag, index) in item.Tags.split(';')" class="flex flex-row items-center">
+                                                <n-tag :bordered="false" size="small" class="mr-2">
+                                                    <a class="text-sm" :href="'/search?value=' + tag + '&label=stem'">
+                                                        ${ tag }
+                                                    </a>
+                                                </n-tag>
+                                            </span>
+                                        </div>
+
+                                        <!-- Description -->
+                                        <p class="ellipsis">
+                                            ${ item.Abstract }
+                                        </p>
                                     </div>
 
-                                    <!-- Tags -->
-                                    <div class="flex flex-row items-center" v-if="item.Tags">
-                                        <span v-for="(tag, index) in item.Tags.split(';')" class="flex flex-row items-center">
-                                            <n-tag :bordered="false" size="small" class="mr-2">
-                                                <a class="text-sm" :href="'/search?value=' + tag + '&label=stem'">
-                                                    ${ tag }
-                                                </a>
-                                            </n-tag>
-                                        </span>
-                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <!-- Avatar & Nick Name & Update Time -->
+                                        <div class="flex items-center">
+                                            <a class="flex items-center" :href="'/user/' + item.User.Id">
+                                                <!-- Avatar -->
+                                                <n-avatar class="mr-2" round :size="28"
+                                                    :src="item.User.Avatar || './static/img/gop-avatar.png'"></n-avatar>
+    
+                                                <!-- Nick Name -->
+                                                <p class="mr-2" style="font-size: 15px;">${ item.User.Name }</p>
+                                            </a>
+    
+                                            <!-- Update Time -->
+                                            <span class="text-sm" style="color: #A0AEC0;">
+                                                ·
+                                                <span class="ml-1">${ item.Ctime.slice(0,10) }</span>
+                                            </span>
+                                        </div>
+                                        
+                                        <!-- Data -->
+                                        <div class="flex items-center">
+                                            <!-- Views -->
+                                            <div class="flex justify-center items-center mr-3">
+                                                <i class="ph-duotone ph-eye" style="color: #7ba7d3; font-size: 18px;"></i>
+                                                <span class="ml-1 text-sm"> ${ item.ViewCount }</span>
+                                            </div>
 
-                                    <!-- Description -->
-                                    <p class="ellipsis">
-                                        ${ item.Abstract }
-                                    </p>
-
-                                    <!-- Avatar & Nick Name & Update Time -->
-                                    <div class="flex items-center absolute bottom-4">
-                                        <a class="flex items-center" :href="'/user/' + item.User.Id">
-                                            <!-- Avatar -->
-                                            <n-avatar class="mr-2" round :size="28"
-                                                :src="item.User.Avatar || './static/img/gop-avatar.png'"></n-avatar>
-
-                                            <!-- Nick Name -->
-                                            <p class="mr-2" style="font-size: 15px;">${ item.User.Name }</p>
-                                        </a>
-
-                                        <!-- Update Time -->
-                                        <span class="text-sm" style="color: #A0AEC0;">
-                                            ·
-                                            <span class="ml-1">${ item.Ctime.slice(0,10) }</span>
-                                        </span>
+                                            <!-- Likes -->
+                                            <div class="flex justify-center items-center ml-1">
+                                                <i class="ph-duotone ph-heart" style="color: #df8282; font-size: 18px;"></i>
+                                                <span class="ml-1 text-sm"> ${ item.LikeCount }</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <!-- right part -->
                                 <div style="width: 20%;">
                                     <!-- Image -->
-                                    <img class="w-full object-cover rounded-lg" style="height: 17vh;"
+                                    <img class="w-full object-cover rounded-lg" style="height: 20vh;"
                                         :src="item.Cover || './static/img/default-cover.jpg'" alt="">
-
-                                    <!-- Data -->
-                                    <div class="flex justify-center items-center mt-2" style="height: 2vh;">
-                                        <!-- Views -->
-                                        <div class="flex justify-center items-center" style="width: 40%;">
-                                            <i class="ph-duotone ph-eye" style="color: #7ba7d3; font-size: 18px;"></i>
-                                            <span class="ml-1 text-sm"> ${ item.ViewCount }</span>
-                                        </div>
-
-                                        <!-- Likes -->
-                                        <div class="flex justify-center items-center" style="width: 40%;">
-                                            <i class="ph-duotone ph-heart" style="color: #df8282; font-size: 18px;"></i>
-                                            <span class="ml-1 text-sm"> ${ item.LikeCount }</span>
-                                        </div>
-                                    </div>
                                 </div>
                             </n-list-item>
                         </n-list>
