@@ -1,6 +1,6 @@
-<script setup>
-
-</script>
+<template>
+    <div id="markdown-container" style="width: 100%;"></div>
+</template>
 
 <script>
 import Plyr from 'plyr';
@@ -11,7 +11,6 @@ var cherrInstance = null
 var vtt_src = ""
 
 let fileType = "video/mp4"
-
 
 function initCherryMD(value, config) {
     var defaultValue = value || ""
@@ -229,15 +228,15 @@ function initCherryMD(value, config) {
         },
         previewer: {
             // 自定义markdown预览区域class
-            className: 'viewer'
+            className: 'viewer',
+            dom: false,
         },
         keydown: [],
         // 外层容器不存在时，是否强制输出到body上
-        forceAppend: true,
+        // forceAppend: true,
         // The locale Cherry is going to use. Locales live in /src/locales/
         locale: "en_US",
     })
-
 }
 
 export default {
@@ -256,13 +255,12 @@ export default {
             }
         },
         beforeMount() {
-           initCherryMD(this.md)
+           
         },
         mounted() {
-        //    this.insert()
-
+            initCherryMD(this.md)
         },
-        methods: {  
+        methods: { 
         }
 }
 
@@ -273,12 +271,18 @@ export default {
       border: none;
       background: #ffffff;
     }
+
     .cherry.cherry--no-toolbar .cherry-editor, .cherry.cherry--no-toolbar .cherry-previewer {
         background: #ffffff;
         border: none;
         box-shadow: 0 0px 0px #ffffff;
     }
+    
     .cherry{
         box-shadow: none;
+    }
+
+    .viewer {
+        /* here need to add !important */
     }
 </style>

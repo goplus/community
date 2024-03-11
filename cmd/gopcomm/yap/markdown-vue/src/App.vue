@@ -2,21 +2,18 @@
 import MarkdownEditor from './components/MarkdownEditor.vue';
 import MarkdownViewerOld from './components/MarkdownViewerOld.vue';
 import MarkdownViewer from './components/MarkdownViewer.vue';
-
 </script>
 
-
-
 <template>
-   
-    <markdown-editor></markdown-editor>
-    <!-- <markdown-viewer :md="c" ></markdown-viewer> -->
-    <!-- <markdown-viewer-old :md="c"></markdown-viewer-old> -->
+    <div class="bg">
+        <div>测试父级元素样式</div>
+        <!-- <markdown-editor></markdown-editor> -->
+        <markdown-viewer :md="c"></markdown-viewer>
+        <!-- <markdown-viewer-old :md="c"></markdown-viewer-old> -->
+    </div>
 </template> 
 
-
 <script>
-
 import Plyr from 'plyr';
 import 'plyr/dist/plyr.css'
 
@@ -48,5 +45,9 @@ c: `- 123
 </script>
 
 <style>
-/* @import url('https://cdn.plyr.io/3.6.8/plyr.css');     */
+.bg {
+    background: red;
+    display: flex;
+    flex-direction: row;
+}
 </style>

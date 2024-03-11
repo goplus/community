@@ -1,11 +1,7 @@
-<script setup>
-
-</script>
-    
 <template>
-    
     <div id="markdown-container"></div>
 </template>
+
 <script>
 import Cherry from 'cherry-markdown'
 import axios from 'axios'
@@ -102,7 +98,6 @@ function fileUpload(file) {
         });
 }
 
-
 function checkVideo(){
     const md = getCherryContent()
     const regex = /!video\[[^\]]*\]\([^)]*\)(\([^)]*\))?/;
@@ -152,6 +147,7 @@ function changeString2Pinyin(string) {
     var pinyin = require("./pinyin/pinyin.js");
     return pinyin.pinyin(string, " ");
 }
+
 function setMarkdown(content) {
     console.log("setMarkdown", content)
     if (!cherrInstance) { 
@@ -494,7 +490,6 @@ function initCherryMD(value, config) {
         locale: "en_US",
     })
     console.log(cherrInstance.engine)
-
 }
 
 
@@ -505,11 +500,8 @@ import 'cherry-markdown/dist/cherry-markdown.min.css'
 export default {
     name: "GoplusMarkdown",
     props: {
-
     },
     components: {
-        // UploadOutlined,
-        // SendOutlined
     },
     data() {
         return {
@@ -565,7 +557,3 @@ export default {
 // export {MarkdownEditor}
 
 </script>
-  
-<style>
-/* @import url('https://cdn.plyr.io/3.6.8/plyr.css');     */
-</style>

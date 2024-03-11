@@ -1,12 +1,10 @@
-<script setup>
-
-</script>
 <template>
     <div>
         <div v-html="content"></div>
         <!-- <div id="content"></div> -->
     </div>
 </template>
+
 <script>
 import 'cherry-markdown/dist/cherry-markdown.css';
 import CherryEngine from 'cherry-markdown/dist/cherry-markdown.engine.core'
