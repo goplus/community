@@ -151,7 +151,7 @@
             function handleSearch(){
                 const protocolAndHost = window.location.protocol + "//" + window.location.host;
                 const url = new URL(`${protocolAndHost}/search`)
-                url.searchParams.set('value', encodeURIComponent(searchValue.value))
+                url.searchParams.set('value', searchValue.value)
 
                 window.location.href = url
                 // window.location.href = `/search?value=${searchValue.value}`
