@@ -230,7 +230,7 @@
                                     <!-- Tags -->
                                     <div class="flex flex-row items-center" v-if="item.Tags">
                                         <span v-for="(tag, index) in item.Tags.split(';')" class="flex flex-row items-center">
-                                            <n-tag :bordered="false" type="info" size="small" class="mr-2">
+                                            <n-tag :bordered="false" size="small" class="mr-2">
                                                 <a :href="'/search?value=' + tag">
                                                     ${ tag }
                                                 </a>

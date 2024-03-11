@@ -127,13 +127,13 @@
                         </section>
 
                         <!-- Article List -->
-                        <n-list hoverable v-else>
+                        <n-list v-else>
                             <!-- Article List Item -->
-                            <n-list-item v-for="(item, i) in articleList.article" class="py-3">
+                            <n-list-item v-for="(item, i) in articleList.article" style="padding: 20px 10px;">
                                 <!-- left part -->
                                 <div style="width: 75%;">
                                     <!-- Title -->
-                                    <div class="text-xl text-gray-900 mb-2" style="font-weight: 500;">
+                                    <div class="text-xl font-semibold text-gray-900 title-font mb-2">
                                         <a :href="'/article/' + item.ID">
                                             <p>${ item.Title }</p>
                                         </a>
@@ -141,16 +141,13 @@
 
                                     <!-- Tags -->
                                     <div class="flex flex-row items-center" v-if="item.Tags">
-                                        <!-- A Tag -->
-                                        <div class="flex flex-row items-center mr-2"
-                                            v-for="(tag, i) in item.Tags.split(';')">
-                                            <i class="ph-duotone ph-hash" style="color: #3182ce; font-size: 17px;"></i>
-                                            <p class="text-sm ml-1 mr-2">
+                                        <span v-for="(tag, index) in item.Tags.split(';')" class="flex flex-row items-center">
+                                            <n-tag :bordered="false" size="small" class="mr-2">
                                                 <a class="text-sm" :href="'/search?value=' + tag + '&label=article'">
                                                     ${ tag }
                                                 </a>
-                                            </p>
-                                        </div>
+                                            </n-tag>
+                                        </span>
                                     </div>
 
                                     <!-- Description -->
@@ -205,10 +202,11 @@
                 --n-icon-color-pressed: #3182ce;">
                             <i class="ph-duotone ph-arrow-line-up" style="color: #3182ce; font-size: 25px;"></i>
                         </n-back-top>
+
                         <!-- Loading Status -->
                         <div class="mt-2 text-center" key="span">
                             <n-spin v-if="!isBottom.article" :key="spin" size="small" stroke="#3182ce"></n-spin>
-                            <span v-if="!haveMoreData.article" class="text-xs text-gray-400">No more data🙌</span>
+                            <span v-if="!haveMoreData.article" class="text-xs text-gray-400">- No more data -</span>
                         </div>
                     </div>
                 </n-tab-pane>
@@ -249,13 +247,13 @@
                         </section>
 
                         <!-- Article List -->
-                        <n-list hoverable v-else>
+                        <n-list v-else>
                             <!-- Article List Item -->
-                            <n-list-item v-for="(item, i) in articleList.video">
+                            <n-list-item v-for="(item, i) in articleList.video" style="padding: 20px 10px;">
                                 <!-- left part -->
-                                <div style="width: 80%;">
+                                <div style="width: 75%;">
                                     <!-- Title -->
-                                    <div class="text-xl font-semibold text-gray-900 title-font mb-1">
+                                    <div class="text-xl font-semibold text-gray-900 title-font mb-2">
                                         <a :href="'/article/' + item.ID">
                                             <p>${ item.Title }</p>
                                         </a>
@@ -263,20 +261,17 @@
 
                                     <!-- Tags -->
                                     <div class="flex flex-row items-center" v-if="item.Tags">
-                                        <!-- A Tag -->
-                                        <div class="flex flex-row items-center mr-2"
-                                            v-for="(tag, i) in item.Tags.split(';')">
-                                            <i class="ph-duotone ph-hash" style="color: #3182ce; font-size: 17px;"></i>
-                                            <div>
+                                        <span v-for="(tag, index) in item.Tags.split(';')" class="flex flex-row items-center">
+                                            <n-tag :bordered="false" size="small" class="mr-2">
                                                 <a class="text-sm" :href="'/search?value=' + tag + '&label=video'">
                                                     ${ tag }
                                                 </a>
-                                            </div>
-                                        </div>
+                                            </n-tag>
+                                        </span>
                                     </div>
 
                                     <!-- Description -->
-                                    <p class="leading-7 mt-1 mb-2" style="color: #6b7280; line-height: normal;">
+                                    <p class="ellipsis">
                                         ${ item.Abstract }
                                     </p>
 
@@ -284,16 +279,17 @@
                                     <div class="flex items-center absolute bottom-4">
                                         <a class="flex items-center" :href="'/user/' + item.User.Id">
                                             <!-- Avatar -->
-                                            <n-avatar class="mr-2" round :size="25"
+                                            <n-avatar class="mr-2" round :size="28"
                                                 :src="item.User.Avatar || './static/img/gop-avatar.png'"></n-avatar>
 
                                             <!-- Nick Name -->
-                                            <p class="text-sm font-medium mr-1 text-black">${ item.User.Name }</p>
+                                            <p class="mr-2" style="font-size: 15px;">${ item.User.Name }</p>
                                         </a>
 
                                         <!-- Update Time -->
-                                        <span class="text-xs" style="color: #A0AEC0;">
-                                            · ${ item.Ctime.slice(0,10) }
+                                        <span class="text-sm" style="color: #A0AEC0;">
+                                            ·
+                                            <span class="ml-1">${ item.Ctime.slice(0,10) }</span>
                                         </span>
                                     </div>
                                 </div>
@@ -308,14 +304,14 @@
                                     <div class="flex justify-center items-center mt-2" style="height: 2vh;">
                                         <!-- Views -->
                                         <div class="flex justify-center items-center" style="width: 40%;">
-                                            <i class="ph-duotone ph-eye" style="color: #6091d2;"></i>
-                                            <span class="ml-1 text-sm">${ item.ViewCount }</span>
+                                            <i class="ph-duotone ph-eye" style="color: #7ba7d3; font-size: 18px;"></i>
+                                            <span class="ml-1 text-sm"> ${ item.ViewCount }</span>
                                         </div>
 
                                         <!-- Likes -->
                                         <div class="flex justify-center items-center" style="width: 40%;">
-                                            <i class="ph-duotone ph-thumbs-up" style="color: #6091d2;"></i>
-                                            <span class="ml-1 text-sm">${ item.LikeCount }</span>
+                                            <i class="ph-duotone ph-heart" style="color: #df8282; font-size: 18px;"></i>
+                                            <span class="ml-1 text-sm"> ${ item.LikeCount }</span>
                                         </div>
                                     </div>
                                 </div>
@@ -330,7 +326,7 @@
                         <!-- Loading Status -->
                         <div class="mt-2 text-center" key="span">
                             <n-spin v-if="!isBottom.video" :key="spin" size="small" stroke="#3182ce"></n-spin>
-                            <span v-if="!haveMoreData.video" class="text-xs text-gray-400">No more data🙌</span>
+                            <span v-if="!haveMoreData.video" class="text-xs text-gray-400">- No more data -</span>
                         </div>
                     </div>
                 </n-tab-pane>
@@ -371,13 +367,13 @@
                         </section>
 
                         <!-- Article List -->
-                        <n-list hoverable v-else>
+                        <n-list v-else>
                             <!-- Article List Item -->
-                            <n-list-item v-for="(item, i) in articleList.stem">
+                            <n-list-item v-for="(item, i) in articleList.stem" style="padding: 20px 10px;">
                                 <!-- left part -->
-                                <div style="width: 80%;">
+                                <div style="width: 75%;">
                                     <!-- Title -->
-                                    <div class="text-xl font-semibold text-gray-900 title-font mb-1">
+                                    <div class="text-xl font-semibold text-gray-900 title-font mb-2">
                                         <a :href="'/article/' + item.ID">
                                             <p>${ item.Title }</p>
                                         </a>
@@ -385,20 +381,17 @@
 
                                     <!-- Tags -->
                                     <div class="flex flex-row items-center" v-if="item.Tags">
-                                        <!-- A Tag -->
-                                        <div class="flex flex-row items-center mr-2"
-                                            v-for="(tag, i) in item.Tags.split(';')">
-                                            <i class="ph-duotone ph-hash" style="color: #3182ce; font-size: 17px;"></i>
-                                            <div>
+                                        <span v-for="(tag, index) in item.Tags.split(';')" class="flex flex-row items-center">
+                                            <n-tag :bordered="false" size="small" class="mr-2">
                                                 <a class="text-sm" :href="'/search?value=' + tag + '&label=stem'">
                                                     ${ tag }
                                                 </a>
-                                            </div>
-                                        </div>
+                                            </n-tag>
+                                        </span>
                                     </div>
 
                                     <!-- Description -->
-                                    <p class="leading-7 mt-1 mb-2" style="color: #6b7280; line-height: normal;">
+                                    <p class="ellipsis">
                                         ${ item.Abstract }
                                     </p>
 
@@ -406,16 +399,17 @@
                                     <div class="flex items-center absolute bottom-4">
                                         <a class="flex items-center" :href="'/user/' + item.User.Id">
                                             <!-- Avatar -->
-                                            <n-avatar class="mr-2" round :size="25"
+                                            <n-avatar class="mr-2" round :size="28"
                                                 :src="item.User.Avatar || './static/img/gop-avatar.png'"></n-avatar>
 
                                             <!-- Nick Name -->
-                                            <p class="text-sm font-medium mr-1 text-black">${ item.User.Name }</p>
+                                            <p class="mr-2" style="font-size: 15px;">${ item.User.Name }</p>
                                         </a>
 
                                         <!-- Update Time -->
-                                        <span class="text-xs" style="color: #A0AEC0;">
-                                            · ${ item.Ctime.slice(0,10) }
+                                        <span class="text-sm" style="color: #A0AEC0;">
+                                            ·
+                                            <span class="ml-1">${ item.Ctime.slice(0,10) }</span>
                                         </span>
                                     </div>
                                 </div>
@@ -430,14 +424,14 @@
                                     <div class="flex justify-center items-center mt-2" style="height: 2vh;">
                                         <!-- Views -->
                                         <div class="flex justify-center items-center" style="width: 40%;">
-                                            <i class="ph-duotone ph-eye" style="color: #6091d2;"></i>
-                                            <span class="ml-1 text-sm">${ item.ViewCount }</span>
+                                            <i class="ph-duotone ph-eye" style="color: #7ba7d3; font-size: 18px;"></i>
+                                            <span class="ml-1 text-sm"> ${ item.ViewCount }</span>
                                         </div>
 
                                         <!-- Likes -->
                                         <div class="flex justify-center items-center" style="width: 40%;">
-                                            <i class="ph-duotone ph-thumbs-up" style="color: #6091d2;"></i>
-                                            <span class="ml-1 text-sm">${ item.LikeCount }</span>
+                                            <i class="ph-duotone ph-heart" style="color: #df8282; font-size: 18px;"></i>
+                                            <span class="ml-1 text-sm"> ${ item.LikeCount }</span>
                                         </div>
                                     </div>
                                 </div>
@@ -452,7 +446,7 @@
                         <!-- Loading Status -->
                         <div class="mt-2 text-center" key="span">
                             <n-spin v-if="!isBottom.stem" :key="spin" size="small" stroke="#3182ce"></n-spin>
-                            <span v-if="!haveMoreData.stem" class="text-xs text-gray-400">No more data🙌</span>
+                            <span v-if="!haveMoreData.stem" class="text-xs text-gray-400">- No more data -</span>
                         </div>
                     </div>
                 </n-tab-pane>
