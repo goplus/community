@@ -20,7 +20,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/gabriel-vasile/mimetype"
 	"net"
 	"net/http"
 	"net/url"
@@ -29,6 +28,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gabriel-vasile/mimetype"
 
 	"github.com/goplus/community/translation"
 	"github.com/qiniu/x/xlog"
@@ -432,7 +433,7 @@ const (
 	MarkEnd   = "eof"
 )
 
-func (p *Community) getPageArticles(sqlStr string, from string, limit int, value string, label string) (items []*ArticleEntry, next string, err error) {
+func (p *Community) getPageArticles(sqlStr string, from string, limit int, value string, label string, key string) (items []*ArticleEntry, next string, err error) {
 	if from == MarkBegin {
 		from = "0"
 	} else if from == MarkEnd {
@@ -442,8 +443,13 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 	if err != nil {
 		return []*ArticleEntry{}, from, err
 	}
-
-	rows, err := p.db.Query(sqlStr, value, value, label, limit, fromInt)
+	var rows *sql.Rows
+	if key == "search" {
+		rows, err = p.db.Query(sqlStr, value, value, label, limit, fromInt)
+	} else {
+		rows, err = p.db.Query(sqlStr, value, limit, fromInt)
+	}
+	// rows, err := p.db.Query(sqlStr, value, value, label, limit, fromInt)
 	if err != nil {
 		return []*ArticleEntry{}, from, err
 	}
@@ -505,14 +511,14 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 
 // ListArticle lists articles from a position.
 func (p *Community) ListArticle(ctx context.Context, from string, limit int, searchValue string, label string) (items []*ArticleEntry, next string, err error) {
-	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label, like_count, view_count from article where title like ? or tags like ?  and label like ? order by ctime desc limit ? offset ?"
-	return p.getPageArticles(sqlStr, from, limit, "%"+searchValue+"%", "%"+label+"%")
+	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label, like_count, view_count from article where (title like ? or tags like ?) and label = ? order by ctime desc limit ? offset ?"
+	return p.getPageArticles(sqlStr, from, limit, "%"+searchValue+"%", label, "search")
 }
 
 // GetArticlesByUid get articles by user id.
 func (p *Community) GetArticlesByUid(ctx context.Context, uid string, from string, limit int) (items []*ArticleEntry, next string, err error) {
-	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label, like_count, view_count from article where user_id = ?  or tags like ? and label like ? order by ctime desc limit ? offset ?"
-	return p.getPageArticles(sqlStr, from, limit, uid, "%")
+	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label, like_count, view_count from article where user_id = ? order by ctime desc limit ? offset ?"
+	return p.getPageArticles(sqlStr, from, limit, uid, "", "user")
 }
 
 func casdoorConfigInit() *CasdoorConfig {

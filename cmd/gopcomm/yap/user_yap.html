@@ -562,7 +562,7 @@
         let videoGet = ref(false);
         const curVideoPage = ref(1);
         const totalVideoPage = ref();
-        const pageSize = ref(10);
+        const pageSize = ref(8);
 
         // Image List
         let imageList = ref([]);
@@ -632,7 +632,7 @@
 
         function getMedias(format, curPage) {
             loading.value = true
-            fetch("/api/user/"+ CurrentUser.value.id + "/medias" + "?format=" + format + "&page=" + curPage)
+            fetch("/api/user/"+ CurrentUser.value.id + "/medias" + "?format=" + format + "&page=" + curPage + "&limit=" + pageSize.value)
                 .then(res => {
                     return res.json();
                 })

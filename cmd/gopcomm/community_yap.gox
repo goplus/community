@@ -21,9 +21,10 @@ var (
 )
 
 const (
-	layoutUS   = "January 2, 2006"
-	limitConst = 10
-	labelConst = "article"
+	layoutUS        = "January 2, 2006"
+	limitConst      = 10
+	mediaLimitConst = 8
+	labelConst      = "article"
 )
 
 todo := context.TODO()
@@ -549,7 +550,7 @@ get "/api/user/:id/medias", ctx => {
 
 	limitInt, err := strconv.Atoi(limit)
 	if err != nil {
-		limitInt = limitConst
+		limitInt = mediaLimitConst
 	}
 	pageInt, err := strconv.Atoi(page)
 	if err != nil {

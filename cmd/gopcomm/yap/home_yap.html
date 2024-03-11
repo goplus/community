@@ -574,7 +574,7 @@
                     url.searchParams.set('label', tabName)
                     const searchValue = value
                     if (searchValue) {
-                        url.searchParams.set('value', encodeURIComponent(searchValue))
+                        url.searchParams.set('value', searchValue)
                     }
                     // console.log("url", url)
                     // load a new page of articles, and append it to the articleList
@@ -603,7 +603,7 @@
         function handleSearch() {
             const protocolAndHost = window.location.protocol + "//" + window.location.host;
             const url = new URL(`${protocolAndHost}/search`)
-            url.searchParams.set('value', encodeURIComponent(searchValue.value))
+            url.searchParams.set('value', searchValue.value)
 
             window.location.href = url
         }
