@@ -21,9 +21,9 @@ import (
 
 const _ = true
 const (
-	layoutUS        = "January 2, 2006"
 	limitConst      = 10
 	mediaLimitConst = 8
+	firstConst      = "1"
 	labelConst      = "article"
 )
 
@@ -499,7 +499,7 @@ func (this *community) MainEntry() {
 			}
 		}
 //line cmd/gopcomm/community_yap.gox:405:1
-		items, next, err := this.community.GetArticlesByUid(todo, id, core.MarkBegin, limitConst)
+		items, total, err := this.community.GetArticlesByUid(todo, id, firstConst, mediaLimitConst)
 //line cmd/gopcomm/community_yap.gox:406:1
 		if err != nil {
 //line cmd/gopcomm/community_yap.gox:407:1
@@ -507,7 +507,7 @@ func (this *community) MainEntry() {
 		}
 //line cmd/gopcomm/community_yap.gox:409:1
 		ctx.Yap__1("user", map[string]interface {
-		}{"Id": id, "CurrentUser": userClaim, "User": user, "Items": items, "UserId": userId, "Next": next})
+		}{"Id": id, "CurrentUser": userClaim, "User": user, "Items": items, "UserId": userId, "Total": total})
 	})
 //line cmd/gopcomm/community_yap.gox:419:1
 	this.Get("/user/edit", func(ctx *yap.Context) {
@@ -639,7 +639,7 @@ func (this *community) MainEntry() {
 //line cmd/gopcomm/community_yap.gox:521:1
 		id := ctx.Param("id")
 //line cmd/gopcomm/community_yap.gox:522:1
-		from := ctx.Param("from")
+		page := ctx.Param("page")
 //line cmd/gopcomm/community_yap.gox:523:1
 		limit := ctx.Param("limit")
 //line cmd/gopcomm/community_yap.gox:525:1
@@ -647,10 +647,10 @@ func (this *community) MainEntry() {
 //line cmd/gopcomm/community_yap.gox:526:1
 		if err != nil {
 //line cmd/gopcomm/community_yap.gox:527:1
-			limitInt = limitConst
+			limitInt = mediaLimitConst
 		}
 //line cmd/gopcomm/community_yap.gox:529:1
-		items, next, err := this.community.GetArticlesByUid(todo, id, from, limitInt)
+		items, total, err := this.community.GetArticlesByUid(todo, id, page, limitInt)
 //line cmd/gopcomm/community_yap.gox:530:1
 		if err != nil {
 //line cmd/gopcomm/community_yap.gox:531:1
@@ -661,7 +661,7 @@ func (this *community) MainEntry() {
 		}
 //line cmd/gopcomm/community_yap.gox:538:1
 		ctx.Json__1(map[string]interface {
-		}{"code": 200, "items": items, "next": next})
+		}{"code": 200, "items": items, "total": total})
 	})
 //line cmd/gopcomm/community_yap.gox:545:1
 	this.Get("/api/user/:id/medias", func(ctx *yap.Context) {

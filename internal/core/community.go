@@ -435,7 +435,11 @@ const (
 
 func (p *Community) getPageArticles(sqlStr string, from string, limit int, value string, label string, key string) (items []*ArticleEntry, next string, err error) {
 	if from == MarkBegin {
-		from = "0"
+		if key == "search" {
+			from = "0"
+		} else {
+			from = "1"
+		}
 	} else if from == MarkEnd {
 		return []*ArticleEntry{}, from, nil
 	}
@@ -447,7 +451,7 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 	if key == "search" {
 		rows, err = p.db.Query(sqlStr, value, value, label, limit, fromInt)
 	} else {
-		rows, err = p.db.Query(sqlStr, value, limit, fromInt)
+		rows, err = p.db.Query(sqlStr, value, limit, (fromInt-1)*limit)
 	}
 	// rows, err := p.db.Query(sqlStr, value, value, label, limit, fromInt)
 	if err != nil {
@@ -502,10 +506,18 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 		article.PlatformCount = m[article.ID]
 	}
 
-	if rowLen < limit {
-		return items, MarkEnd, nil
+	if key == "search" {
+		if rowLen < limit {
+			return items, MarkEnd, nil
+		}
+		next = strconv.Itoa(fromInt + rowLen)
+	} else {
+		err = p.db.QueryRow("select count(*) from article where user_id = ?", value).Scan(&next)
+		if err != nil {
+			return items, next, nil
+		}
 	}
-	next = strconv.Itoa(fromInt + rowLen)
+
 	return items, next, nil
 }
 
@@ -516,9 +528,9 @@ func (p *Community) ListArticle(ctx context.Context, from string, limit int, sea
 }
 
 // GetArticlesByUid get articles by user id.
-func (p *Community) GetArticlesByUid(ctx context.Context, uid string, from string, limit int) (items []*ArticleEntry, next string, err error) {
+func (p *Community) GetArticlesByUid(ctx context.Context, uid string, page string, limit int) (items []*ArticleEntry, next string, err error) {
 	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label, like_count, view_count from article where user_id = ? order by ctime desc limit ? offset ?"
-	return p.getPageArticles(sqlStr, from, limit, uid, "", "user")
+	return p.getPageArticles(sqlStr, page, limit, uid, "", "user")
 }
 
 func casdoorConfigInit() *CasdoorConfig {

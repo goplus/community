@@ -180,7 +180,7 @@
                         </div>
                     </section>
 
-                    <n-list v-else>
+                    <n-list v-else class="flex flex-col justify-center items-center">
                         <!-- Article List Item -->
                         <n-list-item v-for="(item,i) in articleList">
                             <!-- prefix -->
@@ -320,13 +320,14 @@
                                 </div>
                             </div>
                         </n-list-item>
+
+                        <!-- Pagination -->
+                        <n-pagination v-if="totalArticlePage !== 1" class="mt-4"
+                            :theme-overrides="themeOverrides" v-model:page="curArticlePage" :page-size="pageSize"
+                            :page-count="totalArticlePage" :page-slot="5" @update:page="handleArticlePageChange">
+                        </n-pagination>
                     </n-list>
 
-                    <!-- Loading Status -->
-                    <div class="mt-2 text-center" key="span">
-                        <n-spin v-if="!isBottom" :key="spin" size="small" stroke="#3182ce"></n-spin>
-                        <span v-if="!haveMoreData" class="text-xs text-gray-400">No more data🙌</span>
-                    </div>
                 </div>
             </n-tab-pane>
 
@@ -549,13 +550,8 @@
         // User
         const CurrentUser = ref({{.CurrentUser}})
         const articleList = ref({{.Items}});
-        const next = ref({{.Next}});
+        const total = {{.Total}};
         const user = ref({{.User}});
-
-        // Article List
-        
-        const isBottom = ref(true);
-        const haveMoreData = next.value === "eof" ? ref(false) : ref(true);
 
         // Video List
         let videoList = ref([]);
@@ -569,6 +565,10 @@
         let imageGet = ref(false);
         const curImagePage = ref(1);
         const totalImagePage = ref();
+
+        // article page
+        const curArticlePage = ref(1);
+        const totalArticlePage = ref(Math.ceil(total/pageSize.value));
 
         const loading = ref(false)
 
@@ -598,7 +598,8 @@
                 .then(todos => {
                     if (todos.code === 200) {
                         // success delete  articleList or get articleList
-                        articleList.value = articleList.value.filter(item => item.ID !== id)
+                        // articleList.value = articleList.value.filter(item => item.ID !== id)
+                        loadMore(curArticlePage.value)
                     }
                     deleteId = 0
                 });
@@ -621,6 +622,11 @@
         function handleVideoPageChange(page) {
             curVideoPage.value = page
             getMedias("video", page)
+        }
+
+        function handleArticlePageChange(page) {
+            curArticlePage.value = page
+            loadMore(page)
         }
 
         function showModal(id){
@@ -682,10 +688,10 @@
             .then(todos => {
                 if (todos.code === 200) {
                     if (format === "video") {
-                        videoList.value = videoList.value.filter(item => item.Id !== id)
+                        // videoList.value = videoList.value.filter(item => item.Id !== id)
                         getMedias("video", curVideoPage.value)
                     } else {
-                        imageList.value = imageList.value.filter(item => item.Id !== id)
+                        // imageList.value = imageList.value.filter(item => item.Id !== id)
                         getMedias("image", curImagePage.value)
                     }
                 }
@@ -694,45 +700,21 @@
             });
         }
 
-        function listenBottom() {
-            let scrollTop = window.scrollY;
-            let clientHeight = document.documentElement.clientHeight;
-            let scrollHeight = document.documentElement.scrollHeight;
-            if (isBottom.value && haveMoreData.value && scrollTop + clientHeight + 10 >= scrollHeight) {
 
-                // reaching bottom detected
-                loadMore();
-            }
-        }
-
-        function loadMore() {
-            console.log('Reach bottom! next is ', next.value, '. Loading more...');
-            // load more data into articleList
-            if (next.value !== "eof") {
-                isBottom.value = false;
-                window.setTimeout(() => {
-                    let url = "/api/user/"+ CurrentUser.value.id + "/articles" + "?from=" + next.value;
-                    // load a new page of articles, and append it to the articleList
-                    fetch(url)
-                        .then(res => {
-                            return res.json();
-                        })
-                        .then(todos => {
-                            if (todos.code === 200) {
-                                console.log("todos.next", todos.next)
-                                articleList.value.push(...todos.items);
-                                next.value = todos.next;
-                                if (todos.next === "eof") {
-                                    haveMoreData.value = false;
-                                }
-                                isBottom.value = true
-                            }
-                        });
-                }, 500)
-            } else {
-                isBottom.value = true
-                haveMoreData.value = false;
-            }
+        function loadMore(page) {
+            let url = "/api/user/"+ CurrentUser.value.id + "/articles" + "?page=" + page;
+            // load a new page of articles, and append it to the articleList
+            fetch(url)
+                .then(res => {
+                    return res.json();
+                })
+                .then(todos => {
+                    if (todos.code === 200) {
+                        articleList.value = todos.items;
+                        totalArticlePage.value = Math.ceil(todos.total/pageSize.value);
+                        addShareCount();
+                    }
+                });
         };
 
         function addShareCount() {
@@ -755,11 +737,7 @@
 
         const app = Vue.createApp({
             mounted() {
-                window.addEventListener('scroll', listenBottom, true);
                 addShareCount();
-            },
-            destroyed() {
-                window.removeEventListener('scroll', listenBottom, false)
             },
             data() {
                 return {
@@ -772,14 +750,14 @@
                     imageList,
                     curImagePage,
                     totalImagePage,
+                    curArticlePage,
+                    totalArticlePage,
                     viewVideoId,
                     deleteId,
                     delImageId,
                     delVideoId,
                     themeOverrides,
                     user,
-                    haveMoreData,
-                    isBottom,
                     loading,
                 }
             },
@@ -789,6 +767,7 @@
                 retryCaptionGenerate,
                 onChangeTab,
                 showModal,
+                handleArticlePageChange,
             },
             watch: {
                 curVideoPage(newValue) {
@@ -836,6 +815,10 @@
     .n-card>.n-card__content:first-child,
     .n-card>.n-card__footer:first-child {
         padding: 0;
+    }
+
+    .n-list .n-list-item{
+        width: 100%;
     }
 
     .ellipsis {
