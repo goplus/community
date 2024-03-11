@@ -10,19 +10,18 @@ version: 1
 
 before:
   hooks:
-    # You may remove this if you don't use go modules.
-    # you may remove this if you don't need go generate
+    - go mod tidy
 
 builds:
   - id: 'gopcomm'
     main: ./cmd/gopcomm/gop_autogen.go
-    binary: gopcomm
+    binary: commnuity
     env:
       - CGO_ENABLED=0
     goos:
-      - linux
+      # - linux
       - windows
-      - darwin
+      # - darwin
 
 archives:
   - format: tar.gz
@@ -41,6 +40,12 @@ archives:
     files:
       - LICENSE
       - README.md
+      - src: ./scripts/release/*
+        dst: ./
+      - src: ./docs/sql/database-init.sql
+        dst: database-init.sql
+      - src: ./cmd/gopcomm/yap/*
+        dst: ./yap/
 
 changelog:
   sort: asc
