@@ -601,7 +601,7 @@ func (a *Community) GetApplicationInfo() (*casdoorsdk.Application, error) {
 // Delete async update,Real-time update of the number of views is user-friendly
 func (a *Community) ArticleLView(ctx context.Context, articleId, ip, userId, platform string) {
 	if platform == Twitter || platform == FaceBook || platform == WeChat || platform == "" {
-		a.xLog.Printf("user: %s, ip: %s, share to platform: %s, articleId: %s", userId, ip, platform, articleId)
+		a.xLog.Debugf("user: %s, ip: %s, share to platform: %s, articleId: %s", userId, ip, platform, articleId)
 		userIdInt, err := strconv.Atoi(userId)
 		if err != nil {
 			userIdInt = 0
