@@ -596,31 +596,32 @@ func (a *Community) GetApplicationInfo() (*casdoorsdk.Application, error) {
 	}
 	return a2, err
 }
+
+// todo Optimization: Use short links to transform the sharing function in the future
+// Delete async update,Real-time update of the number of views is user-friendly
 func (a *Community) ArticleLView(ctx context.Context, articleId, ip, userId, platform string) {
-	if platform == Twitter || platform == FaceBook || platform == WeChat {
-		go func(articleId, ip, userId, platform string) {
-			a.xLog.Printf("user: %s, ip: %s, share to platform: %s, articleId: %s", userId, ip, platform, articleId)
-			userIdInt, err := strconv.Atoi(userId)
-			if err != nil {
-				userIdInt = 0
-			}
-			articleIdInt, err := strconv.Atoi(articleId)
+	if platform == Twitter || platform == FaceBook || platform == WeChat || platform == "" {
+		a.xLog.Debugf("user: %s, ip: %s, share to platform: %s, articleId: %s", userId, ip, platform, articleId)
+		userIdInt, err := strconv.Atoi(userId)
+		if err != nil {
+			userIdInt = 0
+		}
+		articleIdInt, err := strconv.Atoi(articleId)
+		if err != nil {
+			a.xLog.Error(err.Error())
+			return
+		}
+		sqlStr := "INSERT INTO article_view (ip,user_id,article_id,created_at,`index`,platform) values (?,?,?,?,?,?)"
+		index := articleId + userId + ip + platform
+		if _, err = a.db.Exec(sqlStr, ip, userIdInt, articleIdInt, time.Now(), index, platform); err == nil {
+			// success article views incr
+			sqlStr = "update article set view_count = view_count + 1 where id=?"
+			_, err = a.db.Exec(sqlStr, articleId)
 			if err != nil {
 				a.xLog.Error(err.Error())
 				return
 			}
-			sqlStr := "INSERT INTO article_view (ip,user_id,article_id,created_at,`index`,platform) values (?,?,?,?,?,?)"
-			index := articleId + userId + ip + platform
-			if _, err = a.db.Exec(sqlStr, ip, userIdInt, articleIdInt, time.Now(), index, platform); err == nil {
-				// success article views incr
-				sqlStr = "update article set view_count = view_count + 1 where id=?"
-				_, err = a.db.Exec(sqlStr, articleId)
-				if err != nil {
-					a.xLog.Error(err.Error())
-					return
-				}
-			}
-		}(articleId, ip, userId, platform)
+		}
 	}
 }
 
