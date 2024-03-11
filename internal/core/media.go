@@ -5,14 +5,14 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
+	"github.com/gabriel-vasile/mimetype"
 	"io"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/gabriel-vasile/mimetype"
 
 	"gocloud.dev/blob"
 
@@ -259,11 +259,13 @@ func (c *Community) UploadFile(ctx *yap.Context) {
 		ctx.JSON(500, err.Error())
 		return
 	}
+	// todo Use configuration form in the future
+	var maxFileSize int64 = 300 * 1024 * 1024
 	filename := header.Filename
-	err = ctx.ParseMultipartForm(10 << 20)
-	if err != nil {
-		xLog.Error("upload file error:", filename)
-		ctx.JSON(500, err.Error())
+	if header.Size > maxFileSize {
+		str := fmt.Sprintf("upload file size limit ,max filesize:%d,current filesize:%d", maxFileSize, header.Size)
+		xLog.Errorf(str)
+		ctx.JSON(500, str)
 		return
 	}
 
