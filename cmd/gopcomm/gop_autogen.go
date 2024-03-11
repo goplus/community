@@ -159,29 +159,29 @@ func (this *community) MainEntry() {
 //line cmd/gopcomm/community_yap.gox:126:1
 		id := ctx.Param("id")
 //line cmd/gopcomm/community_yap.gox:127:1
-		article, err := this.community.Article(todo, id)
-//line cmd/gopcomm/community_yap.gox:128:1
-		if err != nil {
-//line cmd/gopcomm/community_yap.gox:129:1
-			xLog.Error("get article error:", err)
-//line cmd/gopcomm/community_yap.gox:130:1
-			return
-		}
-//line cmd/gopcomm/community_yap.gox:132:1
-		likeState, err := this.community.ArticleLikeState(todo, userId, id)
-//line cmd/gopcomm/community_yap.gox:133:1
-		if err != nil {
-//line cmd/gopcomm/community_yap.gox:134:1
-			xLog.Error("article state err:", err)
-//line cmd/gopcomm/community_yap.gox:135:1
-			return
-		}
-//line cmd/gopcomm/community_yap.gox:138:1
 		platform := ctx.Param("platform")
-//line cmd/gopcomm/community_yap.gox:139:1
+//line cmd/gopcomm/community_yap.gox:128:1
 		ip := this.community.GetClientIP(ctx.Request)
-//line cmd/gopcomm/community_yap.gox:140:1
+//line cmd/gopcomm/community_yap.gox:129:1
 		this.community.ArticleLView(todo, id, ip, userId, platform)
+//line cmd/gopcomm/community_yap.gox:130:1
+		article, err := this.community.Article(todo, id)
+//line cmd/gopcomm/community_yap.gox:131:1
+		if err != nil {
+//line cmd/gopcomm/community_yap.gox:132:1
+			xLog.Error("get article error:", err)
+//line cmd/gopcomm/community_yap.gox:133:1
+			return
+		}
+//line cmd/gopcomm/community_yap.gox:135:1
+		likeState, err := this.community.ArticleLikeState(todo, userId, id)
+//line cmd/gopcomm/community_yap.gox:136:1
+		if err != nil {
+//line cmd/gopcomm/community_yap.gox:137:1
+			xLog.Error("article state err:", err)
+//line cmd/gopcomm/community_yap.gox:138:1
+			return
+		}
 //line cmd/gopcomm/community_yap.gox:141:1
 		ctx.Yap__1("article", map[string]interface{}{"UserId": userId, "User": user, "Article": article, "LikeState": likeState})
 	})

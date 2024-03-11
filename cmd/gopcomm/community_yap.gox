@@ -124,6 +124,9 @@ get "/article/:id", ctx => {
 		}
 	}
 	id := ctx.param("id")
+	platform := ctx.Param("platform")
+    ip := community.GetClientIP(ctx.Request)
+    community.ArticleLView(todo, id, ip, userId,platform)
 	article, err := community.Article(todo, id)
 	if err != nil {
 		xLog.Error("get article error:", err)
@@ -135,9 +138,6 @@ get "/article/:id", ctx => {
 		return
 	}
 	// articleJson, _ := json.Marshal(&article)
-	platform := ctx.Param("platform")
-    ip := community.GetClientIP(ctx.Request)
-	community.ArticleLView(todo, id, ip, userId,platform)
 	ctx.yap "article", {
 		"UserId":    userId,
 		"User":      user,
