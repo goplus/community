@@ -3,7 +3,7 @@ module github.com/goplus/community
 go 1.19
 
 require (
-	github.com/go-sql-driver/mysql v1.7.1
+	github.com/go-sql-driver/mysql v1.8.0
 	github.com/google/uuid v1.6.0
 	github.com/goplus/yap v0.7.2 //gop:class
 	github.com/qiniu/go-sdk/v7 v7.19.0
@@ -21,9 +21,12 @@ require (
 	golang.org/x/oauth2 v0.17.0
 )
 
-require github.com/liuscraft/gop-casdoor-account-sdk v1.1.0
+require (
+	github.com/gabriel-vasile/mimetype v1.4.3
+	github.com/liuscraft/gop-casdoor-account-sdk v1.1.0
+)
 
-require github.com/gabriel-vasile/mimetype v1.4.3 // indirect
+require filippo.io/edwards25519 v1.1.0 // indirect
 
 replace github.com/qiniu/go-cdk-driver v0.1.0 => github.com/xhyqaq/go-cdk-driver v1.0.0
 
