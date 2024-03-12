@@ -237,6 +237,10 @@ function initCherryMD(value, config) {
         // The locale Cherry is going to use. Locales live in /src/locales/
         locale: "en_US",
     })
+<<<<<<< HEAD
+=======
+    
+>>>>>>> 318793e15c2ff356a1b15c9ec1e136aba43d367e
 }
 
 export default {
@@ -260,7 +264,10 @@ export default {
         mounted() {
             initCherryMD(this.md)
         },
-        methods: { 
+        methods: {  
+            getToc(){
+                return cherrInstance.getToc()
+            }
         }
 }
 

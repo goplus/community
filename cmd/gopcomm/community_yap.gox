@@ -21,9 +21,10 @@ var (
 )
 
 const (
-	layoutUS   = "January 2, 2006"
-	limitConst = 10
-	labelConst = "article"
+	limitConst      = 10
+	mediaLimitConst = 8
+	firstConst      = "1"
+	labelConst      = "article"
 )
 
 todo := context.TODO()
@@ -125,8 +126,8 @@ get "/article/:id", ctx => {
 	}
 	id := ctx.param("id")
 	platform := ctx.Param("platform")
-    ip := community.GetClientIP(ctx.Request)
-    community.ArticleLView(todo, id, ip, userId,platform)
+	ip := community.GetClientIP(ctx.Request)
+	community.ArticleLView(todo, id, ip, userId, platform)
 	article, err := community.Article(todo, id)
 	if err != nil {
 		xLog.Error("get article error:", err)
@@ -401,7 +402,7 @@ get "/user/:id", ctx => {
 		}
 	}
 	// get article list published by uid
-	items, next, err := community.GetArticlesByUid(todo, id, core.MarkBegin, limitConst)
+	items, total, err := community.GetArticlesByUid(todo, id, firstConst, mediaLimitConst)
 	if err != nil {
 		xLog.Error("get article list error:", err)
 	}
@@ -411,7 +412,7 @@ get "/user/:id", ctx => {
 		"User":        user,
 		"Items":       items,
 		"UserId":      userId,
-		"Next":        next,
+		"Total":       total,
 	}
 }
 
@@ -518,14 +519,14 @@ get "/api/user/unlink", ctx => {
 
 get "/api/user/:id/articles", ctx => {
 	id := ctx.param("id")
-	from := ctx.param("from")
+	page := ctx.param("page")
 	limit := ctx.param("limit")
 
 	limitInt, err := strconv.Atoi(limit)
 	if err != nil {
-		limitInt = limitConst
+		limitInt = mediaLimitConst
 	}
-	items, next, err := community.GetArticlesByUid(todo, id, from, limitInt)
+	items, total, err := community.GetArticlesByUid(todo, id, page, limitInt)
 	if err != nil {
 		xLog.Error("get article list error:", err)
 		ctx.json {
@@ -537,7 +538,7 @@ get "/api/user/:id/articles", ctx => {
 	ctx.json {
 		"code":  200,
 		"items": items,
-		"next":  next,
+		"total": total,
 	}
 }
 
@@ -549,7 +550,7 @@ get "/api/user/:id/medias", ctx => {
 
 	limitInt, err := strconv.Atoi(limit)
 	if err != nil {
-		limitInt = limitConst
+		limitInt = mediaLimitConst
 	}
 	pageInt, err := strconv.Atoi(page)
 	if err != nil {
