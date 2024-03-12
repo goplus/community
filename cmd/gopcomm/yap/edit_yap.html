@@ -120,7 +120,7 @@
                         <template #label>
                             <p class="font-semibold text-gray-900 truncate">Tags</p>
                         </template>
-                        <n-dynamic-tags v-model:value="articleForm.tags" 
+                        <n-dynamic-tags v-model:value="articleForm.tags" :max="5"
                         :theme-overrides="dynamicTagsTheme"
                         :rule="{
                                 required: true,
@@ -230,6 +230,27 @@
                     </div>
                 </div>
 
+                <!-- Current user is private -->
+                <div v-if="showArticlePublicNotice" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-10">
+                    <div class="bg-white shadow-xl rounded-lg p-4 right-0 mr-4 mt-4 border border-gray-300">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center">
+                                <div class="text-red-500 mr-1">
+                                    <i class="ph-duotone ph-warning" style="font-size: 27px;"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-lg font-semibold text-red-500">Please contact admin to be public!
+                                    </p>
+                                    <p class="text-sm text-gray-500">Your article is private.</p>
+                                </div>
+                            </div>
+                            <n-button quaternary size="tiny" class="ml-3" @click="showArticlePublicNotice=false">
+                                <i class="ph-bold ph-x" style="font-size: 15px;"></i>
+                            </n-button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Fill in Title -->
                 <div v-if="showTitleNotice" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-10">
                     <div class="bg-white shadow-xl rounded-lg p-4 right-0 mr-4 mt-4 border border-gray-300">
@@ -328,6 +349,7 @@
         /*======= article info =======*/
         const showBothNotice = ref(false);
         const showTitleNotice = ref(false);
+        const showArticlePublicNotice = ref(false);
         const showContentNotice = ref(false);
         const showTranNotice = ref(false);
         const showModal = ref(false);
@@ -516,6 +538,9 @@
                 return
             }
 
+            // Check user is public
+            showArticlePublicNotice.value = true;
+
             // Extract summaries automatically
             const cherryHtml = window.GoplusMarkdown.MarkdownEditor.methods.getCherryHtml()
             let template = document.createElement('div');
@@ -612,6 +637,7 @@
                     showBothNotice,
                     showTitleNotice,
                     showContentNotice,
+                    showArticlePublicNotice,
                     showTranNotice,
                     showModal,
 
@@ -675,6 +701,13 @@
                     if (newValue) {
                         setTimeout(() => {
                             showContentNotice.value = false;
+                        }, 3000);
+                    }
+                },
+                showArticlePublicNotice(newValue) {
+                    if (newValue) {
+                        setTimeout(() => {
+                            showArticlePublicNotice.value = false;
                         }, 3000);
                     }
                 },

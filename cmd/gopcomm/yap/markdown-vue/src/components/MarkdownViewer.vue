@@ -10,6 +10,8 @@ var cherrInstance = null
 
 var vtt_src = ""
 
+var origin_vtt_src = ""
+
 let fileType = "video/mp4"
 
 
@@ -36,9 +38,11 @@ function initCherryMD(value, config) {
                     if(matchResult[1]){
                         vtt_src = matchResult[1].replace("(","").replace(")","")
                     }
+                    if(matchResult[2]){
+                        origin_vtt_src = matchResult[2].replace("(","").replace(")","")
+                    }
                     const p = new Plyr('video', {captions: {active: true}});
-                    return `<div><video controls="" crossorigin="" playsinline="" data-poster=${poster}><source src=${video_src} type=${fileType} size="576"/><track kind="captions" label="English" srclang="en" src=${vtt_src} default/><a href=${video_src} download>Download</a></video></div>`
-                    
+                    return `<div><video controls="" crossorigin="" playsinline="" data-poster=${poster}><source src=${video_src} type=${fileType} size="576"/><track kind="captions" label="English" srclang="en" src=${vtt_src} default/><track kind="captions" label="Original" srclang="or" src=${origin_vtt_src} default/><a href=${video_src} download>Download</a></video></div>`                    
                 } else {
                     console.log("can't match ()");
                     let r = "show video failed"
@@ -51,7 +55,7 @@ function initCherryMD(value, config) {
             return {
                 // reg: /^!video.*.mp4\)/
                 // reg: /^!video.*\)/
-                reg: /!video\[.*?\]\(.*?\)\(.*?\)/g
+                reg: /!video\[.*?\]\(.*?\)\(.*?\)\(.*?\)/g
             }
         },
     });
