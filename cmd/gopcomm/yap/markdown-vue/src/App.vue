@@ -1,3 +1,11 @@
+<!--
+ * @Author: Shi Zhaofan
+ * @Date: 2024-03-13 00:35:59
+ * @LastEditors: Shi Zhaofan
+ * @LastEditTime: 2024-03-13 00:36:19
+ * @FilePath: \community\cmd\gopcomm\yap\markdown-vue\src\App.vue
+ * @Description: 
+-->
 <script setup>
 import MarkdownEditor from './components/MarkdownEditor.vue';
 import MarkdownViewerOld from './components/MarkdownViewerOld.vue';
@@ -21,17 +29,17 @@ export default  {
     data() {
         return {
             // c: "!video[video/mp4](https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)"
-//             c: `!video[video/mp4](https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)
+            c: `!video[video/mp4](https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)
 
 
-// !video[video/mp4](https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)`
-c: `# head
-## sss
+!video[video/mp4](https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)`
+// c: `# head
+// ## sss
 
-- 123
-> 456
-# welcome to cherry editor!
-`
+// - 123
+// > 456
+// # welcome to cherry editor!
+// `
         }
     },
     mounted() {

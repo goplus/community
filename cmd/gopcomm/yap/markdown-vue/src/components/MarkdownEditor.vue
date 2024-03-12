@@ -15,6 +15,8 @@
 
     var vtt_src = ""
 
+    var origin_vtt_src = ""
+
     let fileType = "video/mp4"
 
     let vtt_id = []
@@ -43,11 +45,6 @@
         let type = getFileTypeByExtension(file.name)
         console.log("upload", type)
 
-        // if(type.includes("video") && checkVideo()){
-        //     console.log("only can upload a video.")
-        //     return 
-        // }
-
         var formData = new FormData()
         formData.append('file', file)
         // axios post 请求                
@@ -68,13 +65,15 @@
                     }).then(res => {
                         console.log("get video")
                         let url = res.data.url.fileKey
-                        let stitle = res.data.url.subtitle
+                        let stitle = res.data.url.translated_vtt
                         let status = res.data.url.status
                         let newType = res.data.url.type
+                        let origin_vtt = res.data.url.origin_vtt
                         if(status !== "1"){
                             vtt_id.push(response.data)
                         }
                         vtt_src = stitle
+                        origin_vtt_src = origin_vtt
                         
                         console.log("URL", url)
                         onloadCallback(newType, url)                       
@@ -97,17 +96,6 @@
             });
     }
 
-    function checkVideo(){
-        const md = getCherryContent()
-        const regex = /!video\[[^\]]*\]\([^)]*\)(\([^)]*\))?/;
-
-        if (regex.test(md)) {
-            console.log("have video")
-            return true
-        }
-        return false
-    }
-
     function onloadCallback(type, url) {
         console.log("call back")
         let imgMdStr = ""
@@ -115,7 +103,7 @@
         fileType = type
         if (/mp4|avi|rmvb|mov|wmv|flv|avi|webm/i.test(type.toLowerCase())) {
             // replace <video controls src=""> <video> into !video
-            imgMdStr = `!video[${type}](${url})(${vtt_src})\n`;
+            imgMdStr = `!video[${type}](${url})(${vtt_src})(${origin_vtt_src})\n`;
         } else if (/mp3/i.test(type)) {
             imgMdStr = `!audio[${type}](${url})\n`;
         } else if (/bmp|gif|jpg|jpeg|png/i.test(type)) {
@@ -195,8 +183,11 @@
                         if(matchResult[1]){
                             vtt_src = matchResult[1].replace("(","").replace(")","")
                         }
+                        if(matchResult[2]){
+                            origin_vtt_src = matchResult[2].replace("(","").replace(")","")
+                        }
                         const p = new Plyr('video', {captions: {active: true}});
-                        return `<div><video controls="" crossorigin="" playsinline="" data-poster=${poster}><source src=${video_src} type=${fileType} size="576"/><track kind="captions" label="English" srclang="en" src=${vtt_src} default/><a href=${video_src} download>Download</a></video></div>`
+                        return `<div><video controls="" crossorigin="" playsinline="" data-poster=${poster}><source src=${video_src} type=${fileType} size="576"/><track kind="captions" label="English" srclang="en" src=${vtt_src} default/><track kind="captions" label="Original" srclang="or" src=${origin_vtt_src} default/><a href=${video_src} download>Download</a></video></div>`
                         
                     } else {
                         console.log("can't match ()");
@@ -208,7 +199,7 @@
             
             rule(str) {
                 return {
-                    reg: /!video\[.*?\]\(.*?\)\(.*?\)/g
+                    reg: /!video\[.*?\]\(.*?\)\(.*?\)\(.*?\)/g
                 }
             },
         });
@@ -489,6 +480,7 @@
             locale: "en_US",
         })
         console.log(cherrInstance.engine)
+
     }
 
     import 'cherry-markdown/dist/cherry-markdown.min.css'
@@ -505,7 +497,6 @@
             getCherryHtml() {
                 return getCherryHtml()
             },   
-
             insertMarkdown(content) {
                 setMarkdown(content)
             },  
@@ -517,9 +508,6 @@
             getVttId() {
                 return vtt_id
             },
-            checkVideo(){
-                return checkVideo()
-            }
         }
     }
 </script>
