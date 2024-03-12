@@ -260,7 +260,7 @@ func (c *Community) UploadFile(ctx *yap.Context) {
 		return
 	}
 	// todo Use configuration form in the future
-	var maxFileSize int64 = 300 * 1024 * 1024
+	var maxFileSize int64 = int64(c.fileSizeLimit)
 	filename := header.Filename
 	if header.Size > maxFileSize {
 		str := fmt.Sprintf("upload file size limit ,max filesize:%d,current filesize:%d", maxFileSize, header.Size)

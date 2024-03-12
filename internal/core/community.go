@@ -19,6 +19,7 @@ package core
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -50,10 +51,11 @@ var (
 )
 
 type Config struct {
-	Driver string // database driver. default is `mysql`.
-	DSN    string // database data source name
-	CAS    string // casdoor database data source name
-	BlobUS string // blob URL scheme
+	Driver        string // database driver. default is `mysql`.
+	DSN           string // database data source name
+	CAS           string // casdoor database data source name
+	BlobUS        string // blob URL scheme
+	FileSizeLimit int
 }
 
 type PlatformCount struct {
@@ -99,6 +101,7 @@ type Community struct {
 	xLog          *xlog.Logger
 	translation   *Translation
 	bucketName    string
+	fileSizeLimit int
 }
 type CasdoorConfig struct {
 	endPoint         string
@@ -128,6 +131,8 @@ func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 	driver := conf.Driver
 	dsn := conf.DSN
 	bus := conf.BlobUS
+	fileSizeLimit := conf.FileSizeLimit
+
 	if driver == "" {
 		driver = "mysql"
 	}
@@ -136,6 +141,17 @@ func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 	}
 	if bus == "" {
 		bus = os.Getenv("GOP_COMMUNITY_BLOBUS")
+	}
+	if fileSizeLimit == 0 {
+		c := os.Getenv("MAX_FILE_SIZE")
+		if c == "" {
+			c = "314572800"
+		}
+		atoi, err := strconv.Atoi(c)
+		if err != nil {
+			return nil, errors.New("File size limit type mismatch")
+		}
+		fileSizeLimit = atoi
 	}
 	domain := os.Getenv("GOP_COMMUNITY_DOMAIN")
 
@@ -164,7 +180,7 @@ func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 		xLog.Error("get bucket name error:", err.Error())
 		return
 	}
-	return &Community{bucket, db, domain, casdoorConf, xLog, translationEngine, bucketName}, nil
+	return &Community{bucket, db, domain, casdoorConf, xLog, translationEngine, bucketName, fileSizeLimit}, nil
 }
 
 func getBucketName(url, startSymbol, endSymbol string) (string, error) {
