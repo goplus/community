@@ -941,12 +941,12 @@
         }
 
         function openBindPage(url) {
-            window.open(url, '_blank');
+            window.location.href= (url);
         }
 
         function openUnbindPage(url) {
             const requestunlinkOptions = {
-                        method: "GE"
+                        method: "GET"
                     };
             fetch("/api/user/unlink?pv=" + url, requestunlinkOptions).then(res => {
                             return res.json();
@@ -1064,7 +1064,7 @@
                         },
                         {
                             img: "static/img/social_twitter.png",
-                            platform: "Twitter / X",
+                            platform: "Twitter",
                             desc: "https://twitter.com",
                             bind: accountBinds.Twitter,
                             provider: authInfo.Twitter,
