@@ -240,33 +240,24 @@ function initCherryMD(value, config) {
 }
 
 export default {
-        name: "MarkdownViewer",
-        props: {
-            "md": String    
-        },
-        components: {
-            
-        },
-        data() {
-        },
-        watch: {
-            md(newValue) {
-                cherrInstance.setMarkdown(newValue)
-            }
-        },
-        beforeMount() {
-           
-        },
-        mounted() {
-            initCherryMD(this.md)
-        },
-        methods: {  
-            getToc(){
-                return cherrInstance.getToc()
-            }
+    name: "MarkdownViewer",
+    props: {
+        "md": String    
+    },
+    watch: {
+        md(newValue) {
+            cherrInstance.setMarkdown(newValue)
         }
+    },
+    mounted() {
+        initCherryMD(this.md)
+    },
+    methods: {  
+        getToc(){
+            return cherrInstance.getToc()
+        }
+    }
 }
-
 </script>
   
  <style>
