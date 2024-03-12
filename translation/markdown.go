@@ -128,6 +128,11 @@ func (e *Engine) TranslateMarkdown(src []byte, from string, to language.Tag) (re
 
 	// Replace text
 	resultVec := strings.Split(translatedStr, translationSep)
+	if len(resultVec) <= 0 {
+		// No need to translate or translation failed
+		return src, nil
+	}
+
 	if len(resultVec) != len(translationVec) {
 		return nil, ErrTranslationNotMatch
 	}
