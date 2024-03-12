@@ -553,8 +553,8 @@
 
         function selectDropdown(key) {
             if (key === 'profile') {
-                if ("{{.UserId}}" !== "") {
-                    window.location.href = '/user/{{ .UserId }}';
+                if (user) {
+                    window.location.href = '/user/' + user.Id;
                 }
             } else if (key === 'settings') {
                 window.location.href = '/user/edit';

@@ -88,7 +88,6 @@
         (() => {
             const { ref, h } = Vue;
             const user = {{.User }}
-            const userId = {{.UserId}}
             const searchValue = ref({{.Value}} || "")
 
             /*======= user related =======*/
@@ -164,8 +163,8 @@
             
             function selectDropdown(key) {
                 if (key === 'profile') {
-                    if (userId !== "") {
-                        window.location.href = '/user/' + userId;
+                    if (user) {
+                        window.location.href = '/user/' + user.Id;
                     }
                 } else if (key === 'settings') {
                     window.location.href = '/user/edit';
