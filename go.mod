@@ -6,7 +6,7 @@ require (
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/google/uuid v1.6.0
 	github.com/goplus/yap v0.7.2 //gop:class
-	github.com/qiniu/go-sdk/v7 v7.19.0
+	github.com/qiniu/go-sdk/v7 v7.19.1
 	github.com/yuin/goldmark v1.7.0
 	gocloud.dev v0.36.0
 	golang.org/x/text v0.14.0
@@ -21,9 +21,7 @@ require (
 	golang.org/x/oauth2 v0.17.0
 )
 
-require github.com/liuscraft/gop-casdoor-account-sdk v1.1.0
-
-require github.com/gabriel-vasile/mimetype v1.4.3 // indirect
+require github.com/gabriel-vasile/mimetype v1.4.3
 
 replace github.com/qiniu/go-cdk-driver v0.1.0 => github.com/xhyqaq/go-cdk-driver v1.0.0
 
@@ -32,7 +30,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
-	github.com/joho/godotenv v1.5.1
+	github.com/joho/godotenv v1.5.1 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/net v0.21.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect
