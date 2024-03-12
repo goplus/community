@@ -9,7 +9,7 @@ import MarkdownViewer from './components/MarkdownViewer.vue';
 
 <template>
    
-    <!-- <markdown-editor></markdown-editor> -->
+    <markdown-editor></markdown-editor>
     <markdown-viewer :md="c" ></markdown-viewer>
     <!-- <markdown-viewer-old :md="c"></markdown-viewer-old> -->
 </template> 
@@ -24,17 +24,17 @@ export default  {
     data() {
         return {
             // c: "!video[video/mp4](https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)"
-//             c: `!video[video/mp4](https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)
+            c: `!video[video/mp4](https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)
 
 
-// !video[video/mp4](https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)`
-c: `# head
-## sss
+!video[video/mp4](https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)`
+// c: `# head
+// ## sss
 
-- 123
-> 456
-# welcome to cherry editor!
-`
+// - 123
+// > 456
+// # welcome to cherry editor!
+// `
         }
     },
     mounted() {
