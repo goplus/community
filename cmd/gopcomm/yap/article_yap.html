@@ -446,6 +446,33 @@
         --n-icon-color-pressed: #3182ce;">
             <i class="ph-duotone ph-arrow-line-up" style="color: #3182ce; font-size: 25px;"></i>
         </n-back-top>
+
+        <!-- Message Prompts -->
+        <transition enter-active-class="ease-out duration-300 transform"
+        leave-active-class="ease-in duration-300 transform" enter-class="scale-50 opacity-0"
+        enter-to-class="scale-100 opacity-100" leave-class="scale-100 opacity-100"
+        leave-to-class="scale-50 opacity-0">
+            <!-- Translate fails -->
+            <div v-if="showFailedTrans" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-10">
+                <div class="bg-white shadow-xl rounded-lg p-4 right-0 mr-4 mt-4 border border-gray-300">
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center">
+                            <div class="text-red-500 mr-1">
+                                <i class="ph-duotone ph-warning" style="font-size: 27px;"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-lg font-semibold text-red-500">Warning
+                                </p>
+                                <p class="text-sm text-gray-500">Translation fails.</p>
+                            </div>
+                        </div>
+                        <n-button quaternary size="tiny" class="ml-3" @click="showFailedTrans=false">
+                            <i class="ph-bold ph-x" style="font-size: 15px;"></i>
+                        </n-button>
+                    </div>
+                </div>
+            </div>
+        </transition>
     </div>
 
     <script type="module">
@@ -458,6 +485,7 @@
         const article = ref({{.Article}});
 
         /*======= translate related =======*/
+        const showFailedTrans = ref(false);
         let transArticle = {}
         const transOptions = [
             {
@@ -495,6 +523,8 @@
                                 article.value.Content = todos.content
                                 article.value.Tags = todos.tags
                                 transArticle = article.value
+                            } else {
+                                showFailedTrans.value = true;
                             }
                         });
                 }
@@ -595,7 +625,8 @@
                     isLiked,
                     likeCount,
                     user,
-                    toc
+                    toc,
+                    showFailedTrans
                 }
             },
             methods: {
@@ -617,7 +648,17 @@
 
                 // get article toc
                 getArticleToc();
-            }
+            },
+            watch: {
+                // automatically close notification after 3 seconds
+                showFailedTrans(newValue) {
+                    if (newValue) {
+                        setTimeout(() => {
+                            showFailedTrans.value = false;
+                        }, 3000);
+                    }
+                },
+            },
         });
 
         app.use(naive)
