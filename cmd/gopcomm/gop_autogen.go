@@ -6,10 +6,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
-<<<<<<< HEAD
 	"github.com/gabriel-vasile/mimetype"
-=======
->>>>>>> 879ec6f (feat: publish release)
 	"github.com/goplus/community/internal/core"
 	"github.com/goplus/community/translation"
 	"github.com/goplus/yap"
@@ -18,19 +15,13 @@ import (
 	"github.com/liuscraft/gop-casdoor-account-sdk"
 	"github.com/qiniu/x/xlog"
 	"golang.org/x/text/language"
-<<<<<<< HEAD
 	"io"
-=======
->>>>>>> 879ec6f (feat: publish release)
 	"net/http"
 	"net/url"
 	"os"
 	"regexp"
 	"strconv"
-<<<<<<< HEAD
 	"strings"
-=======
->>>>>>> 879ec6f (feat: publish release)
 )
 
 const _ = true
