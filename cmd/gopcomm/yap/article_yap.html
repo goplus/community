@@ -257,7 +257,7 @@
         const originArticle = {{.Article}};
         const likeState = {{.LikeState}}
         const user = {{.User}}
-        const article = ref(originArticle);
+        const article = ref(Object.assign({}, originArticle));
 
         let transArticle = {}
         const transOptions = [
