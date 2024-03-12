@@ -83,6 +83,7 @@ type translateResponse struct {
 }
 
 // translateErrorResponse is the error response of translation server
+//lint:ignore U1000 This is a struct for json unmarshal
 type translateErrorResponse struct {
 	ErrorCode string `json:"error_code"`
 	ErrorMsg  string `json:"error_msg"`

@@ -80,15 +80,18 @@ func (m *mockS3Reader) Size() (size int64) {
 }
 
 // Mock S3Writer
+//lint:ignore U1000 This is a mock
 type mockS3Writer struct {
 	DoWrite func(p []byte) (n int, err error)
 	DoClose func() (err error)
 }
 
+//lint:ignore U1000 This is a mock
 func (m *mockS3Writer) Write(p []byte) (n int, err error) {
 	return m.DoWrite(p)
 }
 
+//lint:ignore U1000 This is a mock
 func (m *mockS3Writer) Close() (err error) {
 	return m.DoClose()
 }
@@ -695,7 +698,7 @@ func TestArticleLView(t *testing.T) {
 	initDB()
 
 	// TODO: Update test data
-	community.ArticleLView(todo, "14", "127.0.0.1", "73917397")
+	community.ArticleLView(todo, "14", "127.0.0.1", "73917397", "")
 }
 
 func TestArticleLike(t *testing.T) {

@@ -190,6 +190,9 @@ func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 		xLog.Error(err)
 	}
 	bucketName, err := getBucketName(bus, "@", "?")
+	if err != nil {
+		xLog.Error("get bucket name error:", err.Error())
+	}
 
 	s3Service := &S3ServiceAdapter{bucket: bucket}
 	casdoorSDKService := &CasdoorSDKServiceAdapter{}
