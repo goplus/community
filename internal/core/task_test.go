@@ -18,9 +18,7 @@ package core
 
 import (
 	"fmt"
-	"math/rand"
 	"testing"
-	"time"
 )
 
 func Test_VideoTaskCache_Set(t *testing.T) {
@@ -215,23 +213,23 @@ func Benchmark_VideoTaskCache_Clear(b *testing.B) {
 }
 
 func Benchmark_VideoTaskCache_CheckVideoTask(b *testing.B) {
-	c := NewVideoTaskCache()
-	// Add b.N items to the cache
-	for i := 0; i < b.N; i++ {
-		c.Set(fmt.Sprint(i), VideoTaskTimestamp(rand.Intn(9999)))
-	}
-	b.ResetTimer()
+	//c := NewVideoTaskCache()
+	//// Add b.N items to the cache
+	//for i := 0; i < b.N; i++ {
+	//	c.Set(fmt.Sprint(i), VideoTaskTimestamp(rand.Intn(9999)))
+	//}
+	//b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
-		// Iterate over the cache
-		for k, v := range c.videoTaskMap {
-			// Mock some work
-			time.Sleep(100 * time.Microsecond)
-
-			// Delete the item from the cache with a 20% probability
-			if v%5 == 0 {
-				c.Delete(k)
-			}
-		}
-	}
+	//for i := 0; i < b.N; i++ {
+	//	// Iterate over the cache
+	//	for k, v := range c.videoTaskMap {
+	//		// Mock some work
+	//		time.Sleep(100 * time.Microsecond)
+	//
+	//		// Delete the item from the cache with a 20% probability
+	//		if v%5 == 0 {
+	//			c.Delete(k)
+	//		}
+	//	}
+	//}
 }

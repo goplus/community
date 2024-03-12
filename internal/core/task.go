@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gabriel-vasile/mimetype"
+	"github.com/hashicorp/golang-lru/v2/expirable"
 	"sync"
 	"time"
 
@@ -94,7 +95,6 @@ func (c *Community) NewVideoTask(ctx context.Context, userId, resourceId string)
 
 	// Set video task cache
 	c.SetVideoTaskCache(resourceId, VideoTaskTimestamp(time.Now().Unix()))
-
 	c.xLog.Infof("NewVideoTask success, resourceId: %s, taskId: %s", resourceId, resp.TaskId)
 
 	return nil
@@ -116,53 +116,45 @@ func (c *Community) SetVideoTaskOutput(ctx context.Context, resourceId string, o
 }
 
 type VideoTaskTimestamp int64
-type VideoTaskMap map[string]VideoTaskTimestamp
+
+// type VideoTaskMap map[string]VideoTaskTimestamp
 
 // VideoTaskCache video task cache
 // Simple cache, no expiration
 type VideoTaskCache struct {
-	sync.RWMutex
-	videoTaskMap VideoTaskMap
-
+	videoCache *expirable.LRU[string, VideoTaskTimestamp]
 	// Check task status
+	sync.RWMutex
 	isActive bool
 }
 
 // NewVideoTaskCache create new video task cache
 func NewVideoTaskCache() *VideoTaskCache {
 	return &VideoTaskCache{
-		videoTaskMap: make(VideoTaskMap),
-		isActive:     false,
+		videoCache: expirable.NewLRU[string, VideoTaskTimestamp](1000, nil, time.Minute*30),
+		isActive:   false,
 	}
 }
 
 // Get get video task timestamp
 func (c *VideoTaskCache) Get(key string) (VideoTaskTimestamp, bool) {
-	c.RLock()
-	defer c.RUnlock()
-	value, ok := c.videoTaskMap[key]
+	value, ok := c.videoCache.Get(key)
 	return value, ok
 }
 
 // Set set video task timestamp
 func (c *VideoTaskCache) Set(key string, value VideoTaskTimestamp) {
-	c.Lock()
-	defer c.Unlock()
-	c.videoTaskMap[key] = value
+	c.videoCache.Add(key, value)
 }
 
 // Delete delete video task
 func (c *VideoTaskCache) Delete(key string) {
-	c.Lock()
-	defer c.Unlock()
-	delete(c.videoTaskMap, key)
+	c.videoCache.Remove(key)
 }
 
 // Clear clear video task cache
 func (c *VideoTaskCache) Clear() {
-	c.Lock()
-	defer c.Unlock()
-	c.videoTaskMap = make(VideoTaskMap)
+	c.videoCache.Purge()
 }
 
 // SetVideoTaskCache set video task cache
@@ -171,7 +163,9 @@ func (c *Community) SetVideoTaskCache(key string, value VideoTaskTimestamp) {
 
 	// Start check task status
 	if !c.translation.VideoTaskCache.isActive {
+		c.translation.VideoTaskCache.Lock()
 		c.translation.VideoTaskCache.isActive = true
+		c.translation.VideoTaskCache.Unlock()
 		go c.TimedCheckVideoTask(context.Background(), 30*time.Second)
 	}
 }
@@ -188,42 +182,40 @@ func (c *Community) TimedCheckVideoTask(ctx context.Context, timeout time.Durati
 		case <-ticker.C:
 			c.xLog.Infof("TimedCheckVideoTask start, timeout: %v", timeout)
 			// Iterator video task cache
-			for resourceId, timestamp := range c.translation.VideoTaskCache.videoTaskMap {
-				if time.Now().Unix()-int64(timestamp) > int64(timeout) {
-					// Delete expired video task
+			cacheLists := c.translation.VideoTaskCache.videoCache.Keys()
+			for _, resourceId := range cacheLists {
+				// Check status of video task
+				task, err := c.getVideoTask(ctx, resourceId)
+				if err != nil {
+					c.xLog.Errorf("TimedCheckVideoTask getVideoTask failed, resourceId: %s, err: %v", resourceId, err)
+					continue
+				}
+				if task.Status == 1 || task.Status == -1 {
+					// Set video task success or failed
 					c.translation.VideoTaskCache.Delete(resourceId)
-				} else {
-					// Check status of video task
-					task, err := c.getVideoTask(ctx, resourceId)
+				} else if task.Status == 0 {
+					// Update ASR result
+					err = c.updateASRResult(ctx, resourceId, task)
 					if err != nil {
-						c.xLog.Errorf("TimedCheckVideoTask getVideoTask failed, resourceId: %s, err: %v", resourceId, err)
-						continue
-					}
-					if task.Status == 1 || task.Status == -1 {
-						// Set video task success or failed
-						c.translation.VideoTaskCache.Delete(resourceId)
-					} else if task.Status == 0 {
-						// Update ASR result
-						err = c.updateASRResult(ctx, resourceId, task)
+						c.xLog.Errorf("TimedCheckVideoTask updateASRResult failed, resourceId: %s, err: %v", resourceId, err)
+
+						err = c.SetVideoTaskFailed(ctx, resourceId)
 						if err != nil {
-							c.xLog.Errorf("TimedCheckVideoTask updateASRResult failed, resourceId: %s, err: %v", resourceId, err)
-
-							err = c.SetVideoTaskFailed(ctx, resourceId)
-							if err != nil {
-								c.xLog.Errorf("TimedCheckVideoTask SetVideoTaskStatus failed, resourceId: %s, err: %v", resourceId, err)
-							}
-
-							continue
+							c.xLog.Errorf("TimedCheckVideoTask SetVideoTaskStatus failed, resourceId: %s, err: %v", resourceId, err)
 						}
 
-						// Set video task success
-						c.translation.VideoTaskCache.Delete(resourceId)
+						continue
 					}
+
+					// Set video task success
+					c.translation.VideoTaskCache.Delete(resourceId)
 				}
 			}
 
-			if len(c.translation.VideoTaskCache.videoTaskMap) == 0 {
+			if c.translation.VideoTaskCache.videoCache.Len() == 0 {
+				c.translation.VideoTaskCache.Lock()
 				c.translation.VideoTaskCache.isActive = false
+				c.translation.VideoTaskCache.Unlock()
 				return
 			}
 		case <-timer.C:
@@ -231,7 +223,9 @@ func (c *Community) TimedCheckVideoTask(ctx context.Context, timeout time.Durati
 
 			// Update status of video task
 			// c.videoTaskCache.Clear()
+			c.translation.VideoTaskCache.Lock()
 			c.translation.VideoTaskCache.isActive = false
+			c.translation.VideoTaskCache.Unlock()
 
 			return
 		}
