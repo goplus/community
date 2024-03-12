@@ -19,6 +19,7 @@ package translation
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -157,8 +158,7 @@ func TestTranslateMarkdown(t *testing.T) {
 		to     language.Tag
 		result string
 	}{
-		{`
-# Heading
+		{`# Heading 
 
 ## 这是一个二级标题
 
@@ -200,9 +200,7 @@ func TestTranslateMarkdown(t *testing.T) {
 `,
 			"auto",
 			language.English,
-			`
-# Heading 
-
+			`# Heading 
 
 ## This is a secondary title
 
@@ -261,7 +259,7 @@ Here is an indented code block:
 				}{
 					From: "zh",
 					To:   "en",
-					TgtText: `Heading 
+					TgtText: `Heading
 9223372036854775807 
 This is a secondary title 
 9223372036854775807 
@@ -360,7 +358,6 @@ func TestTranslateMarkdownLarge(t *testing.T) {
 			"auto",
 			language.English,
 			`Hello
-
 Hello
 Hello
 Hello
@@ -582,22 +579,49 @@ func TestTranslateWebVTTLarge(t *testing.T) {
 }
 
 func TestTranslateEmpty(t *testing.T) {
-	if mockKey == "" {
-		t.Skip("NIUTRANS_API_KEY not set")
-	}
-
 	tests := []struct {
-		src  string
-		from string
-		to   language.Tag
+		src    string
+		from   string
+		to     language.Tag
+		result string
 	}{
-		{"", "auto", language.English},
-		{"", "auto", language.Chinese},
+		{"", "auto", language.English, ""},
+		{"", "auto", language.Chinese, ""},
 	}
 
-	trans := New(mockKey, "", "")
 	for _, test := range tests {
-		translatedResult, err := trans.TranslateMarkdownText(test.src, test.from, test.to)
+		// Replace the default client with mock client
+		transEngine.HTTPClient = &mockNiuTransClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				// type translateResponse struct {
+				// 	From    string `json:"from"`
+				// 	To      string `json:"to"`
+				// 	TgtText string `json:"tgt_text"`
+				// }
+				translateResponse := struct {
+					From    string `json:"from"`
+					To      string `json:"to"`
+					TgtText string `json:"tgt_text"`
+				}{
+					From:    "zh",
+					To:      "en",
+					TgtText: "",
+				}
+
+				// Mock response
+				body, err := json.Marshal(translateResponse)
+				if err != nil {
+					return nil, err
+				}
+
+				return &http.Response{
+					StatusCode: 200,
+					Body:       io.NopCloser(strings.NewReader(string(body))),
+				}, nil
+			},
+		}
+
+		translatedResult, err := transEngine.TranslateMarkdownText(test.src, test.from, test.to)
 		fmt.Println(translatedResult, err)
 		if err != nil {
 			t.Fatal(err)

@@ -145,18 +145,20 @@ func (e *Engine) TranslateMarkdown(src []byte, from string, to language.Tag) (re
 		if err != nil {
 			return nil, err
 		}
+
+		translatedStr = strings.TrimSpace(translatedStr)
 	} else {
 		translatedStrList, err := e.TranslateBatchPlain(toBeTranslatedStrList, from, to)
 		if err != nil {
 			return nil, err
 		}
 
-		translatedStr = strings.Join(translatedStrList, fmt.Sprintf("\n%s\n", translationSep))
+		translatedStr = strings.TrimSpace(strings.Join(translatedStrList, fmt.Sprintf("\n%s\n", translationSep)))
 	}
 
 	// Replace text
 	resultVec := strings.Split(translatedStr, translationSep)
-	if len(resultVec) <= 0 {
+	if len(resultVec) <= 0 || len(resultVec[0]) <= 0 {
 		// No need to translate or translation failed
 		return src, nil
 	}
