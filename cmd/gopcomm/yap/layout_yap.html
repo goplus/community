@@ -34,7 +34,6 @@
 <body>
     <div id="layoutApp" class="w-full h-full px-4 flex justify-between items-center"
         style="height: 8vh; background-image: url('/static/img/home-background.png'); background-size: 100% 100%;">
-        <!-- <input style="display: none; " id="usertoken" value="{{.usertoken}}" /> -->
 
         <!-- LOGO -->
         <a href="/" style="width: 35%;">
@@ -63,26 +62,25 @@
 
         <!-- Account -->
         <div style="width: 35%;" class="flex items-center justify-end">
-            {{if .User}}
-            <n-button class="mr-3" color="#f7fafc" style="--n-text-color: white;
-                --n-text-color-hover: #3182ce; --n-text-color-pressed: #3182ce;
-                --n-text-color-focus: #3182ce" @click="writeArticle">
-                <i class="ph ph-pencil-line" style="font-size: 18px; margin-right: 5px;"></i>
-                Write an Article
-            </n-button>
-            <n-dropdown :options="userOptions" trigger="hover" width="150" @select="selectDropdown">
-                <n-avatar round size="large"
-                    src="{{ if .User.Avatar }}{{ .User.Avatar }}{{ else }}../static/img/gop-avatar.png{{ end }}"
-                    style="cursor: pointer;"></n-avatar>
-            </n-dropdown>
-            {{else}}
-            <n-button quaternary color="white" @click="signIn">
+            <div v-if="user" class="flex items-center justify-end">
+                <n-button class="mr-3" color="#f7fafc" style="--n-text-color: white;
+                    --n-text-color-hover: #3182ce; --n-text-color-pressed: #3182ce;
+                    --n-text-color-focus: #3182ce" @click="writeArticle">
+                    <i class="ph ph-pencil-line" style="font-size: 18px; margin-right: 5px;"></i>
+                    Write an Article
+                </n-button>
+                <n-dropdown :options="userOptions" trigger="hover" width="150" @select="selectDropdown">
+                    <n-avatar round size="large"
+                        :src="user.Avatar || '../static/img/gop-avatar.png'"
+                        style="cursor: pointer;"></n-avatar>
+                </n-dropdown>
+            </div>
+            <n-button v-else quaternary color="white" @click="signIn">
                 <template #icon>
                     <i class="ph-bold ph-user"></i>
                 </template>
                 Sign In
             </n-button>
-            {{end}}
         </div>
     </div>
 
@@ -90,7 +88,8 @@
         (() => {
             const { ref, h } = Vue;
             const user = {{.User }}
-            const searchValue = ref("{{.Value}}" || "")
+            const userId = {{.UserId}}
+            const searchValue = ref({{.Value}} || "")
 
             /*======= user related =======*/
             function signIn() {
@@ -165,8 +164,8 @@
             
             function selectDropdown(key) {
                 if (key === 'profile') {
-                    if ("{{.UserId}}" !== "") {
-                        window.location.href = '/user/{{ .UserId }}';
+                    if (userId !== "") {
+                        window.location.href = '/user/' + userId;
                     }
                 } else if (key === 'settings') {
                     window.location.href = '/user/edit';
@@ -189,7 +188,8 @@
                 data() {
                     return {
                         userOptions,
-                        searchValue
+                        searchValue,
+                        user
                     }
                 },
                 methods: {

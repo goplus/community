@@ -156,6 +156,11 @@ func (e *Engine) TranslateMarkdown(src []byte, from string, to language.Tag) (re
 
 	// Replace text
 	resultVec := strings.Split(translatedStr, translationSep)
+	if len(resultVec) <= 0 {
+		// No need to translate or translation failed
+		return src, nil
+	}
+
 	if len(resultVec) != len(translationVec) {
 		// Try to return origin data
 		return src, ErrTranslationNotMatch
@@ -163,7 +168,7 @@ func (e *Engine) TranslateMarkdown(src []byte, from string, to language.Tag) (re
 
 	result := make([]byte, 0)
 	result = append(result, src[:translationSeg[0].Start]...)
-	result = append(result, []byte(resultVec[0])...)
+	result = append(result, []byte(strings.TrimSpace(resultVec[0]))...)
 	for idx := 1; idx < len(resultVec); idx++ {
 		result = append(result, src[translationSeg[idx-1].Stop:translationSeg[idx].Start]...)
 		result = append(result, []byte(strings.TrimSpace(resultVec[idx]))...)
