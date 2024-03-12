@@ -277,12 +277,12 @@
                 method: 'POST',
                 body: avatarData,
             }
-            fetch("/upload", options)
+            fetch("/api/media", options)
                 .then(res => {
                     return res.json();
                 })
                 .then(todos => {
-                    fetch('/getMediaUrl/' + todos)
+                    fetch('/api/media/'+todos+'/url')
                         .then(resUrl => {
                             return resUrl.json();
                         })
