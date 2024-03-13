@@ -103,19 +103,26 @@ type Config struct {
 	BlobUS string // blob URL scheme
 }
 
+type PlatformCount struct {
+	ArticleId string
+	Platform  string
+	ViewCount string
+}
+
 type ArticleEntry struct {
-	ID        string
-	Title     string
-	UId       string
-	Cover     string
-	Tags      string
-	User      User
-	Abstract  string
-	Label     string
-	Ctime     time.Time
-	Mtime     time.Time
-	ViewCount int
-	LikeCount int
+	ID            string
+	Title         string
+	UId           string
+	Cover         string
+	Tags          string
+	User          User
+	Abstract      string
+	Label         string
+	Ctime         time.Time
+	Mtime         time.Time
+	ViewCount     int
+	LikeCount     int
+	PlatformCount []PlatformCount
 }
 
 type ArticleLike struct {
@@ -405,9 +412,13 @@ const (
 	MarkEnd   = "eof"
 )
 
-func (p *Community) getPageArticles(sqlStr string, from string, limit int, value string, label string) (items []*ArticleEntry, next string, err error) {
+func (p *Community) getPageArticles(sqlStr string, from string, limit int, value string, label string, key string) (items []*ArticleEntry, next string, err error) {
 	if from == MarkBegin {
-		from = "0"
+		if key == "search" {
+			from = "0"
+		} else {
+			from = "1"
+		}
 	} else if from == MarkEnd {
 		return []*ArticleEntry{}, from, nil
 	}
@@ -415,8 +426,13 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 	if err != nil {
 		return []*ArticleEntry{}, from, err
 	}
-
-	rows, err := p.db.Query(sqlStr, value, label, limit, fromInt)
+	var rows *sql.Rows
+	if key == "search" {
+		rows, err = p.db.Query(sqlStr, value, value, label, limit, fromInt)
+	} else {
+		rows, err = p.db.Query(sqlStr, value, limit, (fromInt-1)*limit)
+	}
+	// rows, err := p.db.Query(sqlStr, value, value, label, limit, fromInt)
 	if err != nil {
 		return []*ArticleEntry{}, from, err
 	}
@@ -424,9 +440,11 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 	defer rows.Close()
 
 	var rowLen int
+	var articleIds []string
 	for rows.Next() {
 		article := &ArticleEntry{}
 		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Abstract, &article.Cover, &article.Label, &article.LikeCount, &article.ViewCount)
+		articleIds = append(articleIds, article.ID)
 		if err != nil {
 			return []*ArticleEntry{}, from, err
 		}
@@ -440,27 +458,58 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 		items = append(items, article)
 		rowLen++
 	}
+
 	// have no article
 	if rowLen == 0 {
 		return []*ArticleEntry{}, MarkEnd, nil
 	}
-	if rowLen < limit {
-		return items, MarkEnd, nil
+	sqlStr = "SELECT article_id, platform, COUNT(*) AS view_count FROM article_view WHERE article_id IN (" + strings.Join(articleIds, ",") + ") AND platform IS NOT NULL AND platform <> '' GROUP BY article_id, platform;"
+	rows, err = p.db.Query(sqlStr)
+	if err != nil {
+		return []*ArticleEntry{}, MarkEnd, nil
 	}
-	next = strconv.Itoa(fromInt + rowLen)
+	var m = make(map[string][]PlatformCount)
+	for rows.Next() {
+		p1 := PlatformCount{}
+		err := rows.Scan(&p1.ArticleId, &p1.Platform, &p1.ViewCount)
+		if err != nil {
+			return []*ArticleEntry{}, from, err
+		}
+		if _, ok := m[p1.ArticleId]; !ok {
+			m[p1.ArticleId] = make([]PlatformCount, 0)
+		}
+		m[p1.ArticleId] = append(m[p1.ArticleId], p1)
+	}
+
+	for _, article := range items {
+		article.PlatformCount = m[article.ID]
+	}
+
+	if key == "search" {
+		if rowLen < limit {
+			return items, MarkEnd, nil
+		}
+		next = strconv.Itoa(fromInt + rowLen)
+	} else {
+		err = p.db.QueryRow("select count(*) from article where user_id = ?", value).Scan(&next)
+		if err != nil {
+			return items, next, nil
+		}
+	}
+
 	return items, next, nil
 }
 
 // ListArticle lists articles from a position.
 func (p *Community) ListArticle(ctx context.Context, from string, limit int, searchValue string, label string) (items []*ArticleEntry, next string, err error) {
-	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label, like_count, view_count from article where title like ? and label like ? order by ctime desc limit ? offset ?"
-	return p.getPageArticles(sqlStr, from, limit, "%"+searchValue+"%", "%"+label+"%")
+	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label, like_count, view_count from article where (title like ? or tags like ?) and label = ? order by ctime desc limit ? offset ?"
+	return p.getPageArticles(sqlStr, from, limit, "%"+searchValue+"%", label, "search")
 }
 
 // GetArticlesByUid get articles by user id.
-func (p *Community) GetArticlesByUid(ctx context.Context, uid string, from string, limit int) (items []*ArticleEntry, next string, err error) {
-	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label, like_count, view_count from article where user_id = ? and label like ? order by ctime desc limit ? offset ?"
-	return p.getPageArticles(sqlStr, from, limit, uid, "%")
+func (p *Community) GetArticlesByUid(ctx context.Context, uid string, page string, limit int) (items []*ArticleEntry, next string, err error) {
+	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label, like_count, view_count from article where user_id = ? order by ctime desc limit ? offset ?"
+	return p.getPageArticles(sqlStr, page, limit, uid, "", "user")
 }
 
 func casdoorConfigInit() *CasdoorConfig {
