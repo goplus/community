@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 
@@ -139,7 +139,7 @@ func TestGetMediaType(t *testing.T) {
 	initDB()
 
 	// Prepare data
-	community.db.Exec(
+	_, err := community.db.Exec(
 		"insert into file (file_key,format,size,user_id,create_at,update_at,duration) values (?,?,?,?,?,?,?)",
 		"test",
 		"test",
@@ -149,6 +149,7 @@ func TestGetMediaType(t *testing.T) {
 		"2021-01-01",
 		1,
 	)
+	assert.Nil(t, err)
 
 	tests := []struct {
 		data   []byte
@@ -200,7 +201,7 @@ func TestGetMediaType(t *testing.T) {
 			DoFunc: func(req *http.Request) (resp *http.Response, err error) {
 				return &http.Response{
 					StatusCode: 200,
-					Body:       ioutil.NopCloser(bytes.NewReader([]byte(mockFormat))),
+					Body:       io.NopCloser(bytes.NewReader([]byte(mockFormat))),
 				}, nil
 			},
 		}
@@ -221,7 +222,7 @@ func TestGetVideoSubtitle(t *testing.T) {
 	initDB()
 
 	// Prepare data
-	community.db.Exec(
+	_, err := community.db.Exec(
 		"insert into file (file_key,format,size,user_id,create_at,update_at,duration) values (?,?,?,?,?,?,?)",
 		"test",
 		"test",
@@ -231,7 +232,8 @@ func TestGetVideoSubtitle(t *testing.T) {
 		"2021-01-01",
 		1,
 	)
-	community.db.Exec(
+	assert.Nil(t, err)
+	_, err = community.db.Exec(
 		"insert into video_task (user_id, resource_id, task_id, output, status, create_at, update_at) values (?,?,?,?,?,?,?)",
 		"1",
 		"1",
@@ -241,6 +243,7 @@ func TestGetVideoSubtitle(t *testing.T) {
 		"2021-01-01",
 		"2021-01-01",
 	)
+	assert.Nil(t, err)
 
 	tests := []struct {
 		mediaId string
@@ -270,7 +273,7 @@ func TestRetryCaptionGenerate(t *testing.T) {
 	initDB()
 
 	// Prepare data
-	community.db.Exec(
+	_, err := community.db.Exec(
 		"insert into file (file_key,format,size,user_id,create_at,update_at,duration) values (?,?,?,?,?,?,?)",
 		"test",
 		"test",
@@ -280,7 +283,8 @@ func TestRetryCaptionGenerate(t *testing.T) {
 		"2021-01-01",
 		1,
 	)
-	community.db.Exec(
+	assert.Nil(t, err)
+	_, err = community.db.Exec(
 		"insert into video_task (user_id, resource_id, task_id, output, status, create_at, update_at) values (?,?,?,?,?,?,?)",
 		"1",
 		"1",
@@ -290,6 +294,7 @@ func TestRetryCaptionGenerate(t *testing.T) {
 		"2021-01-01",
 		"2021-01-01",
 	)
+	assert.Nil(t, err)
 
 	tests := []struct {
 		userId  string
@@ -314,7 +319,7 @@ func TestListMediaByUserId(t *testing.T) {
 	initDB()
 
 	// Prepare data
-	community.db.Exec(
+	_, err := community.db.Exec(
 		"insert into file (file_key,format,size,user_id,create_at,update_at,duration) values (?,?,?,?,?,?,?)",
 		"test",
 		"test",
@@ -324,6 +329,7 @@ func TestListMediaByUserId(t *testing.T) {
 		"2021-01-01",
 		1,
 	)
+	assert.Nil(t, err)
 
 	tests := []struct {
 		userId   string

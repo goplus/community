@@ -268,8 +268,7 @@ func TestNewVideoTask(t *testing.T) {
 	initDB()
 
 	// Prepare test data
-	// Prepare data
-	community.db.Exec(
+	_, err := community.db.Exec(
 		"insert into file (file_key,format,size,user_id,create_at,update_at,duration) values (?,?,?,?,?,?,?)",
 		"test",
 		"test",
@@ -279,6 +278,7 @@ func TestNewVideoTask(t *testing.T) {
 		"2021-01-01",
 		1,
 	)
+	assert.Nil(t, err)
 
 	tests := []struct {
 		userId     string
@@ -311,7 +311,7 @@ func TestTimedCheckVideoTask(t *testing.T) {
 
 	// Prepare test data
 	// Prepare data
-	community.db.Exec(
+	_, err := community.db.Exec(
 		"insert into file (file_key,format,size,user_id,create_at,update_at,duration) values (?,?,?,?,?,?,?)",
 		"test",
 		"test",
@@ -321,6 +321,7 @@ func TestTimedCheckVideoTask(t *testing.T) {
 		"2021-01-01",
 		1,
 	)
+	assert.Nil(t, err)
 
 	// Set video task cache
 	community.SetVideoTaskCache("1", VideoTaskTimestamp(time.Now().Unix()))
@@ -344,7 +345,8 @@ func Test_getVideoTask(t *testing.T) {
 	initDB()
 
 	// Prepare data
-	community.createVideoTask(context.Background(), "1", "1", "1")
+	err := community.createVideoTask(context.Background(), "1", "1", "1")
+	assert.Nil(t, err)
 
 	tests := []struct {
 		resourceId string
@@ -368,7 +370,8 @@ func Test_updateVideoTaskOutput(t *testing.T) {
 	initDB()
 
 	// Prepare data
-	community.createVideoTask(context.Background(), "1", "1", "1")
+	err := community.createVideoTask(context.Background(), "1", "1", "1")
+	assert.Nil(t, err)
 
 	tests := []struct {
 		resourceId string
@@ -393,7 +396,8 @@ func Test_updateVideoTaskStatus(t *testing.T) {
 	initDB()
 
 	// Prepare data
-	community.createVideoTask(context.Background(), "1", "1", "1")
+	err := community.createVideoTask(context.Background(), "1", "1", "1")
+	assert.Nil(t, err)
 
 	tests := []struct {
 		resourceId string
@@ -418,7 +422,8 @@ func TestSetVideoTaskSuccess(t *testing.T) {
 	initDB()
 
 	// Prepare data
-	community.createVideoTask(context.Background(), "1", "1", "1")
+	err := community.createVideoTask(context.Background(), "1", "1", "1")
+	assert.Nil(t, err)
 
 	tests := []struct {
 		resourceId string
@@ -441,7 +446,8 @@ func TestSetVideoTaskOutput(t *testing.T) {
 	initDB()
 
 	// Prepare data
-	community.createVideoTask(context.Background(), "1", "1", "1")
+	err := community.createVideoTask(context.Background(), "1", "1", "1")
+	assert.Nil(t, err)
 
 	tests := []struct {
 		resourceId string
@@ -466,7 +472,8 @@ func Test_deleteVideoTask(t *testing.T) {
 	initDB()
 
 	// Prepare data
-	community.createVideoTask(context.Background(), "1", "1", "1")
+	err := community.createVideoTask(context.Background(), "1", "1", "1")
+	assert.Nil(t, err)
 
 	tests := []struct {
 		resourceId string
@@ -489,7 +496,8 @@ func Test_updateASRResult(t *testing.T) {
 	initDB()
 
 	// Prepare data
-	community.createVideoTask(context.Background(), "1", "1", "1")
+	err := community.createVideoTask(context.Background(), "1", "1", "1")
+	assert.Nil(t, err)
 
 	tests := []struct {
 		resourceId string
@@ -512,11 +520,9 @@ func Test_updateASRResult(t *testing.T) {
 		community.translation.Engine.QiNiuSDKClient = &mockQiNiuSDKClient{
 			DoFunc: func(ctx context.Context, cred *auth.Credentials, tokenType auth.TokenType, ret interface{},
 				method, reqUrl string, headers http.Header, param interface{}) error {
-				ret = &translation.ASRTaskData{
-					Rtn: 0,
-					Data: translation.Data{
-						StatusCode: 3,
-					},
+				if dataPtr, ok := ret.(*translation.ASRTaskData); ok {
+					dataPtr.Rtn = 0
+					dataPtr.Data.StatusCode = 3
 				}
 
 				return nil

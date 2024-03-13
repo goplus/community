@@ -588,38 +588,31 @@ func (p *Community) GetClientIP(r *http.Request) string {
 
 func (p *Community) ArticleLike(ctx context.Context, articleId int, userId string) (bool, error) {
 	db := p.db
-	tx, err := db.BeginTx(ctx, nil)
+	tx, _ := db.Begin()
+	sqlStr := "insert into article_like (article_id,user_id) values (?,?)"
+	_, err := tx.Exec(sqlStr, articleId, userId)
+	var f bool = true
+	var num int = 1
 	if err != nil {
-		return false, err
-	}
-
-	insertSQL := "INSERT INTO article_like (article_id, user_id) VALUES (?, ?)"
-	_, err = tx.ExecContext(ctx, insertSQL, articleId, userId)
-	liked := true
-	likeChange := 1
-
-	if err != nil {
-		deleteSQL := "DELETE FROM article_like WHERE article_id = ? AND user_id = ?"
-		_, err = tx.ExecContext(ctx, deleteSQL, articleId, userId)
+		sqlStr = "delete from article_like where article_id = ? and user_id = ?"
+		_, err = tx.Exec(sqlStr, articleId, userId)
 		if err != nil {
-			tx.Rollback()
+			if err := tx.Rollback(); err != nil {
+				return false, err
+			}
 			return false, err
 		}
-		liked = false
-		likeChange = -1
+		f = false
+		num = -1
 	}
-
-	updateSQL := "UPDATE article SET like_count = like_count + ? WHERE id = ?"
-	_, err = tx.ExecContext(ctx, updateSQL, likeChange, articleId)
+	sqlStr = "update article set like_count = like_count+ ? where id=?"
+	_, err = tx.Exec(sqlStr, num, articleId)
 	if err != nil {
-		tx.Rollback()
+		if err := tx.Rollback(); err != nil {
+			return false, err
+		}
 		return false, err
 	}
-
 	err = tx.Commit()
-	if err != nil {
-		return false, err
-	}
-
-	return liked, nil
+	return f, err
 }
