@@ -17,13 +17,37 @@
 package core
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
+	"net/http"
 	"testing"
 	"time"
+
+	"github.com/goplus/community/translation"
+	"github.com/qiniu/go-sdk/v7/auth"
+	"github.com/stretchr/testify/assert"
 )
 
+// Mock API Client
+type mockQiNiuSDKClient struct {
+	DoFunc func(ctx context.Context, cred *auth.Credentials, tokenType auth.TokenType, ret interface{},
+		method, reqUrl string, headers http.Header, param interface{}) error
+}
+
+// Implement NiuTransClient interface
+func (m *mockQiNiuSDKClient) CredentialedCallWithJson(ctx context.Context, cred *auth.Credentials, tokenType auth.TokenType, ret interface{},
+	method, reqUrl string, headers http.Header, param interface{}) error {
+	return m.DoFunc(ctx, cred, tokenType, ret, method, reqUrl, headers, param)
+}
+
+// For single benchmark
 func Test_VideoTaskCache_Set(t *testing.T) {
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
+
 	type fields struct {
 		key string
 		val VideoTaskTimestamp
@@ -214,6 +238,7 @@ func Benchmark_VideoTaskCache_Clear(b *testing.B) {
 	}
 }
 
+// For logic benchmark
 func Benchmark_VideoTaskCache_CheckVideoTask(b *testing.B) {
 	c := NewVideoTaskCache()
 	// Add b.N items to the cache
@@ -233,5 +258,272 @@ func Benchmark_VideoTaskCache_CheckVideoTask(b *testing.B) {
 				c.Delete(k)
 			}
 		}
+	}
+}
+
+func TestNewVideoTask(t *testing.T) {
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
+
+	// Prepare test data
+	// Prepare data
+	community.db.Exec(
+		"insert into file (file_key,format,size,user_id,create_at,update_at,duration) values (?,?,?,?,?,?,?)",
+		"test",
+		"test",
+		1,
+		"1",
+		"2021-01-01",
+		"2021-01-01",
+		1,
+	)
+
+	tests := []struct {
+		userId     string
+		resourceId string
+	}{
+		{
+			userId:     "1",
+			resourceId: "1",
+		},
+	}
+
+	for _, test := range tests {
+		community.translation.Engine.QiNiuSDKClient = &mockQiNiuSDKClient{
+			DoFunc: func(ctx context.Context, cred *auth.Credentials, tokenType auth.TokenType, ret interface{},
+				method, reqUrl string, headers http.Header, param interface{}) error {
+				return nil
+			},
+		}
+
+		err := community.NewVideoTask(context.Background(), test.userId, test.resourceId)
+		assert.Nil(t, err)
+	}
+}
+
+func TestTimedCheckVideoTask(t *testing.T) {
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
+
+	// Prepare test data
+	// Prepare data
+	community.db.Exec(
+		"insert into file (file_key,format,size,user_id,create_at,update_at,duration) values (?,?,?,?,?,?,?)",
+		"test",
+		"test",
+		1,
+		"1",
+		"2021-01-01",
+		"2021-01-01",
+		1,
+	)
+
+	// Set video task cache
+	community.SetVideoTaskCache("1", VideoTaskTimestamp(time.Now().Unix()))
+
+	// Mock API Client
+	community.translation.Engine.QiNiuSDKClient = &mockQiNiuSDKClient{
+		DoFunc: func(ctx context.Context, cred *auth.Credentials, tokenType auth.TokenType, ret interface{},
+			method, reqUrl string, headers http.Header, param interface{}) error {
+			return nil
+		},
+	}
+
+	// Timed check video task
+	community.TimedCheckVideoTask(context.Background(), time.Duration(1000))
+}
+
+func Test_getVideoTask(t *testing.T) {
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
+
+	// Prepare data
+	community.createVideoTask(context.Background(), "1", "1", "1")
+
+	tests := []struct {
+		resourceId string
+	}{
+		{
+			resourceId: "1",
+		},
+	}
+
+	for _, test := range tests {
+		task, err := community.getVideoTask(context.Background(), test.resourceId)
+		assert.Nil(t, err)
+		assert.NotNil(t, task)
+	}
+}
+
+func Test_updateVideoTaskOutput(t *testing.T) {
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
+
+	// Prepare data
+	community.createVideoTask(context.Background(), "1", "1", "1")
+
+	tests := []struct {
+		resourceId string
+		output     string
+	}{
+		{
+			resourceId: "1",
+			output:     "test",
+		},
+	}
+
+	for _, test := range tests {
+		err := community.updateVideoTaskOutput(context.Background(), test.resourceId, test.output)
+		assert.Nil(t, err)
+	}
+}
+
+func Test_updateVideoTaskStatus(t *testing.T) {
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
+
+	// Prepare data
+	community.createVideoTask(context.Background(), "1", "1", "1")
+
+	tests := []struct {
+		resourceId string
+		status     int
+	}{
+		{
+			resourceId: "1",
+			status:     1,
+		},
+	}
+
+	for _, test := range tests {
+		err := community.updateVideoTaskStatus(context.Background(), test.resourceId, test.status)
+		assert.Nil(t, err)
+	}
+}
+
+func TestSetVideoTaskSuccess(t *testing.T) {
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
+
+	// Prepare data
+	community.createVideoTask(context.Background(), "1", "1", "1")
+
+	tests := []struct {
+		resourceId string
+	}{
+		{
+			resourceId: "1",
+		},
+	}
+
+	for _, test := range tests {
+		err := community.SetVideoTaskSuccess(context.Background(), test.resourceId)
+		assert.Nil(t, err)
+	}
+}
+
+func TestSetVideoTaskOutput(t *testing.T) {
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
+
+	// Prepare data
+	community.createVideoTask(context.Background(), "1", "1", "1")
+
+	tests := []struct {
+		resourceId string
+		output     string
+	}{
+		{
+			resourceId: "1",
+			output:     "test",
+		},
+	}
+
+	for _, test := range tests {
+		err := community.SetVideoTaskOutput(context.Background(), test.resourceId, test.output)
+		assert.Nil(t, err)
+	}
+}
+
+func Test_deleteVideoTask(t *testing.T) {
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
+
+	// Prepare data
+	community.createVideoTask(context.Background(), "1", "1", "1")
+
+	tests := []struct {
+		resourceId string
+	}{
+		{
+			resourceId: "1",
+		},
+	}
+
+	for _, test := range tests {
+		err := community.deleteVideoTask(context.Background(), test.resourceId)
+		assert.Nil(t, err)
+	}
+}
+
+func Test_updateASRResult(t *testing.T) {
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
+
+	// Prepare data
+	community.createVideoTask(context.Background(), "1", "1", "1")
+
+	tests := []struct {
+		resourceId string
+		task       *VideoTask
+	}{
+		{
+			resourceId: "1",
+			task: &VideoTask{
+				Id:         1,
+				UserId:     "1",
+				ResourceId: "1",
+				TaskId:     "1",
+				Output:     "test",
+				Status:     1,
+			},
+		},
+	}
+
+	for _, test := range tests {
+		community.translation.Engine.QiNiuSDKClient = &mockQiNiuSDKClient{
+			DoFunc: func(ctx context.Context, cred *auth.Credentials, tokenType auth.TokenType, ret interface{},
+				method, reqUrl string, headers http.Header, param interface{}) error {
+				ret = &translation.ASRTaskData{
+					Rtn: 0,
+					Data: translation.Data{
+						StatusCode: 3,
+					},
+				}
+
+				return nil
+			},
+		}
+
+		err := community.updateASRResult(context.Background(), test.resourceId, test.task)
+		assert.Nil(t, err)
 	}
 }

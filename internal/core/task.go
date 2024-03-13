@@ -20,9 +20,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/gabriel-vasile/mimetype"
 	"sync"
 	"time"
+
+	"github.com/gabriel-vasile/mimetype"
 
 	language "golang.org/x/text/language"
 )

@@ -19,6 +19,7 @@ package core
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -29,7 +30,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gabriel-vasile/mimetype"
 	"github.com/goplus/community/translation"
 	"github.com/qiniu/x/xlog"
 
@@ -61,15 +61,27 @@ type S3ServiceAdapter struct {
 }
 
 func (s *S3ServiceAdapter) NewReader(ctx context.Context, key string, opts *blob.ReaderOptions) (_ S3Reader, err error) {
-	return nil, nil
+	if s.bucket == nil {
+		return nil, errors.New("not implemented")
+	}
+
+	return s.bucket.NewReader(ctx, key, opts)
 }
 
 func (s *S3ServiceAdapter) NewWriter(ctx context.Context, key string, opts *blob.WriterOptions) (_ S3Writer, err error) {
-	return nil, nil
+	if s.bucket == nil {
+		return nil, errors.New("not implemented")
+	}
+
+	return s.bucket.NewWriter(ctx, key, opts)
 }
 
 func (s *S3ServiceAdapter) Delete(ctx context.Context, key string) (err error) {
-	return nil
+	if s.bucket == nil {
+		return errors.New("not implemented")
+	}
+
+	return s.bucket.Delete(ctx, key)
 }
 
 type S3Reader interface {
@@ -116,7 +128,7 @@ type Article struct {
 	ArticleEntry
 	Content string // in markdown
 	Trans   bool
-	Vtt_id  string
+	VttId   string
 }
 
 type Community struct {
@@ -266,7 +278,7 @@ func (p *Community) Article(ctx context.Context, id string) (article *Article, e
 	article = &Article{}
 	// var htmlId string
 	sqlStr := "select id,title,user_id,cover,tags,abstract,content,ctime,mtime,label,like_count,view_count,vtt_id from article where id=?"
-	err = p.db.QueryRow(sqlStr, id).Scan(&article.ID, &article.Title, &article.UId, &article.Cover, &article.Tags, &article.Abstract, &article.Content, &article.Ctime, &article.Mtime, &article.Label, &article.LikeCount, &article.ViewCount, &article.Vtt_id)
+	err = p.db.QueryRow(sqlStr, id).Scan(&article.ID, &article.Title, &article.UId, &article.Cover, &article.Tags, &article.Abstract, &article.Content, &article.Ctime, &article.Mtime, &article.Label, &article.LikeCount, &article.ViewCount, &article.VttId)
 	if err == sql.ErrNoRows {
 		p.xLog.Warn("not found the article")
 		return article, ErrNotExist
@@ -275,8 +287,8 @@ func (p *Community) Article(ctx context.Context, id string) (article *Article, e
 		return article, err
 	}
 	// vtt don't finished when adding
-	if article.Vtt_id != "" {
-		row := p.db.QueryRow(`select output, status from video_task where resource_id = ?`, article.Vtt_id)
+	if article.VttId != "" {
+		row := p.db.QueryRow(`select output, status from video_task where resource_id = ?`, article.VttId)
 		var fileKey string
 		var status string
 		err = row.Scan(&fileKey, &status)
@@ -317,26 +329,6 @@ func (p *Community) ArticleLikeState(ctx context.Context, userId, articleId stri
 	return count == 1, nil
 }
 
-// TransHtmlUrl get translation html url
-func (p *Community) TransHtmlUrl(ctx context.Context, id string) (htmlUrl string, err error) {
-	var htmlId string
-	sqlStr := "select trans_html_id from article where id=?"
-	err = p.db.QueryRow(sqlStr, id).Scan(&htmlId)
-	if err == sql.ErrNoRows {
-		p.xLog.Warn("not found the translation html")
-		return "", ErrNotExist
-	}
-
-	// get html url
-	fileKey, err := p.GetMediaUrl(ctx, htmlId)
-	htmlUrl = fmt.Sprintf("%s%s", p.domain, fileKey)
-	if err != nil {
-		p.xLog.Warn("have no html media")
-		htmlUrl = ""
-	}
-	return
-}
-
 // CanEditable determine whether the user has the permission to operate.
 func (p *Community) CanEditable(ctx context.Context, uid, id string) (editable bool, err error) {
 	sqlStr := "select id from article where id=? and user_id = ?"
@@ -348,41 +340,12 @@ func (p *Community) CanEditable(ctx context.Context, uid, id string) (editable b
 	return true, nil
 }
 
-// SaveHtml upload origin html(string) to media for html id and save id to database
-func (p *Community) SaveHtml(ctx context.Context, uid, htmlStr, mdData, id string) (articleId string, err error) {
-	ext := mimetype.Detect([]byte(htmlStr)).String()
-	htmlId, err := p.SaveMedia(ctx, uid, []byte(htmlStr), ext)
-	if err != nil {
-		return "", err
-	}
-	if id == "" {
-		// save to database
-		// Lost the article id, so we need to get it from the database
-		sqlStr := "insert into article (user_id, html_id, ctime, mtime, content) values (?, ?, ?, ?, ?)"
-		res, err := p.db.Exec(sqlStr, uid, htmlId, time.Now(), time.Now(), mdData)
-		if err != nil {
-			return "", err
-		}
-		articleId, err := res.LastInsertId()
-		if err != nil {
-			return "", err
-		}
-		return strconv.FormatInt(articleId, 10), nil
-	}
-	sqlStr := "update article set content=?, html_id=?, mtime=? where id=?"
-	_, err = p.db.Exec(sqlStr, mdData, htmlId, time.Now(), id)
-	if err != nil {
-		return "", err
-	}
-	return id, err
-}
-
 // PutArticle adds new article (ID == "") or edits an existing article (ID != "").
 func (p *Community) PutArticle(ctx context.Context, uid string, article *Article) (id string, err error) {
 	// new article
 	if article.ID == "" {
 		sqlStr := "insert into article (title, ctime, mtime, user_id, tags, abstract, cover, content, trans, label, vtt_id) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-		res, err := p.db.Exec(sqlStr, &article.Title, time.Now(), time.Now(), uid, &article.Tags, &article.Abstract, &article.Cover, &article.Content, &article.Trans, &article.Label, &article.Vtt_id)
+		res, err := p.db.Exec(sqlStr, &article.Title, time.Now(), time.Now(), uid, &article.Tags, &article.Abstract, &article.Cover, &article.Content, &article.Trans, &article.Label, &article.VttId)
 		if err != nil {
 			return "", err
 		}
@@ -394,43 +357,8 @@ func (p *Community) PutArticle(ctx context.Context, uid string, article *Article
 	}
 	// edit article
 	sqlStr := "update article set title=?, mtime=?, tags=?, abstract=?, cover=?, content=?, trans=?, label=?, vtt_id=? where id=?"
-	_, err = p.db.Exec(sqlStr, &article.Title, time.Now(), &article.Tags, &article.Abstract, &article.Cover, &article.Content, &article.Trans, &article.Label, &article.Vtt_id, &article.ID)
+	_, err = p.db.Exec(sqlStr, &article.Title, time.Now(), &article.Tags, &article.Abstract, &article.Cover, &article.Content, &article.Trans, &article.Label, &article.VttId, &article.ID)
 	return article.ID, err
-}
-
-func (p *Community) deleteMedias(ctx context.Context, uid, id string) (err error) {
-	// get htmlIds
-	var htmlIds []string
-	sqlStr := "select html_id from article where id=? and user_id=?"
-	rows, err := p.db.Query(sqlStr, id, uid)
-	if err != nil {
-		p.xLog.Error(err)
-		return err
-	}
-
-	defer func() {
-		err = rows.Close()
-		if err != nil {
-			p.xLog.Error(err)
-		}
-	}()
-
-	for rows.Next() {
-		var htmlId string
-		if err := rows.Scan(&htmlId); err != nil {
-			p.xLog.Error(err)
-			return err
-		}
-		htmlIds = append(htmlIds, htmlId)
-	}
-
-	err = p.DelMedias(ctx, uid, htmlIds)
-	if err != nil {
-		p.xLog.Error(err)
-		return err
-	}
-
-	return
 }
 
 // DeleteArticle delete the article.
@@ -450,13 +378,6 @@ func (p *Community) DeleteArticle(ctx context.Context, uid, id string) (err erro
 			}
 		}
 	}()
-
-	// Delete medias (calling deleteMedias within the transaction)
-	err = p.deleteMedias(ctx, uid, id)
-	if err != nil {
-		p.xLog.Errorf("DeleteArticle: %v", err)
-		return err
-	}
 
 	// Delete article
 	sqlStr := "delete from article where id=? and user_id=?"
@@ -641,6 +562,8 @@ func (p *Community) ArticleLView(ctx context.Context, articleId, ip, userId, pla
 				p.xLog.Error(err.Error())
 				return
 			}
+		} else {
+			p.xLog.Error(err.Error())
 		}
 	}
 }
@@ -665,31 +588,38 @@ func (p *Community) GetClientIP(r *http.Request) string {
 
 func (p *Community) ArticleLike(ctx context.Context, articleId int, userId string) (bool, error) {
 	db := p.db
-	tx, _ := db.Begin()
-	sqlStr := "insert into article_like (article_id,user_id) values (?,?)"
-	_, err := tx.Exec(sqlStr, articleId, userId)
-	var f bool = true
-	var num int = 1
+	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
-		sqlStr = "delete from article_like where article_id = ? and user_id = ?"
-		_, err = tx.Exec(sqlStr, articleId, userId)
-		if err != nil {
-			if err := tx.Rollback(); err != nil {
-				return false, err
-			}
-			return false, err
-		}
-		f = false
-		num = -1
-	}
-	sqlStr = "update article set like_count = like_count+ ? where id=?"
-	_, err = tx.Exec(sqlStr, num, articleId)
-	if err != nil {
-		if err := tx.Rollback(); err != nil {
-			return false, err
-		}
 		return false, err
 	}
+
+	insertSQL := "INSERT INTO article_like (article_id, user_id) VALUES (?, ?)"
+	_, err = tx.ExecContext(ctx, insertSQL, articleId, userId)
+	liked := true
+	likeChange := 1
+
+	if err != nil {
+		deleteSQL := "DELETE FROM article_like WHERE article_id = ? AND user_id = ?"
+		_, err = tx.ExecContext(ctx, deleteSQL, articleId, userId)
+		if err != nil {
+			tx.Rollback()
+			return false, err
+		}
+		liked = false
+		likeChange = -1
+	}
+
+	updateSQL := "UPDATE article SET like_count = like_count + ? WHERE id = ?"
+	_, err = tx.ExecContext(ctx, updateSQL, likeChange, articleId)
+	if err != nil {
+		tx.Rollback()
+		return false, err
+	}
+
 	err = tx.Commit()
-	return f, err
+	if err != nil {
+		return false, err
+	}
+
+	return liked, nil
 }

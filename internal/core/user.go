@@ -1,10 +1,8 @@
 package core
 
 import (
-	"net/http"
 	"os"
 
-	"github.com/goplus/yap"
 	"golang.org/x/oauth2"
 
 	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
@@ -158,38 +156,7 @@ func (p *Community) UpdateUser(user *UserInfo) (res bool, err error) {
 	return
 }
 
-func (p *Community) SetToken(ctx *yap.Context) (err error) {
-	code := ctx.URL.Query().Get("code")
-	state := ctx.URL.Query().Get("state")
-	token, err := p.CasdoorSDKService.GetOAuthToken(code, state)
-	if err != nil {
-		return err
-	}
-	cookie := http.Cookie{
-		Name:   "token",
-		Value:  token.AccessToken,
-		Path:   "/",
-		MaxAge: 3600,
-	}
-	http.SetCookie(ctx.ResponseWriter, &cookie)
-	return err
-}
-
-func GetToken(ctx *yap.Context) (token *http.Cookie, err error) {
-	tokenCookie, err := ctx.Request.Cookie("token")
-	if err != nil {
-		return tokenCookie, err
-	}
-	return tokenCookie, err
-}
-
-func RemoveToken(ctx *yap.Context) (err error) {
-	tokenCookie, err := ctx.Request.Cookie("token")
-	if err != nil {
-		return err
-	}
-	// Delete token
-	tokenCookie.MaxAge = -1
-	http.SetCookie(ctx.ResponseWriter, tokenCookie)
-	return err
+func (p *Community) GetOAuthToken(code string, state string) (token *oauth2.Token, err error) {
+	token, err = p.CasdoorSDKService.GetOAuthToken(code, state)
+	return
 }

@@ -27,6 +27,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gocloud.dev/blob"
 	"golang.org/x/oauth2"
+	language "golang.org/x/text/language"
 )
 
 var (
@@ -34,6 +35,9 @@ var (
 	todo      context.Context
 
 	_ CasdoorSDKService = &mockCasdoorSDKService{}
+	_ S3Service         = &mockS3Service{}
+	_ S3Reader          = &mockS3Reader{}
+	_ S3Writer          = &mockS3Writer{}
 )
 
 // Mock S3Service
@@ -57,25 +61,27 @@ func (m *mockS3Service) Delete(ctx context.Context, key string) (err error) {
 
 // Mock S3Reader
 type mockS3Reader struct {
-	DoRead        func(p []byte) (n int, err error)
-	DoClose       func() (err error)
-	DoContentType func() (contentType string)
-	DoSize        func() (size int64)
+	DoRead        func(p []byte) (int, error)
+	DoClose       func() error
+	DoContentType func() string
+	DoSize        func() int64
 }
 
-func (m *mockS3Reader) Read(p []byte) (n int, err error) {
+func (m *mockS3Reader) Read(p []byte) (int, error) {
 	return m.DoRead(p)
 }
 
-func (m *mockS3Reader) Close() (err error) {
+func (m *mockS3Reader) Close() error {
 	return m.DoClose()
 }
 
-func (m *mockS3Reader) ContentType() (contentType string) {
+func (m *mockS3Reader) ContentType() string {
+	// fmt.Sprintf("mock S3Reader ContentType:%#v", m.DoContentType())
 	return m.DoContentType()
+	// return "video/mp4"
 }
 
-func (m *mockS3Reader) Size() (size int64) {
+func (m *mockS3Reader) Size() int64 {
 	return m.DoSize()
 }
 
@@ -87,12 +93,12 @@ type mockS3Writer struct {
 }
 
 //lint:ignore U1000 This is a mock
-func (m *mockS3Writer) Write(p []byte) (n int, err error) {
+func (m *mockS3Writer) Write(p []byte) (int, error) {
 	return m.DoWrite(p)
 }
 
 //lint:ignore U1000 This is a mock
-func (m *mockS3Writer) Close() (err error) {
+func (m *mockS3Writer) Close() error {
 	return m.DoClose()
 }
 
@@ -172,6 +178,7 @@ func initClient() {
 	conf := &Config{
 		Driver: "sqlite3",
 		DSN:    ":memory:",
+		BlobUS: "kodo://123:456@gop-community?useHttps",
 	}
 	todo = context.TODO()
 	comm, err := New(todo, conf)
@@ -191,7 +198,7 @@ func initClient() {
 					return nil
 				},
 				DoContentType: func() (contentType string) {
-					return ""
+					return "video/mp4"
 				},
 				DoSize: func() (size int64) {
 					return 0
@@ -378,8 +385,8 @@ func initDB() {
 			resource_id TEXT,
 			output TEXT,
 			status INTEGER,
-			create_at TEXT DEFAULT (datetime('now','localtime')),
-			update_at TEXT DEFAULT (datetime('now','localtime')),
+			create_at DATETIME,
+			update_at DATETIME,
 			user_id TEXT,
 			task_id TEXT
 		);`,
@@ -399,26 +406,29 @@ func initDB() {
 		);`,
 		`CREATE TABLE IF NOT EXISTS file (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			create_at TEXT DEFAULT (datetime('now','localtime')),
-			update_at TEXT DEFAULT (datetime('now','localtime')),
+			create_at DATETIME,
+			update_at DATETIME,
 			file_key TEXT,
 			format TEXT,
 			user_id TEXT,
-			size INTEGER,
+			size BIGINT,
 			duration TEXT
 		);`,
 		`CREATE TABLE IF NOT EXISTS article_like (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			article_id INTEGER NOT NULL,
 			user_id INTEGER NOT NULL
-		);`,
-		`CREATE TABLE IF NOT EXISTS article_view (
+		);
+		CREATE UNIQUE INDEX idx_article_id_user_id ON article_like(article_id, user_id);
+		`,
+		`CREATE TABLE article_view (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			ip BLOB NOT NULL,
+			ip TEXT NOT NULL,
 			user_id INTEGER NOT NULL DEFAULT 0,
 			article_id INTEGER NOT NULL,
-			created_at TEXT DEFAULT (datetime('now','localtime')),
-			index_key TEXT UNIQUE
+			created_at TEXT NOT NULL, 
+			"index" TEXT,
+			platform TEXT NOT NULL DEFAULT ''
 		);`,
 	}
 
@@ -534,8 +544,22 @@ func TestArticle(t *testing.T) {
 			Mtime: time.Now(),
 		},
 		Content: "This is a test article.",
+		VttId:   "1",
 	}
 	_, err := community.PutArticle(todo, "1", article)
+	assert.Nil(t, err)
+	// Create video task
+	_, err = community.db.ExecContext(
+		todo,
+		"insert into video_task (user_id, resource_id, task_id, output, status, create_at, update_at) values (?, ?, ?, ?, ?, ?, ?)",
+		"1",
+		"1",
+		"1",
+		"1",
+		1,
+		time.Now(),
+		time.Now(),
+	)
 	assert.Nil(t, err)
 
 	// Mock CasdoorSDKService data
@@ -563,32 +587,6 @@ func TestArticle(t *testing.T) {
 
 		assert.Equal(t, tt.expectedError, err)
 		assert.Equal(t, tt.expectedID, article.ID)
-	}
-}
-
-func TestSaveHtml(t *testing.T) {
-	// In memory db
-	initClient()
-	// Create article table
-	initDB()
-
-	// test data
-	tests := []struct {
-		uid               string
-		htmlStr           string
-		mdData            string
-		id                string
-		expectedArticleID string
-		expectedError     error
-	}{
-		{"1", "<html><body><p>Hello, World!<p></body></html>", "##Hello, World!", "1", "1", nil},
-	}
-
-	for _, tt := range tests {
-		articleId, err := community.SaveHtml(todo, tt.uid, tt.htmlStr, tt.mdData, tt.id)
-
-		assert.EqualValues(t, tt.expectedArticleID, articleId)
-		assert.EqualValues(t, tt.expectedError, err)
 	}
 }
 
@@ -722,10 +720,21 @@ func TestArticleLike(t *testing.T) {
 	_, err := community.PutArticle(todo, "1", article)
 	assert.Nil(t, err)
 
-	// TODO: Update test data
-	ok, err := community.ArticleLike(todo, 14, "1")
-	assert.Nil(t, err)
-	assert.Equal(t, true, ok)
+	tests := []struct {
+		uid           string
+		articleID     int
+		result        bool
+		expectedError error
+	}{
+		{"1", 14, true, nil},
+		{"1", 14, false, nil},
+	}
+
+	for _, tt := range tests {
+		ok, err := community.ArticleLike(todo, tt.articleID, tt.uid)
+		assert.Nil(t, err)
+		assert.Equal(t, tt.result, ok)
+	}
 }
 
 func TestRedirectToCasdoor(t *testing.T) {
@@ -835,5 +844,150 @@ func TestGetClientIP(t *testing.T) {
 
 		assert.EqualValues(t, tt.expectedError, nil)
 		assert.EqualValues(t, "", ip)
+	}
+}
+
+func TestTranslateMarkdownText(t *testing.T) {
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
+
+	// test data
+	tests := []struct {
+		src           string
+		from          string
+		to            language.Tag
+		expectedError error
+	}{
+		{"##Hello, World!", "en", language.English, nil},
+	}
+
+	for _, tt := range tests {
+		html, err := community.TranslateMarkdownText(context.Background(), tt.src, tt.from, tt.to)
+
+		assert.EqualValues(t, tt.expectedError, err)
+		assert.NotEqualValues(t, "", html)
+	}
+}
+
+func TestTranslateArticle(t *testing.T) {
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
+
+	// test data
+	tests := []struct {
+		article           *Article
+		translatedArticle *Article
+		expectedError     error
+	}{
+		{
+			&Article{
+				ArticleEntry: ArticleEntry{
+					Title: "Test Article",
+					UId:   "1",
+					Cover: "cover1",
+					Tags:  "tag1",
+					Ctime: time.Now(),
+					Mtime: time.Now(),
+				},
+				Content: "This is a test article.",
+			},
+			&Article{
+				ArticleEntry: ArticleEntry{
+					Title: "Test Article",
+					UId:   "1",
+					Cover: "cover1",
+					Tags:  "tag1",
+					Ctime: time.Now(),
+					Mtime: time.Now(),
+				},
+				Content: "This is a test article.",
+			},
+			nil,
+		},
+	}
+
+	for _, tt := range tests {
+		translatedArticle, err := community.TranslateArticle(context.Background(), tt.article)
+		assert.EqualValues(t, tt.translatedArticle.Content, translatedArticle.Content)
+		assert.EqualValues(t, tt.expectedError, err)
+	}
+}
+
+func TestGetTranslateArticle(t *testing.T) {
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
+
+	// Prepare data
+	article := &Article{
+		ArticleEntry: ArticleEntry{
+			Title: "Test Article",
+			UId:   "1",
+			Cover: "cover1",
+			Tags:  "tag1",
+			Ctime: time.Now(),
+			Mtime: time.Now(),
+		},
+		Content: "This is a test article.",
+	}
+	_, err := community.PutArticle(todo, "1", article)
+	assert.Nil(t, err)
+
+	// test data
+	tests := []struct {
+		uid           string
+		id            string
+		expectedError error
+	}{
+		{"1", "1", nil},
+	}
+
+	for _, tt := range tests {
+		article, err := community.GetTranslateArticle(todo, tt.id)
+
+		assert.EqualValues(t, tt.expectedError, err)
+		assert.NotNil(t, article)
+	}
+}
+
+func TestArticleLikeState(t *testing.T) {
+	// In memory db
+	initClient()
+	// Create article table
+	initDB()
+
+	// Prepare data
+	article := &Article{
+		ArticleEntry: ArticleEntry{
+			Title: "Test Article",
+			UId:   "1",
+			Cover: "cover1",
+			Tags:  "tag1",
+			Ctime: time.Now(),
+			Mtime: time.Now(),
+		},
+		Content: "This is a test article.",
+	}
+	_, err := community.PutArticle(todo, "1", article)
+	assert.Nil(t, err)
+
+	// test data
+	tests := []struct {
+		uid           string
+		articleID     string
+		expectedError error
+	}{
+		{"1", "1", nil},
+	}
+
+	for _, tt := range tests {
+		likeState, err := community.ArticleLikeState(todo, tt.uid, tt.articleID)
+		assert.Nil(t, err)
+		assert.Equal(t, false, likeState)
 	}
 }
