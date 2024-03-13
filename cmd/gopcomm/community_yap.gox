@@ -48,16 +48,11 @@ get "/error", ctx => {
 	userId := ""
 	token, err := ctx.Request.Cookie("token")
 	if err == nil {
-		user, err = community.GetUser(token.Value)
-		if err != nil {
-			xLog.Error("get user error:", err)
-		} else {
-			userId = user.Id
-		}
+		user, _ = community.GetUser(token.Value)
 	}
+
 	ctx.yap "4xx", {
-		"UserId": userId,
-		"User":   user,
+		"User": user,
 	}
 }
 
@@ -66,16 +61,11 @@ get "/failed", ctx => {
 	userId := ""
 	token, err := ctx.Request.Cookie("token")
 	if err == nil {
-		user, err = community.GetUser(token.Value)
-		if err != nil {
-			xLog.Error("get user error:", err)
-		} else {
-			userId = user.Id
-		}
+		user, _ = community.GetUser(token.Value)
 	}
+
 	ctx.yap "5xx", {
-		"UserId": userId,
-		"User":   user,
+		"User": user,
 	}
 }
 
@@ -86,12 +76,7 @@ get "/", ctx => {
 	userId := ""
 	token, err := ctx.Request.Cookie("token")
 	if err == nil {
-		user, err = community.GetUser(token.Value)
-		if err != nil {
-			xLog.Error("get user error:", err)
-		} else {
-			userId = user.Id
-		}
+		user, _ = community.GetUser(token.Value)
 	}
 	// Get Article Info
 	articles, next, err := community.ListArticle(todo, core.MarkBegin, limitConst, "", labelConst)
@@ -103,10 +88,9 @@ get "/", ctx => {
 		xLog.Error("json marshal error:", err)
 	}
 	ctx.yap "home", {
-		"UserId": userId,
-		"User":   user,
-		"Items":  articles,
-		"Next":   next,
+		"User":  user,
+		"Items": articles,
+		"Next":  next,
 	}
 }
 
@@ -116,34 +100,34 @@ get "/", ctx => {
 get "/article/:id", ctx => {
 	// todo middleware
 	// Get User Info
+	uid := ""
+
 	var user *core.User
 	userId := ""
 	token, err := ctx.Request.Cookie("token")
 	if err == nil {
 		user, err = community.GetUser(token.Value)
 		if err != nil {
-			xLog.Error("get user error:", err)
-		} else {
-			userId = user.Id
+			uid = user.Id
 		}
 	}
+
 	id := ctx.param("id")
 	platform := ctx.Param("platform")
 	ip := community.GetClientIP(ctx.Request)
-	community.ArticleLView(todo, id, ip, userId, platform)
+	community.ArticleLView(todo, id, ip, uid, platform)
 	article, err := community.Article(todo, id)
 	if err != nil {
 		xLog.Error("get article error:", err)
 		return
 	}
-	likeState, err := community.ArticleLikeState(todo, userId, id)
+	likeState, err := community.ArticleLikeState(todo, uid, id)
 	if err != nil {
 		xLog.Error("article state err:", err)
 		return
 	}
 	// articleJson, _ := json.Marshal(&article)
 	ctx.yap "article", {
-		"UserId":    userId,
 		"User":      user,
 		"Article":   article,
 		"LikeState": likeState,
@@ -155,16 +139,10 @@ get "/add", ctx => {
 	userId := ""
 	token, err := ctx.Request.Cookie("token")
 	if err == nil {
-		user, err = community.GetUser(token.Value)
-		if err != nil {
-			xLog.Error("get user error:", err)
-		} else {
-			userId = user.Id
-		}
+		user, _ = community.GetUser(token.Value)
 	}
 	ctx.yap "edit", {
-		"User":   user,
-		"UserId": userId,
+		"User": user,
 	}
 }
 
@@ -173,12 +151,7 @@ get "/edit/:id", ctx => {
 	userId := ""
 	token, err := ctx.Request.Cookie("token")
 	if err == nil {
-		user, err = community.GetUser(token.Value)
-		if err != nil {
-			xLog.Error("get user error:", err)
-		} else {
-			userId = user.Id
-		}
+		user, _ = community.GetUser(token.Value)
 	}
 
 	uid := user.Id
@@ -204,7 +177,6 @@ get "/edit/:id", ctx => {
 			http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
 		}
 		ctx.yap "edit", {
-			"UserId":  userId,
 			"User":    user,
 			"Article": article,
 		}
@@ -223,12 +195,7 @@ get "/search", ctx => {
 	userId := ""
 	token, err := ctx.Request.Cookie("token")
 	if err == nil {
-		user, err = community.GetUser(token.Value)
-		if err != nil {
-			xLog.Error("get user error:", err)
-		} else {
-			userId = user.Id
-		}
+		user, _ = community.GetUser(token.Value)
 	}
 
 	articles, next, err := community.ListArticle(todo, core.MarkBegin, limitConst, searchValue, label)
@@ -240,12 +207,11 @@ get "/search", ctx => {
 		xLog.Error("json marshal error:", err)
 	}
 	ctx.yap "home", {
-		"UserId": userId,
-		"User":   user,
-		"Items":  articles,
-		"Value":  searchValue,
-		"Next":   next,
-		"Tab":    label,
+		"User":  user,
+		"Items": articles,
+		"Value": searchValue,
+		"Next":  next,
+		"Tab":   label,
 	}
 }
 
@@ -397,12 +363,7 @@ get "/user/:id", ctx => {
 	userId := ""
 	token, err := ctx.Request.Cookie("token")
 	if err == nil {
-		user, err = community.GetUser(token.Value)
-		if err != nil {
-			xLog.Error("get user error:", err)
-		} else {
-			userId = user.Id
-		}
+		user, _ = community.GetUser(token.Value)
 	}
 	// get article list published by uid
 	items, total, err := community.GetArticlesByUid(todo, id, firstConst, mediaLimitConst)
@@ -414,7 +375,6 @@ get "/user/:id", ctx => {
 		"CurrentUser": userClaim,
 		"User":        user,
 		"Items":       items,
-		"UserId":      userId,
 		"Total":       total,
 	}
 }
@@ -433,6 +393,10 @@ get "/user/edit", ctx => {
 	}
 	if err != nil {
 		xLog.Error("get token error:", err)
+	}
+	user, err := community.GetUser(token.Value)
+	if err != nil {
+		xLog.Info("get user error:", err)
 		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
 	}
 	uid, err := community.ParseJwtToken(token.Value)
@@ -455,7 +419,6 @@ get "/user/edit", ctx => {
 		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
 	}
 	ctx.yap "user_edit", {
-		"UserId":      userId,
 		"User":        user,
 		"CurrentUser": userClaim,
 		"Application": appInfo,

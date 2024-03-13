@@ -28,6 +28,9 @@
     <!-- Plyr组件-->
     <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
 
+    <!-- stem -->
+    <script type="module" src="https://goplus-builder.qiniu.io/widgets/loader.js"></script>
+
     <style type="text/css" media="screen, print">
         body {
             font-family: 'Inter', 'Noto Sans SC';
@@ -319,29 +322,35 @@
                         </div>
                     </div>
                 </div>
+
+                 <!-- Translate fails -->
+                <div v-if="showFailedTrans" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-10">
+                    <div class="bg-white shadow-xl rounded-lg p-4 right-0 mr-4 mt-4 border border-gray-300">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center">
+                                <div class="text-red-500 mr-1">
+                                    <i class="ph-duotone ph-warning" style="font-size: 27px;"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-lg font-semibold text-red-500">Warning
+                                    </p>
+                                    <p class="text-sm text-gray-500">Translation fails.</p>
+                                </div>
+                            </div>
+                            <n-button quaternary size="tiny" class="ml-3" @click="showFailedTrans=false">
+                                <i class="ph-bold ph-x" style="font-size: 15px;"></i>
+                            </n-button>
+                        </div>
+                    </div>
+                </div>
             </transition>
         </div>
 
         <!-- Content -->
         <markdown-editor></markdown-editor>
-
-        <!-- <video controls crossorigin playsinline poster="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg">
-                <source src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4" type="video/mp4" size="576">
-                <source src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-720p.mp4" type="video/mp4" size="720">
-                <source src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-1080p.mp4" type="video/mp4" size="1080">
-        
-                <track kind="captions" label="English" srclang="en" src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt"
-                        default>
-                <track kind="captions" label="Français" srclang="fr" src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.fr.vtt">
-                <a href="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4" download>Download</a>
-            </video> -->
     </div>
 
     <script>
-        // const p = new Plyr('video', { captions: { active: true } });
-
-        // import '/static/GoplusMarkdown/vue-plyr.css'
-
         const { reactive, toRefs, ref, h } = Vue;
 
         const goArticle = {{.Article}}
@@ -352,6 +361,7 @@
         const showArticlePublicNotice = ref(false);
         const showContentNotice = ref(false);
         const showTranNotice = ref(false);
+        const showFailedTrans = ref(false);
         const showModal = ref(false);
         const formRef = ref(null);
         const canSubmit = ref(true);
@@ -490,6 +500,8 @@
                         // save origin content
                         content = md
                         window.GoplusMarkdown.MarkdownEditor.methods.setMarkdown(todos.data)
+                    } else {
+                        showFailedTrans.value = true;
                     }
                 });
         }
@@ -640,6 +652,7 @@
                     showArticlePublicNotice,
                     showTranNotice,
                     showModal,
+                    showFailedTrans,
 
                     articleForm,
                     isAdd,
@@ -708,6 +721,13 @@
                     if (newValue) {
                         setTimeout(() => {
                             showArticlePublicNotice.value = false;
+                        }, 3000);
+                    }
+                },
+                showFailedTrans(newValue) {
+                    if (newValue) {
+                        setTimeout(() => {
+                            showFailedTrans.value = false;
                         }, 3000);
                     }
                 },

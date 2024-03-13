@@ -67,7 +67,7 @@
     {{ template "header" .}}
 
     <!-- Content -->
-    <div id="app" class="h-full w-full" >
+    <div id="app" class="h-full w-full">
         <!-- Breadcrumb -->
         <n-breadcrumb class="mb-3" style="padding: 10px 30px 0 30px;">
             <n-breadcrumb-item href="/">
@@ -79,22 +79,20 @@
                 Article
             </n-breadcrumb-item> -->
             <n-breadcrumb-item>
-                <i class="ph ph-article-medium"
-                    style="font-size: 18px; margin-right: -15px; color: transparent;"></i>
+                <i class="ph ph-article-medium" style="font-size: 18px; margin-right: -15px; color: transparent;"></i>
                 <span style="font-weight: 600;">${ article.Title }</span>
             </n-breadcrumb-item>
         </n-breadcrumb>
 
-        <!-- Article -->
-        <div class="flex flex-col items-center">
-            <div id="container">
+        <!-- Article with toc -->
+        <div v-if="toc.length !== 0" class="flex" style="padding: 0 30px 0 50px;">
+            <div class="article-toc-container">
                 <!-- Header -->
-                <header class="mb-4 not-format">
+                <header class="mb-4">
                     <div class="flex flex-row" :style="{'justify-content': article.Tags ? 'space-between' : 'right'}">
                         <!-- Tags -->
                         <div v-if="article.Tags" class="flex flex-row items-center">
-                            <span v-for="(item, index) in article.Tags.split(';')"
-                                style="background-color: #cee1f5;"
+                            <span v-for="(item, index) in article.Tags.split(';')" style="background-color: #cee1f5;"
                                 class="mr-3 inline-flex items-center font-medium px-2.5 py-0.5 rounded-full">
                                 <span class="w-2 h-2 me-1 rounded-full mr-1" style="background-color: #3182ce;"></span>
                                 <a :href="'/search?value=' + item">${ item }</a>
@@ -104,8 +102,7 @@
                         <!-- Translate Button -->
                         <n-dropdown :options="transOptions" trigger="hover" width="150" @select="selectDropdown"
                             style="margin-left: auto">
-                            <n-button @click="translateMd" class="ml-2"
-                                style="--n-border-radius: 7px; --n-ripple-color: #7ba7d3; 
+                            <n-button @click="translateMd" class="ml-2" style="--n-border-radius: 7px; --n-ripple-color: #7ba7d3; 
                                     --n-text-color-hover: #3182ce; --n-text-color-pressed: #3182ce;
                                     --n-text-color-focus: #3182ce; --n-border-hover: 1px solid #3182ce;
                                     --n-border-pressed: 1px solid #3182ce; --n-border-focus: 1px solid #3182ce;">
@@ -125,13 +122,14 @@
                     <!-- Avatar & Nick Name -->
                     <div class="flex flex-row items-center" style="margin: 20px 0;">
                         <!-- Avatar -->
-                        <img class="w-12 h-12 rounded-full mr-2" :src="article.User.Avatar || '/static/img/gop-avatar.png'"
-                            alt="Rounded avatar">
+                        <img class="w-12 h-12 rounded-full mr-2"
+                            :src="article.User.Avatar || '/static/img/gop-avatar.png'" alt="Rounded avatar">
 
                         <div>
                             <!-- Nick Name -->
                             <a :href="'/user/'+article.User.Id">
-                                <span style="font-size: 18px; margin-left: 10px; font-weight: 600;">${ article.User.Name }<br></span>
+                                <span style="font-size: 18px; margin-left: 10px; font-weight: 600;">${ article.User.Name
+                                    }<br></span>
                             </a>
                             <div class="flex items-center">
                                 <!-- Update Time -->
@@ -179,11 +177,13 @@
                             </n-tooltip>
 
                             <!-- Like numbers -->
-                            <n-badge :value="likeCount" color="transparent" style="margin-left: -5px; --n-font-size: 15px;" show-zero></n-badge>
+                            <n-badge :value="likeCount" color="transparent"
+                                style="margin-left: -5px; --n-font-size: 15px;" show-zero></n-badge>
                         </div>
                         <div class="flex items-center justify-between" v-else>
                             <i class="ph-bold ph-heart" style="font-size: 20px; color: #ef4444;"></i>
-                            <n-badge :value="likeCount" color="transparent" style="margin-left: -2px; --n-font-size: 15px;" show-zero></n-badge>
+                            <n-badge :value="likeCount" color="transparent"
+                                style="margin-left: -2px; --n-font-size: 15px;" show-zero></n-badge>
                             <!-- <p class="ml-1 text-sm" style="color: #a0aec0;">${ likeCount }</p> -->
                         </div>
                         <!-- Quick Sharing -->
@@ -238,18 +238,241 @@
                     <hr class="hr-edge-weak" style="margin: 15px 0;">
                 </header>
 
-                <markdown-viewer :md="article.Content"></markdown-viewer>
+                <markdown-viewer :md="article.Content" style="height: auto; background-color: white;"></markdown-viewer>
+            </div>
+
+            <div style="width: 20%; margin-left: 20px;">
+                <n-affix :trigger-top="24" :top="30">
+                    <n-anchor ignore-gap style="z-index: 1; --n-link-color: #cee1f5; --n-rail-color-active: #3182ce;">
+                        <!-- Title 1 -->
+                        <template v-for="(title1, index) in toc">
+                            <n-anchor-link :title="title1.text" :href="`#${title1.id}`" style="
+                            --n-link-font-size: 15px; --n-link-text-color: #383838; --n-link-text-color-hover: #3182ce;
+                            --n-link-text-color-active: #3182ce; --n-link-text-color-pressed: #3182ce;
+                            --n-link-padding: 0 0 0 17px;">
+                                <!-- Title 2 -->
+                                <template v-if="title1.children && title1.children.length">
+                                    <n-anchor-link v-for="title2 in title1.children" :key="title2.id" :title="title2.text"
+                                        :href="`#${title2.id}`">
+                                        <!-- Title 3 -->
+                                        <template v-if="title2.children && title2.children.length">
+                                            <n-anchor-link v-for="title3 in title2.children" :key="title3.id"
+                                                :title="title3.text" :href="`#${title3.id}`">
+                                                <!-- Title 4 -->
+                                                <template v-if="title3.children && title3.children.length">
+                                                    <n-anchor-link v-for="title4 in title3.children" :key="title4.id"
+                                                        :title="title4.text" :href="`#${title4.id}`">
+                                                        <!-- Title 5 -->
+                                                        <template v-if="title4.children && title4.children.length">
+                                                            <n-anchor-link v-for="title5 in title4.children"
+                                                                :key="title5.id" :title="title5.text"
+                                                                :href="`#${title5.id}`">
+                                                            </n-anchor-link>
+                                                        </template>
+                                                    </n-anchor-link>
+                                                </template>
+                                            </n-anchor-link>
+                                        </template>
+                                    </n-anchor-link>
+                                </template>
+                            </n-anchor-link>
+                        </template>
+                    </n-anchor>
+                </n-affix>
             </div>
         </div>
 
+        <!-- Article -->
+        <div v-else class="article-container">
+            <!-- Header -->
+            <header class="mb-4">
+                <div class="flex flex-row" :style="{'justify-content': article.Tags ? 'space-between' : 'right'}">
+                    <!-- Tags -->
+                    <div v-if="article.Tags" class="flex flex-row items-center">
+                        <span v-for="(item, index) in article.Tags.split(';')" style="background-color: #cee1f5;"
+                            class="mr-3 inline-flex items-center font-medium px-2.5 py-0.5 rounded-full">
+                            <span class="w-2 h-2 me-1 rounded-full mr-1" style="background-color: #3182ce;"></span>
+                            <a :href="'/search?value=' + item">${ item }</a>
+                        </span>
+                    </div>
+
+                    <!-- Translate Button -->
+                    <n-dropdown :options="transOptions" trigger="hover" width="150" @select="selectDropdown"
+                        style="margin-left: auto">
+                        <n-button @click="translateMd" class="ml-2" style="--n-border-radius: 7px; --n-ripple-color: #7ba7d3; 
+                                --n-text-color-hover: #3182ce; --n-text-color-pressed: #3182ce;
+                                --n-text-color-focus: #3182ce; --n-border-hover: 1px solid #3182ce;
+                                --n-border-pressed: 1px solid #3182ce; --n-border-focus: 1px solid #3182ce;">
+                            <template #icon>
+                                <i class="ph-bold ph-translate" style="color: #3182ce;"></i>
+                            </template>
+                            <span style="font-weight: 600; color: #3182ce;">Translate</span>
+                        </n-button>
+                    </n-dropdown>
+                </div>
+
+                <!-- Title -->
+                <h1 class="my-4 text-3xl font-extrabold leading-tight text-gray-900">
+                    ${ article.Title }
+                </h1>
+
+                <!-- Avatar & Nick Name -->
+                <div class="flex flex-row items-center" style="margin: 20px 0;">
+                    <!-- Avatar -->
+                    <img class="w-12 h-12 rounded-full mr-2"
+                        :src="article.User.Avatar || '/static/img/gop-avatar.png'" alt="Rounded avatar">
+
+                    <div>
+                        <!-- Nick Name -->
+                        <a :href="'/user/'+article.User.Id">
+                            <span style="font-size: 18px; margin-left: 10px; font-weight: 600;">${ article.User.Name
+                                }<br></span>
+                        </a>
+                        <div class="flex items-center">
+                            <!-- Update Time -->
+                            <p class="text-sm" style="color: #a0aec0; margin-left: 10px;">
+                                <time pubdate>
+                                    Updated this article on ${ article.Mtime.slice(0,10) }
+                                </time>
+                            </p>
+
+                            <!-- Views -->
+                            <div class="inline-flex items-center text-sm" style="margin-left: 30px;">
+                                <i class="ph-duotone ph-eye" style="font-size: 18px; color: #a0aec0;"></i>
+                                <p class="ml-1 text-sm" style="color: #a0aec0;">${ article.ViewCount }</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Button Group -->
+                <div class="flex items-center justify-between">
+                    <!-- Like Button -->
+                    <div class="flex items-center" v-if="user">
+                        <!-- Like Button -->
+                        <n-tooltip trigger="hover" placement="bottom" v-if="!isLiked">
+                            <template #trigger>
+                                <n-button quaternary circle @click="likeArticle(article.Id)">
+                                    <template #icon>
+                                        <i class="ph-bold ph-heart" style="color: #ef4444; font-size: 20px;"></i>
+                                    </template>
+                                </n-button>
+                            </template>
+                            Like this article
+                        </n-tooltip>
+
+                        <!-- Unlike Button -->
+                        <n-tooltip trigger="hover" placement="bottom" v-else>
+                            <template #trigger>
+                                <n-button quaternary circle @click="likeArticle(article.Id)">
+                                    <template #icon>
+                                        <i class="ph-fill ph-heart" style="color: #ef4444; font-size: 20px;"></i>
+                                    </template>
+                                </n-button>
+                            </template>
+                            Unlike this article
+                        </n-tooltip>
+
+                        <!-- Like numbers -->
+                        <n-badge :value="likeCount" color="transparent"
+                            style="margin-left: -5px; --n-font-size: 15px;" show-zero></n-badge>
+                    </div>
+                    <div class="flex items-center justify-between" v-else>
+                        <i class="ph-bold ph-heart" style="font-size: 20px; color: #ef4444;"></i>
+                        <n-badge :value="likeCount" color="transparent"
+                            style="margin-left: -2px; --n-font-size: 15px;" show-zero></n-badge>
+                        <!-- <p class="ml-1 text-sm" style="color: #a0aec0;">${ likeCount }</p> -->
+                    </div>
+                    <!-- Quick Sharing -->
+                    <div class="flex items-center">
+                        <span class="mr-2" style="color: #a0aec0;">Share to</span>
+
+                        <!-- Facebook Button -->
+                        <n-tooltip trigger="hover" placement="bottom">
+                            <template #trigger>
+                                <n-button text class="mr-2" style="--n-text-color-hover: #3182ce;
+                                        --n-text-color-pressed: #3182ce;
+                                        --n-text-color-focus: #3182ce;
+                                        --n-text-color: #a0aec0;" @click="shareToFacebook">
+                                    <i class="ph-fill ph-facebook-logo" style="font-size: 20px;"></i>
+                                </n-button>
+                            </template>
+                            Facebook
+                        </n-tooltip>
+
+                        <!-- Twitter Button -->
+                        <n-tooltip trigger="hover" placement="bottom">
+                            <template #trigger>
+                                <n-button text class="mr-2" style="--n-text-color-hover: #3182ce;
+                                        --n-text-color-pressed: #3182ce;
+                                        --n-text-color-focus: #3182ce;
+                                        --n-text-color: #a0aec0;" @click="shareToTwitter">
+                                    <i class="ph-fill ph-twitter-logo" style="font-size: 20px;"></i>
+                                </n-button>
+                            </template>
+                            Twitter / X
+                        </n-tooltip>
+
+                        <!-- WeChat Button -->
+                        <n-tooltip trigger="hover" placement="bottom">
+                            <template #trigger>
+                                <n-button text class="mr-2" style="--n-text-color-hover: #3182ce;
+                                        --n-text-color-pressed: #3182ce;
+                                        --n-text-color-focus: #3182ce;
+                                        --n-text-color: #a0aec0;">
+                                    <i class="ph-fill ph-wechat-logo" style="font-size: 20px;"></i>
+                                </n-button>
+                            </template>
+                            <div class="flex flex-col items-center">
+                                <span class="mb-1">WeChat</span>
+                                <n-qr-code :value="currentHref" class="mb-1" style="padding: 0;"></n-qr-code>
+                                <span style="font-size: x-small;">scan the QR Code</span>
+                            </div>
+                        </n-tooltip>
+                    </div>
+                </div>
+
+                <hr class="hr-edge-weak" style="margin: 15px 0;">
+            </header>
+
+            <markdown-viewer :md="article.Content" style="height: auto; background-color: white;"></markdown-viewer>
+        </div>
+
         <!-- The End -->
-        <!-- <p class="text-xs text-center mt-3" style="color: #a0aec0;">- THE END -</p> -->
+        <p class="text-xs text-center mt-3" style="color: #a0aec0;">- THE END -</p>
 
         <!-- Back Top -->
         <n-back-top :right="50" style="--n-icon-color: #3182ce; --n-icon-color-hover: #d3dfe9;
         --n-icon-color-pressed: #3182ce;">
             <i class="ph-duotone ph-arrow-line-up" style="color: #3182ce; font-size: 25px;"></i>
         </n-back-top>
+
+        <!-- Message Prompts -->
+        <transition enter-active-class="ease-out duration-300 transform"
+        leave-active-class="ease-in duration-300 transform" enter-class="scale-50 opacity-0"
+        enter-to-class="scale-100 opacity-100" leave-class="scale-100 opacity-100"
+        leave-to-class="scale-50 opacity-0">
+            <!-- Translate fails -->
+            <div v-if="showFailedTrans" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-10">
+                <div class="bg-white shadow-xl rounded-lg p-4 right-0 mr-4 mt-4 border border-gray-300">
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center">
+                            <div class="text-red-500 mr-1">
+                                <i class="ph-duotone ph-warning" style="font-size: 27px;"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-lg font-semibold text-red-500">Warning
+                                </p>
+                                <p class="text-sm text-gray-500">Translation fails.</p>
+                            </div>
+                        </div>
+                        <n-button quaternary size="tiny" class="ml-3" @click="showFailedTrans=false">
+                            <i class="ph-bold ph-x" style="font-size: 15px;"></i>
+                        </n-button>
+                    </div>
+                </div>
+            </div>
+        </transition>
     </div>
 
     <script type="module">
@@ -261,6 +484,8 @@
         const user = {{.User}}
         const article = ref({{.Article}});
 
+        /*======= translate related =======*/
+        const showFailedTrans = ref(false);
         let transArticle = {}
         const transOptions = [
             {
@@ -277,7 +502,6 @@
             }
         ];
         const isOrigin = ref(true)
-        
         function selectDropdown(key) {
             if (key === 'original' && !isOrigin.value) {
                 console.log("origin")
@@ -299,6 +523,8 @@
                                 article.value.Content = todos.content
                                 article.value.Tags = todos.tags
                                 transArticle = article.value
+                            } else {
+                                showFailedTrans.value = true;
                             }
                         });
                 }
@@ -306,25 +532,46 @@
             }
         };
 
+        /*======= like related =======*/
         const isLiked = ref(likeState === "true" || likeState ? true : false)
-        const likeCount =ref(article.value.LikeCount || 0)
+        const likeCount = ref(article.value.LikeCount || 0)
         function likeArticle(id) {
             const options = {
                 method: 'POST',
             }
-            fetch("/api/article/like?articleId="+article.value.ID, options)
-                .then(res=> res.json())
+            fetch("/api/article/like?articleId=" + article.value.ID, options)
+                .then(res => res.json())
                 .then(todos => {
-                    if(todos.code === 200){
+                    if (todos.code === 200) {
                         likeCount.value = likeCount.value + (todos.data ? 1 : -1)
                         isLiked.value = todos.data
                     }
-                                        
+
                 });
         }
-    
-        /*======= share related functions =======*/
-        const currentHref = ref(window.location.href+"?platform=wechat");
+
+        /*======= toc related =======*/
+        const toc = ref([]);
+        function getArticleToc() {
+            toc.value = window.GoplusMarkdown.MarkdownViewer.methods.getToc();
+
+            let result = [];
+            const stack = [{ children: result }];
+            toc.value.forEach((item) => {
+                while (stack[stack.length - 1].level >= item.level) {
+                    stack.pop();
+                }
+                const node = { ...item, children: [] };
+                stack[stack.length - 1].children.push(node);
+                stack.push(node);
+            });
+
+            toc.value = result;
+            // console.log( toc.value)
+        }
+       
+        /*======= share related =======*/
+        const currentHref = ref(window.location.href + "?platform=wechat");
 
         function shareToFacebook() {
             var w = 900;
@@ -333,7 +580,7 @@
             wTop = window.screenTop ? window.screenTop : window.screenY;
             var left = wLeft + (window.innerWidth / 2) - (w / 2);
             var top = wTop + (window.innerHeight / 2) - (h / 2);
-            var url = window.location.href+"?platform=facebook";
+            var url = window.location.href + "?platform=facebook";
             var shareUrl = "http://www.facebook.com/sharer/sharer.php?u=" + url;
             var title = 'facebook';
 
@@ -358,7 +605,7 @@
         function shareToTwitter() {
             // var url = encodeURIComponent('http://8.130.26.238/animation/fb.html');
             // var text = encodeURIComponent('Linz');
-            var url = window.location.href+"?platform=twitter";
+            var url = window.location.href + "?platform=twitter";
 
             var hashtags = "GoplusComminty";
             var intentUrl = "https://twitter.com/intent/tweet?url=" + encodeURIComponent(url)
@@ -378,6 +625,8 @@
                     isLiked,
                     likeCount,
                     user,
+                    toc,
+                    showFailedTrans
                 }
             },
             methods: {
@@ -393,10 +642,23 @@
                 // every video must new plyr
                 const video = document.querySelectorAll('video');
                 for (var i = 0; i < video.length; i++) {
-                    const player = new Plyr(video[i], {captions: {active: true, update: true, language: 'en'}});
+                    const player = new Plyr(video[i], { captions: { active: true, update: true, language: 'en' } });
                 }
-                var htmlStr = document.documentElement.outerHTML; 
-            }
+                var htmlStr = document.documentElement.outerHTML;
+
+                // get article toc
+                getArticleToc();
+            },
+            watch: {
+                // automatically close notification after 3 seconds
+                showFailedTrans(newValue) {
+                    if (newValue) {
+                        setTimeout(() => {
+                            showFailedTrans.value = false;
+                        }, 3000);
+                    }
+                },
+            },
         });
 
         app.use(naive)
@@ -408,50 +670,57 @@
 </html>
 
 <style>
-    #container {
-        border-radius: 10px 10px 0 0;
-        background: white; 
-        width: 68%;
-        box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05); 
-        position: relative;
-        padding: 30px 35px 0 35px;
+    .article-toc-container {
+        border-radius: 10px;
+        background: white;
+        width: 75%;
+        box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05);
+        padding: 40px 60px 0 60px;
+    }
+
+    .article-container {
+        border-radius: 10px;
+        background: white;
+        width: 75%;
+        box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05);
+        padding: 40px 60px 0 60px;
         margin: auto;
     }
-    #markdown-container {
-        border-radius: 0 0 10px 10px; 
-        background: white; 
-        width: 68%;
-        box-shadow: 0px 10px 14px rgba(0, 0, 0, 0.05); 
-        position: relative;
-        padding: 0 50px 10px 50px;
-        margin: auto;
-    }
-    .cherry.cherry--no-toolbar .cherry-editor, .cherry.cherry--no-toolbar .cherry-previewer{
+
+    .cherry.cherry--no-toolbar .cherry-editor,
+    .cherry.cherry--no-toolbar .cherry-previewer {
         padding: 0 20px;
     }
+
     a:hover {
         color: #3182ce;
     }
 
-    h1,h2,h3,h4,h5,h6 {
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
         font-size: revert !important;
         font-weight: revert !important;
     }
 
-    .cherry-markdown ul li, .cherry-markdown ol li {
+    .cherry-markdown ul li,
+    .cherry-markdown ol li {
         list-style: disc;
     }
 
     .cherry .cherry-highlight-line {
         background-color: #cee4f9;
-    }   
+    }
 
     .n-breadcrumb-item__link {
         display: flex;
         flex-direction: row;
         align-items: center;
     }
-    
+
     .img-container {
         display: flex;
         justify-content: center;

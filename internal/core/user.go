@@ -92,11 +92,7 @@ func (p *Community) GetUser(token string) (user *User, err error) {
 		p.xLog.Error(err)
 		return &User{}, ErrNotExist
 	}
-	user = &User{
-		Name:   claim.DisplayName,
-		Avatar: claim.Avatar,
-		Id:     claim.Id,
-	}
+	user, err = p.GetUserById(claim.Id)
 	return
 }
 

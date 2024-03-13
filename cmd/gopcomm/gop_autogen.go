@@ -135,8 +135,57 @@ func (this *community) MainEntry() {
 			xLog.Error("json marshal error:", err)
 		}
 //line cmd/gopcomm/community_yap.gox:105:1
+//line cmd/gopcomm/community_yap.gox:45:1
+		token, err := core.GetToken(ctx)
+//line cmd/gopcomm/community_yap.gox:46:1
+		if err == nil {
+//line cmd/gopcomm/community_yap.gox:47:1
+			user, _ = this.community.GetUser(token.Value)
+		}
+//line cmd/gopcomm/community_yap.gox:50:1
+		ctx.Yap__1("4xx", map[string]*core.User{"User": user})
+	})
+//line cmd/gopcomm/community_yap.gox:55:1
+	this.Get("/failed", func(ctx *yap.Context) {
+//line cmd/gopcomm/community_yap.gox:56:1
+		var user *core.User
+//line cmd/gopcomm/community_yap.gox:57:1
+		token, err := core.GetToken(ctx)
+//line cmd/gopcomm/community_yap.gox:58:1
+		if err == nil {
+//line cmd/gopcomm/community_yap.gox:59:1
+			user, _ = this.community.GetUser(token.Value)
+		}
+//line cmd/gopcomm/community_yap.gox:62:1
+		ctx.Yap__1("5xx", map[string]*core.User{"User": user})
+	})
+//line cmd/gopcomm/community_yap.gox:68:1
+	this.Get("/", func(ctx *yap.Context) {
+//line cmd/gopcomm/community_yap.gox:69:1
+		// Get User Info
+		var user *core.User
+//line cmd/gopcomm/community_yap.gox:71:1
+		token, err := core.GetToken(ctx)
+//line cmd/gopcomm/community_yap.gox:72:1
+		if err == nil {
+//line cmd/gopcomm/community_yap.gox:73:1
+			user, _ = this.community.GetUser(token.Value)
+		}
+//line cmd/gopcomm/community_yap.gox:76:1
+		articles, next, err := this.community.ListArticle(todo, core.MarkBegin, limitConst, "", labelConst)
+//line cmd/gopcomm/community_yap.gox:77:1
+		if err != nil {
+//line cmd/gopcomm/community_yap.gox:78:1
+			xLog.Error("get article error:", err)
+		}
+//line cmd/gopcomm/community_yap.gox:81:1
+		if err != nil {
+//line cmd/gopcomm/community_yap.gox:82:1
+			xLog.Error("json marshal error:", err)
+		}
+//line cmd/gopcomm/community_yap.gox:84:1
 		ctx.Yap__1("home", map[string]interface {
-		}{"UserId": userId, "User": user, "Items": articles, "Next": next})
+		}{"User": user, "Items": articles, "Next": next})
 	})
 //line cmd/gopcomm/community_yap.gox:116:1
 	this.Get("/article/:id", func(ctx *yap.Context) {
@@ -189,7 +238,7 @@ func (this *community) MainEntry() {
 		}
 //line cmd/gopcomm/community_yap.gox:145:1
 		ctx.Yap__1("article", map[string]interface {
-		}{"UserId": userId, "User": user, "Article": article, "LikeState": likeState})
+		}{"User": user, "Article": article, "LikeState": likeState})
 	})
 //line cmd/gopcomm/community_yap.gox:153:1
 	this.Get("/add", func(ctx *yap.Context) {
@@ -277,7 +326,7 @@ func (this *community) MainEntry() {
 			}
 //line cmd/gopcomm/community_yap.gox:206:1
 			ctx.Yap__1("edit", map[string]interface {
-			}{"UserId": userId, "User": user, "Article": article})
+			}{"User": user, "Article": article})
 		}
 	})
 //line cmd/gopcomm/community_yap.gox:214:1
@@ -325,7 +374,7 @@ func (this *community) MainEntry() {
 		}
 //line cmd/gopcomm/community_yap.gox:242:1
 		ctx.Yap__1("home", map[string]interface {
-		}{"UserId": userId, "User": user, "Items": articles, "Value": searchValue, "Next": next, "Tab": label})
+		}{"User": user, "Items": articles, "Value": searchValue, "Next": next, "Tab": label})
 	})
 //line cmd/gopcomm/community_yap.gox:255:1
 	this.Get("/api/article/:id", func(ctx *yap.Context) {
@@ -507,7 +556,7 @@ func (this *community) MainEntry() {
 		}
 //line cmd/gopcomm/community_yap.gox:412:1
 		ctx.Yap__1("user", map[string]interface {
-		}{"Id": id, "CurrentUser": userClaim, "User": user, "Items": items, "UserId": userId, "Total": total})
+		}{"Id": id, "CurrentUser": userClaim, "User": user, "Items": items, "Total": total})
 	})
 //line cmd/gopcomm/community_yap.gox:422:1
 	this.Get("/user/edit", func(ctx *yap.Context) {
@@ -573,7 +622,7 @@ func (this *community) MainEntry() {
 		}
 //line cmd/gopcomm/community_yap.gox:457:1
 		ctx.Yap__1("user_edit", map[string]interface {
-		}{"UserId": userId, "User": user, "CurrentUser": userClaim, "Application": appInfo, "Binds": gac.GetProviderBindStatus()})
+		}{"User": user, "CurrentUser": userClaim, "Application": appInfo, "Binds": gac.GetProviderBindStatus()})
 	})
 //line cmd/gopcomm/community_yap.gox:469:1
 	this.Put("/api/user", func(ctx *yap.Context) {
