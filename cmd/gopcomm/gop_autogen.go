@@ -1,20 +1,21 @@
 package main
 
 import (
-	"fmt"
-	"os"
-	"strconv"
-	"strings"
-	"github.com/goplus/yap"
 	"context"
 	"flag"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
+	"strconv"
+	"strings"
+
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/goplus/community/internal/core"
 	"github.com/goplus/community/translation"
+	"github.com/goplus/yap"
 	"github.com/joho/godotenv"
 	_ "github.com/joho/godotenv/autoload"
 	gopaccountsdk "github.com/liuscraft/gop-casdoor-account-sdk"
@@ -36,6 +37,7 @@ type community struct {
 	domain    string
 	htmlUrl   string
 }
+
 //line cmd/gopcomm/community_yap.gox:37
 func (this *community) MainEntry() {
 //line cmd/gopcomm/community_yap.gox:37:1
