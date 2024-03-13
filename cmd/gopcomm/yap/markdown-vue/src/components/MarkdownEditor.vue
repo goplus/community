@@ -9,6 +9,8 @@
     import Plyr from 'plyr';
     import 'plyr/dist/plyr.css'
 
+    import 'https://builder.goplus.org/widgets/loader.js'
+
     // axios.defaults.baseURL = 'http://localhost:8080/';
 
     var cherrInstance = null
@@ -119,10 +121,31 @@
     }
             
     function afterChange(text, html) {
-        this.content = text
+        // video
         let video = document.querySelectorAll('video');
         for (var i = 0; i < video.length; i++) {
             const player = new Plyr(video[i], {captions: {active: true, update: true, language: 'en'}});
+        }
+
+        // spx
+        this.content = text;
+        checkSpxHtml(html);
+    }
+    
+    // checkout spx
+    function checkSpxHtml(html){
+        // let html = cherrInstance.getHtml(); // 不可行
+        // console.log("当前", html);
+        var pattern = /&lt;spx-runner projectid="(\d+)".*?&gt;&lt;\/spx-runner&gt;/g;
+        var isMatch = pattern.test(html);
+        
+        if(isMatch){
+            let newHtml = html.replace(pattern,
+                `<div style="margin-left: auto; margin-right: auto; width: 30vw; height: 30vw;">
+                    <spx-runner projectid="$1"></spx-runner>
+                </div>`)
+            // console.log("替换后", newHtml);
+            cherrInstance.getPreviewer().refresh(newHtml)
         }
     }
 
@@ -143,7 +166,6 @@
         }
         // this.cherrInstance.setMarkdown(content, 0)
         cherrInstance.insert(content, false, false, true)
-
     }
 
     function getCherryContent() {
@@ -163,6 +185,7 @@
     function initCherryMD(value, config) {
         var defaultValue = value || ""
 
+        // video
         var myBlockHook = Cherry.createSyntaxHook('myBlock', Cherry.constants.HOOKS_TYPE_LIST.PAR, {
             makeHtml(str) {
                 return str.replace(this.RULE.reg, function(whole, m1) {
@@ -173,12 +196,10 @@
                         fileType = matchType[0].replace("[","").replace("]","")
                     }
                     // ()
-                    console.log("all video ", whole)
                     const regex = /\((.*?)\)/g; // 定义正则表达式，其中 \() 表示左括号，(.*?) 表示非贪婪模式匹配任意字符，\)) 表示右括号
                     const matchResult = whole.match(regex); // 使用 match 函数进行匹配
                     if (matchResult) {
                         let video_src = matchResult[0].replace("(","").replace(")","")
-                        console.log("video src", video_src)
                         let poster = video_src + "?vframe/jpg/offset/7"
                         if(matchResult[1]){
                             vtt_src = matchResult[1].replace("(","").replace(")","")
@@ -204,7 +225,6 @@
             },
         });
 
-        // import 'https://unpkg.com/vue@2.6.12/dist/vue.min.js'
         var CustomHookA = Cherry.createSyntaxHook('important', Cherry.constants.HOOKS_TYPE_LIST.SEN, {
             makeHtml(str) {
                 console.log("custom hook", str)
@@ -259,9 +279,7 @@
                     // 语法开关
                     // 'hookName': false,
                     // 语法配置
-                    // 'hookName': {
-                    //
-                    // }
+                    // 'hookName': {}
                     autoLink: {
                         /** 是否开启短链接 */
                         enableShortLink: true,
@@ -275,9 +293,9 @@
                         indentSpace: 2 // 默认2个空格缩进
                     },
                     table: {
-                        enableChart: false // chartRenderEngine: EChartsTableEngine,
+                        enableChart: false, 
+                        // chartRenderEngine: EChartsTableEngine,
                         // externals: ['echarts'],
-
                     },
                     inlineCode: {
                         theme: 'red'
@@ -295,9 +313,14 @@
                             // 创建自定义渲染函数
                             gop: {
                                 render: (src, sign, cherryEnding)=> {
-                                    console.log("custom render", src)
-                                    // return `<p style="color: red">${src}</p>`;
                                     return `<goplus-code half-code language="gop" style="width: 85vw">${src}</goplus-code>`;
+                                }
+                            },
+                            spx: {
+                                render: (src, sign, cherryEnding)=> {
+                                    return `<div style="margin-left: auto; margin-right: auto; width: 30vw; height: 30vw;">
+                                                ${src}
+                                            </div>`;
                                 }
                             }
                         },
@@ -378,6 +401,11 @@
                         syntaxClass: myBlockHook,
                         before: 'blockquote',
                     },
+                    // spxRunner: {
+                    //     syntaxClass: spxRunnerHook,
+                    //     force: true,
+                    //     before: 'blockquote',
+                    // }
                 },
             },
             editor: {
@@ -479,8 +507,8 @@
             // The locale Cherry is going to use. Locales live in /src/locales/
             locale: "en_US",
         })
-        console.log(cherrInstance.engine)
 
+        console.log(cherrInstance.engine)
     }
 
     import 'cherry-markdown/dist/cherry-markdown.min.css'
