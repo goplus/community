@@ -7,7 +7,7 @@ import MarkdownViewer from './components/MarkdownViewer.vue';
 <template>
     <!-- <div class="bg"> -->
         <!-- <div>测试父级元素样式</div> -->
-        <!-- <markdown-editor></markdown-editor> -->
+        <markdown-editor></markdown-editor>
         <markdown-viewer :md="c"></markdown-viewer>
         <!-- <markdown-viewer-old :md="c"></markdown-viewer-old> -->
     <!-- </div> -->
@@ -22,9 +22,9 @@ export default  {
         return {
             // 测试视频用
             // c: "!video[video/mp4](https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)"
-            // c: `!video[video/mp4](https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)
+            c: `!video[video/mp4](https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)
             
-            // !video[video/mp4](https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)`
+!video[video/mp4](https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)`
             
             // 测试md文章用
             // c: `# head
@@ -35,7 +35,7 @@ export default  {
             // `
 
             // 测试spx用
-            c:"```spx\n <spx-runner projectid=\"56\"></spx-runner> \n```"
+            // c:"```spx\n <spx-runner projectid=\"56\"></spx-runner> \n```"
         }
     },
     mounted() {

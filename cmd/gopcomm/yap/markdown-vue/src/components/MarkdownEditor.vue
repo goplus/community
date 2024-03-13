@@ -17,7 +17,7 @@
 
     var vtt_src = ""
 
-    var origin_vtt_src = ""
+    // var origin_vtt_src = ""
 
     let fileType = "video/mp4"
 
@@ -67,15 +67,16 @@
                     }).then(res => {
                         console.log("get video")
                         let url = res.data.url.fileKey
-                        let stitle = res.data.url.translated_vtt
+                        // let stitle = res.data.url.translated_vtt
+                        let stitle = res.data.url.subtitle
                         let status = res.data.url.status
                         let newType = res.data.url.type
-                        let origin_vtt = res.data.url.origin_vtt
+                        // let origin_vtt = res.data.url.origin_vtt
                         if(status !== "1"){
                             vtt_id.push(response.data)
                         }
                         vtt_src = stitle
-                        origin_vtt_src = origin_vtt
+                        // origin_vtt_src = origin_vtt
                         
                         console.log("URL", url)
                         onloadCallback(newType, url)                       
@@ -105,7 +106,8 @@
         fileType = type
         if (/mp4|avi|rmvb|mov|wmv|flv|avi|webm/i.test(type.toLowerCase())) {
             // replace <video controls src=""> <video> into !video
-            imgMdStr = `!video[${type}](${url})(${vtt_src})(${origin_vtt_src})\n`;
+            // imgMdStr = `!video[${type}](${url})(${vtt_src})(${origin_vtt_src})\n`;
+            imgMdStr = `!video[${type}](${url})(${vtt_src})\n`;
         } else if (/mp3/i.test(type)) {
             imgMdStr = `!audio[${type}](${url})\n`;
         } else if (/bmp|gif|jpg|jpeg|png/i.test(type)) {
@@ -204,11 +206,12 @@
                         if(matchResult[1]){
                             vtt_src = matchResult[1].replace("(","").replace(")","")
                         }
-                        if(matchResult[2]){
-                            origin_vtt_src = matchResult[2].replace("(","").replace(")","")
-                        }
+                        // if(matchResult[2]){
+                        //     origin_vtt_src = matchResult[2].replace("(","").replace(")","")
+                        // }
                         const p = new Plyr('video', {captions: {active: true}});
-                        return `<div><video controls="" crossorigin="" playsinline="" data-poster=${poster}><source src=${video_src} type=${fileType} size="576"/><track kind="captions" label="English" srclang="en" src=${vtt_src} default/><track kind="captions" label="Original" srclang="or" src=${origin_vtt_src} default/><a href=${video_src} download>Download</a></video></div>`
+                        // return `<div><video controls="" crossorigin="" playsinline="" data-poster=${poster}><source src=${video_src} type=${fileType} size="576"/><track kind="captions" label="English" srclang="en" src=${vtt_src} default/><track kind="captions" label="Original" srclang="or" src=${origin_vtt_src} default/><a href=${video_src} download>Download</a></video></div>`
+                        return `<div><video controls="" crossorigin="" playsinline="" data-poster=${poster}><source src=${video_src} type=${fileType} size="576"/><track kind="captions" label="English" srclang="en" src=${vtt_src} default/><a href=${video_src} download>Download</a></video></div>`
                         
                     } else {
                         console.log("can't match ()");
@@ -220,7 +223,8 @@
             
             rule(str) {
                 return {
-                    reg: /!video\[.*?\]\(.*?\)\(.*?\)\(.*?\)/g
+                    // reg: /!video\[.*?\]\(.*?\)\(.*?\)\(.*?\)/g
+                    reg: /!video\[.*?\]\(.*?\)\(.*?\)/g
                 }
             },
         });

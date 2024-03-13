@@ -766,6 +766,7 @@ func (this *community) MainEntry() {
 	})
 //line cmd/gopcomm/community_yap.gox:655:1
 	this.Post("/api/media", func(ctx *yap.Context) {
+//line cmd/gopcomm/community_yap.gox:656:1
 		xLog := xlog.New("")
 //line cmd/gopcomm/community_yap.gox:657:1
 		file, header, err := ctx.FormFile("file")
