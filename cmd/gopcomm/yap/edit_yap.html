@@ -120,7 +120,7 @@
                         <template #label>
                             <p class="font-semibold text-gray-900 truncate">Tags</p>
                         </template>
-                        <n-dynamic-tags v-model:value="articleForm.tags" 
+                        <n-dynamic-tags v-model:value="articleForm.tags" :max="5"
                         :theme-overrides="dynamicTagsTheme"
                         :rule="{
                                 required: true,
