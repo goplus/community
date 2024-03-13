@@ -1,6 +1,6 @@
-<script setup>
-
-</script>
+<template>
+    <div id="markdown-container" style="width: 100%;"></div>
+</template>
 
 <script>
 import Plyr from 'plyr';
@@ -13,7 +13,6 @@ var vtt_src = ""
 var origin_vtt_src = ""
 
 let fileType = "video/mp4"
-
 
 function initCherryMD(value, config) {
     var defaultValue = value || ""
@@ -233,46 +232,36 @@ function initCherryMD(value, config) {
         },
         previewer: {
             // 自定义markdown预览区域class
-            className: 'viewer'
+            className: 'viewer',
+            dom: false,
         },
         keydown: [],
         // 外层容器不存在时，是否强制输出到body上
-        forceAppend: true,
+        // forceAppend: true,
         // The locale Cherry is going to use. Locales live in /src/locales/
         locale: "en_US",
     })
-    
 }
 
 export default {
-        name: "MarkdownViewer",
-        props: {
-            "md": String    
-        },
-        components: {
-            
-        },
-        data() {
-        },
-        watch: {
-            md(newValue) {
-                cherrInstance.setMarkdown(newValue)
-            }
-        },
-        beforeMount() {
-           initCherryMD(this.md)
-        },
-        mounted() {
-        //    this.insert()
-
-        },
-        methods: {  
-            getToc(){
-                return cherrInstance.getToc()
-            }
+    name: "MarkdownViewer",
+    props: {
+        "md": String    
+    },
+    watch: {
+        md(newValue) {
+            cherrInstance.setMarkdown(newValue)
         }
+    },
+    mounted() {
+        initCherryMD(this.md)
+    },
+    methods: {  
+        getToc(){
+            return cherrInstance.getToc()
+        }
+    }
 }
-
 </script>
   
  <style>
@@ -280,12 +269,18 @@ export default {
       border: none;
       background: #ffffff;
     }
+
     .cherry.cherry--no-toolbar .cherry-editor, .cherry.cherry--no-toolbar .cherry-previewer {
         background: #ffffff;
         border: none;
         box-shadow: 0 0px 0px #ffffff;
     }
+    
     .cherry{
         box-shadow: none;
+    }
+
+    .viewer {
+        /* here need to add !important */
     }
 </style>
