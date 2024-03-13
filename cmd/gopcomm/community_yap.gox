@@ -653,6 +653,7 @@ get "/api/video/:id", ctx => {
 }
 
 post "/api/media", ctx => {
+	xLog := xlog.New("")
 	file, header, err := ctx.FormFile("file")
 	if err != nil {
 		xLog.Error("upload file error:", header)

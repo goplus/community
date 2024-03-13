@@ -340,21 +340,27 @@ func (p *Community) Article(ctx context.Context, id string) (article *Article, e
 	}
 	// vtt don't finished when adding
 	if article.VttId != "" {
-		row := p.db.QueryRow(`select output, status from video_task where resource_id = ?`, article.VttId)
+		save_vid := []string{}
+		vids := strings.Split(article.VttId, ";")
 		var fileKey string
 		var status string
-		err = row.Scan(&fileKey, &status)
-		if err != nil {
-			p.xLog.Errorf("get vtt file error: %v", err)
-			return article, err
+		for _, vid := range vids {
+			row := p.db.QueryRow(`select output, status from video_task where resource_id = ?`, vid)
+			err = row.Scan(&fileKey, &status)
+			if err == sql.ErrNoRows {
+				continue
+			}
+			// vtt finish
+			if status == "1" {
+				article.Content = strings.Replace(article.Content, "("+p.domain+vid+")", "("+p.domain+fileKey+")", -1)
+			} else {
+				save_vid = append(save_vid, vid)
+			}
 		}
-		// vtt finish
-		if status == "1" {
-			article.Content = strings.Replace(article.Content, "("+p.domain+")", "("+p.domain+fileKey+")", -1)
+		if len(save_vid) != len(vids) {
 			sqlStr := "update article set content=?, vtt_id=? where id=?"
-			_, err := p.db.Exec(sqlStr, article.Content, "", id)
+			_, err := p.db.Exec(sqlStr, article.Content, strings.Join(save_vid, ";"), id)
 			if err != nil {
-				p.xLog.Errorf("update article error: %v", err)
 				return article, err
 			}
 		}
@@ -625,30 +631,28 @@ func (p *Community) GetApplicationInfo() (*casdoorsdk.Application, error) {
 	}
 	return a2, err
 }
-func (p *Community) ArticleLView(ctx context.Context, articleId, ip, userId, platform string) {
+func (a *Community) ArticleLView(ctx context.Context, articleId, ip, userId, platform string) {
 	if platform == Twitter || platform == FaceBook || platform == WeChat || platform == "" {
-		p.xLog.Debugf("user: %s, ip: %s, share to platform: %s, articleId: %s", userId, ip, platform, articleId)
+		a.xLog.Debugf("user: %s, ip: %s, share to platform: %s, articleId: %s", userId, ip, platform, articleId)
 		userIdInt, err := strconv.Atoi(userId)
 		if err != nil {
 			userIdInt = 0
 		}
 		articleIdInt, err := strconv.Atoi(articleId)
 		if err != nil {
-			p.xLog.Error(err.Error())
+			a.xLog.Error(err.Error())
 			return
 		}
 		sqlStr := "INSERT INTO article_view (ip,user_id,article_id,created_at,`index`,platform) values (?,?,?,?,?,?)"
 		index := articleId + userId + ip + platform
-		if _, err = p.db.Exec(sqlStr, ip, userIdInt, articleIdInt, time.Now(), index, platform); err == nil {
+		if _, err = a.db.Exec(sqlStr, ip, userIdInt, articleIdInt, time.Now(), index, platform); err == nil {
 			// success article views incr
 			sqlStr = "update article set view_count = view_count + 1 where id=?"
-			_, err = p.db.Exec(sqlStr, articleId)
+			_, err = a.db.Exec(sqlStr, articleId)
 			if err != nil {
-				p.xLog.Error(err.Error())
+				a.xLog.Error(err.Error())
 				return
 			}
-		} else {
-			p.xLog.Error(err.Error())
 		}
 	}
 }
