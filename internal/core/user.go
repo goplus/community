@@ -107,10 +107,11 @@ func SetToken(ctx *yap.Context) (err error) {
 		return err
 	}
 	cookie := http.Cookie{
-		Name:   "token",
-		Value:  token.AccessToken,
-		Path:   "/",
-		MaxAge: 3600,
+		Name:     "token",
+		Value:    token.AccessToken,
+		Path:     "/",
+		MaxAge:   168 * 60 * 60,
+		HttpOnly: true,
 	}
 	http.SetCookie(ctx.ResponseWriter, &cookie)
 	return err
