@@ -153,7 +153,6 @@ function initCherryMD(value, config) {
                         // 创建自定义渲染函数
                         gop: {
                             render: (src, sign, cherryEnding)=> {
-                                // return `<p style="color: red">${src}</p>`;
                                 return `<goplus-code half-code language="gop" style="width: 85vw">${src}</goplus-code>`;
                             }
                         },

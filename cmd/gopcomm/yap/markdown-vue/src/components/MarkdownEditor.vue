@@ -1,6 +1,5 @@
 <template>
     <div id="markdown-container"></div>
-    <!-- <script type="module" src="https://goplus-builder.qiniu.io/widgets/loader.js"></script> -->
 </template>
 
 <script>
@@ -150,31 +149,6 @@
         }
     }
 
-    // checkout spx
-    function checkSpx(text){
-        var pattern = /<spx-runner\s+projectid="(\d+)"><\/spx-runner>/;
-        var match = pattern.test(text); 
-        if(match) {
-            // change spx-runner into ```spx
-            text = text.replace(pattern, '```spx\n$1\n```');
-            // cherrInstance.setMarkdown(text)
-        }
-        return text
-    }
-
-    // checkout spx
-    function checkSpxHtml(html){
-        // let html = cherrInstance.getHtml()
-        var pattern = /&lt;spx-runner projectid="(\d+)".*?&gt;&lt;\/spx-runner&gt;/g;
-        var match = pattern.test(html); 
-        if(match){
-            html = html.replace(pattern,`<div style="width: 500px;height: 500px; padding:5px 0">
-                                        <spx-runner projectid="$1"></spx-runner>
-                                    </div>`)
-            cherrInstance.getPreviewer().refresh(html)
-        }
-    }
-
     function onCopyCode(event, code) {
         return code;
     }
@@ -278,11 +252,6 @@
                     force: true,
                     before: 'blockquote',
                 },
-                // spxRunner: {
-                //     syntaxClass: spxRunnerHook,
-                //     force: true,
-                //     before: 'blockquote',
-                // }
             },
             fileUpload: fileUpload,
             // 第三方包
@@ -519,7 +488,6 @@
                 file: '*',
             },
             callback: {
-                
                 afterChange: afterChange,
                 // afterInit: afterInit,
                 // beforeImageMounted: beforeImageMounted,
