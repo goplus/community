@@ -97,25 +97,59 @@ type S3Writer interface {
 }
 
 type Config struct {
-	Driver string // database driver. default is `mysql`.
-	DSN    string // database data source name
-	CAS    string // casdoor database data source name
-	BlobUS string // blob URL scheme
+	AppConfig     AppConfig
+	DBConfig      DBConfig
+	QiNiuConfig   QiNiuConfig
+	CasdoorConfig CasdoorConfig
+}
+
+type AppConfig struct {
+	EndPoint string
+	Debug    bool
+}
+
+type DBConfig struct {
+	Driver string
+	DSN    string
+}
+
+type QiNiuConfig struct {
+	AccessKey      string
+	SecretKey      string
+	BlobUS         string
+	Domain         string
+	TranslationKey string
+}
+
+type CasdoorConfig struct {
+	EndPoint         string
+	ClientId         string
+	ClientSecret     string
+	Certificate      string
+	OrganizationName string
+	ApplicationName  string
+}
+
+type PlatformCount struct {
+	ArticleId string
+	Platform  string
+	ViewCount string
 }
 
 type ArticleEntry struct {
-	ID        string
-	Title     string
-	UId       string
-	Cover     string
-	Tags      string
-	User      User
-	Abstract  string
-	Label     string
-	Ctime     time.Time
-	Mtime     time.Time
-	ViewCount int
-	LikeCount int
+	ID            string
+	Title         string
+	UId           string
+	Cover         string
+	Tags          string
+	User          User
+	Abstract      string
+	Label         string
+	Ctime         time.Time
+	Mtime         time.Time
+	ViewCount     int
+	LikeCount     int
+	PlatformCount []PlatformCount
 }
 
 type ArticleLike struct {
@@ -143,14 +177,6 @@ type Community struct {
 	S3Service         S3Service
 	bucketName        string
 }
-type CasdoorConfig struct {
-	endPoint         string
-	clientId         string
-	clientSecret     string
-	certificate      string
-	organizationName string
-	applicationName  string
-}
 
 type Account struct {
 }
@@ -160,6 +186,34 @@ type Translation struct {
 	VideoTaskCache *VideoTaskCache
 }
 
+func NewConfigFromEnv() *Config {
+	return &Config{
+		AppConfig: AppConfig{
+			EndPoint: os.Getenv("GOP_COMMUNITY_ENDPOINT"),
+			Debug:    os.Getenv("GOP_COMMUNITY_DEBUG") == "true",
+		},
+		DBConfig: DBConfig{
+			Driver: os.Getenv("GOP_COMMUNITY_DRIVER"),
+			DSN:    os.Getenv("GOP_COMMUNITY_DSN"),
+		},
+		QiNiuConfig: QiNiuConfig{
+			AccessKey:      os.Getenv("GOP_COMMUNITY_ACCESSKEY"),
+			SecretKey:      os.Getenv("GOP_COMMUNITY_SECRETKEY"),
+			BlobUS:         os.Getenv("GOP_COMMUNITY_BLOBUS"),
+			Domain:         os.Getenv("GOP_COMMUNITY_DOMAIN"),
+			TranslationKey: os.Getenv("NIUTRANS_API_KEY"),
+		},
+		CasdoorConfig: CasdoorConfig{
+			EndPoint:         os.Getenv("GOP_CASDOOR_ENDPOINT"),
+			ClientId:         os.Getenv("GOP_CASDOOR_CLIENTID"),
+			ClientSecret:     os.Getenv("GOP_CASDOOR_CLIENTSECRET"),
+			Certificate:      os.Getenv("GOP_CASDOOR_CERTIFICATE"),
+			OrganizationName: os.Getenv("GOP_CASDOOR_ORGANIZATIONNAME"),
+			ApplicationName:  os.Getenv("GOP_CASDOOR_APPLICATONNAME"),
+		},
+	}
+}
+
 func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 	// Init log
 	xLog := xlog.New("")
@@ -167,20 +221,18 @@ func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 	if conf == nil {
 		conf = new(Config)
 	}
-	casdoorConf := casdoorConfigInit()
-	driver := conf.Driver
-	dsn := conf.DSN
-	bus := conf.BlobUS
+
+	// Init casdoor
+	casdoorConfigInit(conf)
+	casdoorConf := &conf.CasdoorConfig
+	driver := conf.DBConfig.Driver
+	dsn := conf.DBConfig.DSN
+	bus := conf.QiNiuConfig.BlobUS
+	domain := conf.QiNiuConfig.Domain
+	// default
 	if driver == "" {
 		driver = "mysql"
 	}
-	if dsn == "" {
-		dsn = os.Getenv("GOP_COMMUNITY_DSN")
-	}
-	if bus == "" {
-		bus = os.Getenv("GOP_COMMUNITY_BLOBUS")
-	}
-	domain := os.Getenv("GOP_COMMUNITY_DOMAIN")
 
 	db, err := sql.Open(driver, dsn)
 	if err != nil {
@@ -190,9 +242,9 @@ func New(ctx context.Context, conf *Config) (ret *Community, err error) {
 	// Init translation engine
 	translationEngine := &Translation{
 		Engine: translation.New(
-			string(os.Getenv("NIUTRANS_API_KEY")),
-			string(os.Getenv("QINIU_ACCESS_KEY")),
-			string(os.Getenv("QINIU_SECRET_KEY")),
+			conf.QiNiuConfig.TranslationKey,
+			conf.QiNiuConfig.AccessKey,
+			conf.QiNiuConfig.SecretKey,
 		),
 		VideoTaskCache: NewVideoTaskCache(),
 	}
@@ -405,9 +457,13 @@ const (
 	MarkEnd   = "eof"
 )
 
-func (p *Community) getPageArticles(sqlStr string, from string, limit int, value string, label string) (items []*ArticleEntry, next string, err error) {
+func (p *Community) getPageArticles(sqlStr string, from string, limit int, value string, label string, key string) (items []*ArticleEntry, next string, err error) {
 	if from == MarkBegin {
-		from = "0"
+		if key == "search" {
+			from = "0"
+		} else {
+			from = "1"
+		}
 	} else if from == MarkEnd {
 		return []*ArticleEntry{}, from, nil
 	}
@@ -415,8 +471,13 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 	if err != nil {
 		return []*ArticleEntry{}, from, err
 	}
-
-	rows, err := p.db.Query(sqlStr, value, label, limit, fromInt)
+	var rows *sql.Rows
+	if key == "search" {
+		rows, err = p.db.Query(sqlStr, value, value, label, limit, fromInt)
+	} else {
+		rows, err = p.db.Query(sqlStr, value, limit, (fromInt-1)*limit)
+	}
+	// rows, err := p.db.Query(sqlStr, value, value, label, limit, fromInt)
 	if err != nil {
 		return []*ArticleEntry{}, from, err
 	}
@@ -424,9 +485,11 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 	defer rows.Close()
 
 	var rowLen int
+	var articleIds []string
 	for rows.Next() {
 		article := &ArticleEntry{}
 		err := rows.Scan(&article.ID, &article.Title, &article.Ctime, &article.UId, &article.Tags, &article.Abstract, &article.Cover, &article.Label, &article.LikeCount, &article.ViewCount)
+		articleIds = append(articleIds, article.ID)
 		if err != nil {
 			return []*ArticleEntry{}, from, err
 		}
@@ -440,47 +503,69 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 		items = append(items, article)
 		rowLen++
 	}
+
 	// have no article
 	if rowLen == 0 {
 		return []*ArticleEntry{}, MarkEnd, nil
 	}
-	if rowLen < limit {
-		return items, MarkEnd, nil
+	sqlStr = "SELECT article_id, platform, COUNT(*) AS view_count FROM article_view WHERE article_id IN (" + strings.Join(articleIds, ",") + ") AND platform IS NOT NULL AND platform <> '' GROUP BY article_id, platform;"
+	rows, err = p.db.Query(sqlStr)
+	if err != nil {
+		return []*ArticleEntry{}, MarkEnd, nil
 	}
-	next = strconv.Itoa(fromInt + rowLen)
+	var m = make(map[string][]PlatformCount)
+	for rows.Next() {
+		p1 := PlatformCount{}
+		err := rows.Scan(&p1.ArticleId, &p1.Platform, &p1.ViewCount)
+		if err != nil {
+			return []*ArticleEntry{}, from, err
+		}
+		if _, ok := m[p1.ArticleId]; !ok {
+			m[p1.ArticleId] = make([]PlatformCount, 0)
+		}
+		m[p1.ArticleId] = append(m[p1.ArticleId], p1)
+	}
+
+	for _, article := range items {
+		article.PlatformCount = m[article.ID]
+	}
+
+	if key == "search" {
+		if rowLen < limit {
+			return items, MarkEnd, nil
+		}
+		next = strconv.Itoa(fromInt + rowLen)
+	} else {
+		err = p.db.QueryRow("select count(*) from article where user_id = ?", value).Scan(&next)
+		if err != nil {
+			return items, next, nil
+		}
+	}
+
 	return items, next, nil
 }
 
 // ListArticle lists articles from a position.
 func (p *Community) ListArticle(ctx context.Context, from string, limit int, searchValue string, label string) (items []*ArticleEntry, next string, err error) {
-	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label, like_count, view_count from article where title like ? and label like ? order by ctime desc limit ? offset ?"
-	return p.getPageArticles(sqlStr, from, limit, "%"+searchValue+"%", "%"+label+"%")
+	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label, like_count, view_count from article where (title like ? or tags like ?) and label = ? order by ctime desc limit ? offset ?"
+	return p.getPageArticles(sqlStr, from, limit, "%"+searchValue+"%", label, "search")
 }
 
 // GetArticlesByUid get articles by user id.
-func (p *Community) GetArticlesByUid(ctx context.Context, uid string, from string, limit int) (items []*ArticleEntry, next string, err error) {
-	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label, like_count, view_count from article where user_id = ? and label like ? order by ctime desc limit ? offset ?"
-	return p.getPageArticles(sqlStr, from, limit, uid, "%")
+func (p *Community) GetArticlesByUid(ctx context.Context, uid string, page string, limit int) (items []*ArticleEntry, next string, err error) {
+	sqlStr := "select id, title, ctime, user_id, tags, abstract, cover, label, like_count, view_count from article where user_id = ? order by ctime desc limit ? offset ?"
+	return p.getPageArticles(sqlStr, page, limit, uid, "", "user")
 }
 
-func casdoorConfigInit() *CasdoorConfig {
-	endPoint := os.Getenv("GOP_CASDOOR_ENDPOINT")
-	clientID := os.Getenv("GOP_CASDOOR_CLIENTID")
-	clientSecret := os.Getenv("GOP_CASDOOR_CLIENTSECRET")
-	certificate := os.Getenv("GOP_CASDOOR_CERTIFICATE")
-	organizationName := os.Getenv("GOP_CASDOOR_ORGANIZATIONNAME")
-	applicationName := os.Getenv("GOP_CASDOOR_APPLICATONNAME")
+func casdoorConfigInit(conf *Config) {
+	endPoint := conf.CasdoorConfig.EndPoint
+	clientID := conf.CasdoorConfig.ClientId
+	clientSecret := conf.CasdoorConfig.ClientSecret
+	certificate := conf.CasdoorConfig.Certificate
+	organizationName := conf.CasdoorConfig.OrganizationName
+	applicationName := conf.CasdoorConfig.ApplicationName
 
 	casdoorsdk.InitConfig(endPoint, clientID, clientSecret, certificate, organizationName, applicationName)
-
-	return &CasdoorConfig{
-		endPoint:         endPoint,
-		clientId:         clientID,
-		clientSecret:     clientSecret,
-		certificate:      certificate,
-		organizationName: organizationName,
-		applicationName:  applicationName,
-	}
 }
 
 func (p *Community) RedirectToCasdoor(redirect string) (loginURL string) {
@@ -492,8 +577,8 @@ func (p *Community) RedirectToCasdoor(redirect string) (loginURL string) {
 
 	loginURL = fmt.Sprintf(
 		"%s/login/oauth/authorize?client_id=%s&response_type=%s&redirect_uri=%s&scope=%s&state=%s",
-		p.casdoorConfig.endPoint,
-		p.casdoorConfig.clientId,
+		p.casdoorConfig.EndPoint,
+		p.casdoorConfig.ClientId,
 		responseType,
 		redirectEncodeURL,
 		scope,
