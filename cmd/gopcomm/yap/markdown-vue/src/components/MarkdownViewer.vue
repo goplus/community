@@ -5,6 +5,7 @@
 <script>
 import Plyr from 'plyr';
 import 'plyr/dist/plyr.css'
+import 'https://goplus-builder.qiniu.io/widgets/loader.js'
 
 var cherrInstance = null
 
@@ -14,8 +15,17 @@ var origin_vtt_src = ""
 
 let fileType = "video/mp4"
 
+function checkSpx(text){
+    var pattern = /<spx-runner\s+projectid="(\d+)"><\/spx-runner>/g;
+    var match = pattern.test(text); 
+    if(match) {
+        text = text.replace(pattern, '```spx\n$1\n```');
+    }
+    return text
+}
+
 function initCherryMD(value, config) {
-    var defaultValue = value || ""
+    var defaultValue = checkSpx(value) || ""
 
     var myBlockHook = Cherry.createSyntaxHook('myBlock', Cherry.constants.HOOKS_TYPE_LIST.PAR, {
         makeHtml(str) {
@@ -27,12 +37,10 @@ function initCherryMD(value, config) {
                     fileType = matchType[0].replace("[","").replace("]","")
                 }
                 // ()
-                console.log("all video ", whole)
                 const regex = /\((.*?)\)/g; // 定义正则表达式，其中 \() 表示左括号，(.*?) 表示非贪婪模式匹配任意字符，\)) 表示右括号
                 const matchResult = whole.match(regex); // 使用 match 函数进行匹配
                 if (matchResult) {
                     let video_src = matchResult[0].replace("(","").replace(")","")
-                    console.log("video src", video_src)
                     let poster = video_src + "?vframe/jpg/offset/7"
                     if(matchResult[1]){
                         vtt_src = matchResult[1].replace("(","").replace(")","")
@@ -52,12 +60,11 @@ function initCherryMD(value, config) {
         
         rule(str) {
             return {
-                // reg: /^!video.*.mp4\)/
-                // reg: /^!video.*\)/
                 reg: /!video\[.*?\]\(.*?\)\(.*?\)\(.*?\)/g
             }
         },
     });
+
 
     // import 'https://unpkg.com/vue@2.6.12/dist/vue.min.js'
     var CustomHookA = Cherry.createSyntaxHook('important', Cherry.constants.HOOKS_TYPE_LIST.SEN, {
@@ -142,6 +149,15 @@ function initCherryMD(value, config) {
                                 console.log("custom render", src)
                                 // return `<p style="color: red">${src}</p>`;
                                 return `<goplus-code half-code language="gop" style="width: 85vw">${src}</goplus-code>`;
+                            }
+                        },
+                        spx: {
+                            render: (src, sign, cherryEnding)=> {
+                                console.log(cherryEnding)
+                                // return `<p style="color: red">${src}</p>`;
+                                return `<div style="width: 500px;height: 500px; padding:5px 0">
+                                            <spx-runner projectid=${src}></spx-runner>
+                                        </div>`;
                             }
                         }
                     },
@@ -250,7 +266,7 @@ export default {
     },
     watch: {
         md(newValue) {
-            cherrInstance.setMarkdown(newValue)
+            cherrInstance.setMarkdown(checkSpx(newValue))
         }
     },
     mounted() {

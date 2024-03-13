@@ -2,12 +2,15 @@ import (
 	"context"
 	"fmt"
 	"flag"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/goplus/community/internal/core"
 	"github.com/goplus/community/translation"
 	_ "github.com/joho/godotenv/autoload"
@@ -44,7 +47,7 @@ get "/success", ctx => {
 
 get "/error", ctx => {
 	var user *core.User
-	token, err := core.GetToken(ctx)
+	token, err := ctx.Request.Cookie("token")
 	if err == nil {
 		user, _ = community.GetUser(token.Value)
 	}
@@ -56,7 +59,7 @@ get "/error", ctx => {
 
 get "/failed", ctx => {
 	var user *core.User
-	token, err := core.GetToken(ctx)
+	token, err := ctx.Request.Cookie("token")
 	if err == nil {
 		user, _ = community.GetUser(token.Value)
 	}
@@ -70,7 +73,7 @@ get "/failed", ctx => {
 get "/", ctx => {
 	// Get User Info
 	var user *core.User
-	token, err := core.GetToken(ctx)
+	token, err := ctx.Request.Cookie("token")
 	if err == nil {
 		user, _ = community.GetUser(token.Value)
 	}
@@ -99,7 +102,7 @@ get "/article/:id", ctx => {
 	uid := ""
 
 	var user *core.User
-	token, err := core.GetToken(ctx)
+	token, err := ctx.Request.Cookie("token")
 	if err == nil {
 		user, err = community.GetUser(token.Value)
 		if err != nil {
@@ -131,7 +134,7 @@ get "/article/:id", ctx => {
 
 get "/add", ctx => {
 	var user *core.User
-	token, err := core.GetToken(ctx)
+	token, err := ctx.Request.Cookie("token")
 	if err == nil {
 		user, _ = community.GetUser(token.Value)
 	}
@@ -142,7 +145,7 @@ get "/add", ctx => {
 
 get "/edit/:id", ctx => {
 	var user *core.User
-	token, err := core.GetToken(ctx)
+	token, err := ctx.Request.Cookie("token")
 	if err == nil {
 		user, _ = community.GetUser(token.Value)
 	}
@@ -185,7 +188,7 @@ get "/search", ctx => {
 
 	// todo middleware
 	var user *core.User
-	token, err := core.GetToken(ctx)
+	token, err := ctx.Request.Cookie("token")
 	if err == nil {
 		user, _ = community.GetUser(token.Value)
 	}
@@ -228,7 +231,7 @@ get "/api/article/:id", ctx => {
 
 delete "/api/article/:id", ctx => {
 	id := ctx.param("id")
-	token, err := core.GetToken(ctx)
+	token, err := ctx.Request.Cookie("token")
 	uid, err := community.ParseJwtToken(token.Value)
 	if err != nil {
 		xLog.Error("token parse error")
@@ -290,7 +293,7 @@ post "/api/article/commit", ctx => {
 		xLog.Error("parse bool error:", err)
 	}
 	// get user id
-	token, err := core.GetToken(ctx)
+	token, err := ctx.Request.Cookie("token")
 	if err != nil {
 		xLog.Info("token", err)
 		ctx.json {
@@ -318,7 +321,7 @@ post "/api/article/commit", ctx => {
 		},
 		Content: content,
 		Trans:   trans,
-		Vtt_id:  ctx.param("vtt_id"),
+		VttId:   ctx.param("vtt_id"),
 	}
 
 	// if trans == true translate the article
@@ -352,7 +355,7 @@ get "/user/:id", ctx => {
 	}
 	// get user by token
 	var user *core.User
-	token, err := core.GetToken(ctx)
+	token, err := ctx.Request.Cookie("token")
 	if err == nil {
 		user, _ = community.GetUser(token.Value)
 	}
@@ -371,11 +374,18 @@ get "/user/:id", ctx => {
 }
 
 get "/user/edit", ctx => {
-	token, err := core.GetToken(ctx)
+	var user *core.User
+	token, err := ctx.Request.Cookie("token")
+	if err == nil {
+		user, err = community.GetUser(token.Value)
+		if err != nil {
+			xLog.Error("get user error:", err)
+		}
+	}
 	if err != nil {
 		xLog.Error("get token error:", err)
 	}
-	user, err := community.GetUser(token.Value)
+	user, err = community.GetUser(token.Value)
 	if err != nil {
 		xLog.Info("get user error:", err)
 		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
@@ -411,7 +421,7 @@ get "/user/edit", ctx => {
 //
 // User apis
 put "/api/user", ctx => {
-	token, err := core.GetToken(ctx)
+	token, err := ctx.Request.Cookie("token")
 	uid, err := community.ParseJwtToken(token.Value)
 	user := &core.UserInfo{
 		Id:          uid,
@@ -440,7 +450,7 @@ put "/api/user", ctx => {
 
 get "/api/user/unlink", ctx => {
 	pv := ctx.param("pv")
-	token, err := core.GetToken(ctx)
+	token, err := ctx.Request.Cookie("token")
 	if err != nil {
 		ctx.json {
 			"code": 200,
@@ -528,7 +538,7 @@ get "/api/user/:id/medias", ctx => {
 // Media apis
 delete "/api/media/:id", ctx => {
 	id := ctx.param("id")
-	token, err := core.GetToken(ctx)
+	token, err := ctx.Request.Cookie("token")
 	uid, err := community.ParseJwtToken(token.Value)
 	if err != nil {
 		xLog.Error("token parse error")
@@ -643,7 +653,77 @@ get "/api/video/:id", ctx => {
 }
 
 post "/api/media", ctx => {
-	community.UploadFile(ctx)
+	file, header, err := ctx.FormFile("file")
+	if err != nil {
+		xLog.Error("upload file error:", header)
+		ctx.JSON(500, err.Error())
+		return
+	}
+	filename := header.Filename
+	err = ctx.ParseMultipartForm(10 << 20)
+	if err != nil {
+		xLog.Error("upload file error:", filename)
+		ctx.JSON(500, err.Error())
+		return
+	}
+
+	dst, err := os.Create(filename)
+	if err != nil {
+		xLog.Error("create file error:", file)
+		ctx.JSON(500, err.Error())
+		return
+	}
+	defer func() {
+		file.Close()
+		dst.Close()
+		err = os.Remove(filename)
+		if err != nil {
+			xLog.Error("delete file error:", filename)
+			return
+		}
+	}()
+
+	_, err = io.Copy(dst, file)
+	if err != nil {
+		xLog.Error("copy file errer:", filename)
+		ctx.JSON(500, err.Error())
+		return
+	}
+
+	bytes, err := os.ReadFile(filename)
+	if err != nil {
+		xLog.Error("read file errer:", filename)
+		ctx.JSON(500, err.Error())
+		return
+	}
+
+	token, err := ctx.Request.Cookie("token")
+	if err != nil {
+		ctx.JSON(500, err.Error())
+	}
+
+	uid, err := community.ParseJwtToken(token.Value)
+	if err != nil {
+		ctx.JSON(500, err.Error())
+	}
+	ext := mimetype.Detect(bytes).String()
+	id, err := community.SaveMedia(context.Background(), uid, bytes, ext)
+	if err != nil {
+		xLog.Error("save file", err.Error())
+		ctx.JSON(500, err.Error())
+		return
+	}
+
+	// Judge the file type and start the corresponding task
+	if strings.Contains(ext, "video") {
+		// Start captioning task
+		err := community.NewVideoTask(context.Background(), uid, strconv.FormatInt(id, 10))
+		if err != nil {
+			xLog.Error("start video task error:", err)
+		}
+	}
+
+	ctx.JSON(200, id)
 }
 
 post "/api/caption/task", ctx => {
@@ -680,7 +760,7 @@ get "/login", ctx => {
 	// Concatenate the current request page URL from refer
 	refererURL, err := url.Parse(ctx.Request.Referer())
 	if err != nil {
-		xLog.Info("Error parsing Referer: %v", err)
+		xLog.Infof("Error parsing Referer: %#v", err)
 		return
 	}
 
@@ -696,14 +776,18 @@ get "/login", ctx => {
 }
 
 get "/logout", ctx => {
-	err := core.RemoveToken(ctx)
+	tokenCookie, err := ctx.Request.Cookie("token")
 	if err != nil {
 		xLog.Error("remove token error:", err)
+		return
 	}
+	// Delete token
+	tokenCookie.MaxAge = -1
+	http.SetCookie(ctx.ResponseWriter, tokenCookie)
 
 	refererURL, err := url.Parse(ctx.Request.Referer())
 	if err != nil {
-		xLog.Info("Error parsing Referer: %v", err)
+		xLog.Infof("Error parsing Referer: %#v", err)
 		return
 	}
 
@@ -716,10 +800,20 @@ get "/logout", ctx => {
 }
 
 get "/login/callback", ctx => {
-	err := core.SetToken(ctx)
+	code := ctx.URL.Query().Get("code")
+	state := ctx.URL.Query().Get("state")
+	token, err := community.GetOAuthToken(code, state)
 	if err != nil {
 		xLog.Error("set token error:", err)
 	}
+	cookie := http.Cookie{
+		Name:   "token",
+		Value:  token.AccessToken,
+		Path:   "/",
+		MaxAge: 3600,
+	}
+	http.SetCookie(ctx.ResponseWriter, &cookie)
+
 	origin_path := ctx.URL.Query().Get("origin_path")
 	unurl, err := url.QueryUnescape(origin_path)
 	if err != nil {
@@ -739,7 +833,7 @@ post "/api/article/like", ctx => {
 			"err":  err.Error(),
 		}
 	}
-	token, err := core.GetToken(ctx)
+	token, err := ctx.Request.Cookie("token")
 	if err != nil {
 		xLog.Info("token", err)
 		ctx.json {

@@ -1,5 +1,6 @@
 <template>
     <div id="markdown-container"></div>
+    <!-- <script type="module" src="https://goplus-builder.qiniu.io/widgets/loader.js"></script> -->
 </template>
 
 <script>
@@ -8,6 +9,8 @@
 
     import Plyr from 'plyr';
     import 'plyr/dist/plyr.css'
+
+    import 'https://goplus-builder.qiniu.io/widgets/loader.js'
 
     // axios.defaults.baseURL = 'http://localhost:8080/';
 
@@ -120,9 +123,36 @@
             
     function afterChange(text, html) {
         this.content = text
+        checkSpxHtml(html)
+        // console.log(cherrInstance.previewer.refresh(html))
         let video = document.querySelectorAll('video');
         for (var i = 0; i < video.length; i++) {
             const player = new Plyr(video[i], {captions: {active: true, update: true, language: 'en'}});
+        }
+    }
+
+    // checkout spx
+    function checkSpx(text){
+        var pattern = /<spx-runner\s+projectid="(\d+)"><\/spx-runner>/;
+        var match = pattern.test(text); 
+        if(match) {
+            // change spx-runner into ```spx
+            text = text.replace(pattern, '```spx\n$1\n```');
+            // cherrInstance.setMarkdown(text)
+        }
+        return text
+    }
+
+    // checkout spx
+    function checkSpxHtml(html){
+        // let html = cherrInstance.getHtml()
+        var pattern = /&lt;spx-runner projectid="(\d+)".*?&gt;&lt;\/spx-runner&gt;/g;
+        var match = pattern.test(html); 
+        if(match){
+            html = html.replace(pattern,`<div style="width: 500px;height: 500px; padding:5px 0">
+                                        <spx-runner projectid="$1"></spx-runner>
+                                    </div>`)
+            cherrInstance.getPreviewer().refresh(html)
         }
     }
 
@@ -173,12 +203,10 @@
                         fileType = matchType[0].replace("[","").replace("]","")
                     }
                     // ()
-                    console.log("all video ", whole)
                     const regex = /\((.*?)\)/g; // 定义正则表达式，其中 \() 表示左括号，(.*?) 表示非贪婪模式匹配任意字符，\)) 表示右括号
                     const matchResult = whole.match(regex); // 使用 match 函数进行匹配
                     if (matchResult) {
                         let video_src = matchResult[0].replace("(","").replace(")","")
-                        console.log("video src", video_src)
                         let poster = video_src + "?vframe/jpg/offset/7"
                         if(matchResult[1]){
                             vtt_src = matchResult[1].replace("(","").replace(")","")
@@ -200,6 +228,22 @@
             rule(str) {
                 return {
                     reg: /!video\[.*?\]\(.*?\)\(.*?\)\(.*?\)/g
+                }
+            },
+        });
+
+        var spxRunnerHook = Cherry.createSyntaxHook('spxRunner', Cherry.constants.HOOKS_TYPE_LIST.PAR, {
+            beforeMakeHtml(str) {
+                return str.replace(this.RULE.reg, function(whole, m1) {
+                    // var pattern = /\<spx-runner\s+projectid="(\d+)".*?\>\<\/spx-runner\>/;
+                    var pattern = /&#60;spx-runner projectid="(\d+)".*?&#62;&#60;\/spx-runner&#62;/;
+                    return whole.replace(pattern, '```spx\n$1\n```');
+                });
+            },
+            
+            rule(str) {
+                return {
+                    reg: /&#60;spx-runner projectid=.*?&#62;&#60;\/spx-runner&#62;/g
                 }
             },
         });
@@ -232,6 +276,11 @@
                     force: true,
                     before: 'blockquote',
                 },
+                // spxRunner: {
+                //     syntaxClass: spxRunnerHook,
+                //     force: true,
+                //     before: 'blockquote',
+                // }
             },
             fileUpload: fileUpload,
             // 第三方包
@@ -298,6 +347,13 @@
                                     console.log("custom render", src)
                                     // return `<p style="color: red">${src}</p>`;
                                     return `<goplus-code half-code language="gop" style="width: 85vw">${src}</goplus-code>`;
+                                }
+                            },
+                            spx: {
+                                render: (src, sign, cherryEnding)=> {
+                                    return `<div style="width: 500px;height: 500px; padding:5px 0">
+                                                <spx-runner projectid=${src}></spx-runner>
+                                            </div>`;
                                 }
                             }
                         },
@@ -378,6 +434,11 @@
                         syntaxClass: myBlockHook,
                         before: 'blockquote',
                     },
+                    // spxRunner: {
+                    //     syntaxClass: spxRunnerHook,
+                    //     force: true,
+                    //     before: 'blockquote',
+                    // }
                 },
             },
             editor: {
@@ -460,6 +521,7 @@
                 file: '*',
             },
             callback: {
+                
                 afterChange: afterChange,
                 // afterInit: afterInit,
                 // beforeImageMounted: beforeImageMounted,
