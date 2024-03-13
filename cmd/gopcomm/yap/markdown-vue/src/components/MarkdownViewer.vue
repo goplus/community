@@ -278,6 +278,7 @@ export default {
     
     .cherry{
         box-shadow: none;
+        background: #ffffff;
     }
 
     .viewer {
