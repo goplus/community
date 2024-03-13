@@ -518,6 +518,102 @@
                     </div>
                 </n-spin>
             </n-tab-pane>
+
+            <!-- Admin Management -->
+            {{ if .IsAdmin }}
+            <n-tab-pane name="users" tab="Users">
+                <n-spin :show="loading" size="large" stroke="#3182ce">
+                    <div class="container px-5 py-3 mx-auto bg-white rounded-lg"
+                        style="box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05); height: 65vh; overflow: auto;">
+                        <section v-if="userList === null">
+                            <div class="flex w-full flex-col items-center justify-center rounded-lg p-8">
+                                <div style="margin-top:200px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 fill-current text-gray-500"
+                                        viewBox="0 0 24 24">
+                                        <path fill-rule="evenodd"
+                                            d="M0 3.75A.75.75 0 01.75 3h7.497c1.566 0 2.945.8 3.751 2.014A4.496 4.496 0 0115.75 3h7.5a.75.75 0 01.75.75v15.063a.75.75 0 01-.755.75l-7.682-.052a3 3 0 00-2.142.878l-.89.891a.75.75 0 01-1.061 0l-.902-.901a3 3 0 00-2.121-.879H.75a.75.75 0 01-.75-.75v-15zm11.247 3.747a3 3 0 00-3-2.997H1.5V18h6.947a4.5 4.5 0 012.803.98l-.003-11.483zm1.503 11.485V7.5a3 3 0 013-3h6.75v13.558l-6.927-.047a4.5 4.5 0 00-2.823.971z">
+                                        </path>
+                                    </svg>
+                                </div>
+
+                                <div class="mt-8 text-center">
+                                    <h1 class="text-4xl"> Have no data!</h1>
+                                </div>
+
+                                <button
+                                    class="mt-2 block rounded-lg bg-transparent py-1.5 px-4 font-medium text-blue-600 transition-colors hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50">
+                                    <a href="/add">
+                                        Return to add article!
+                                    </a>
+                                </button>
+                            </div>
+                        </section>
+
+                        <div class="video-cards" v-else>
+                            <!-- User List -->
+                            <n-grid x-gap="20" y-gap="10" :cols="4">
+                                <n-gi :span="1" v-for="(item,index) in userList" :key="index">
+                                    <n-card hoverable style="border-radius: 7px;">
+                                        <div class="image">
+                                            <n-image :src="item.Avatar || '/static/img/default-cover.jpg'" class="image-item" object-fit="cover"></n-image>
+                                        </div>
+                                        <div class="delete">
+                                            <div class="image-time">
+                                                <a :href="'/user/' + item.Id">
+                                                ${ item.Name.slice(0,10) }
+                                                </a>
+                                            </div>
+                                            <div v-if="item.Status" class="flex flex-row items-center">
+                                                <span style="background-color: #cee1f5;"
+                                                    class="mr-3 inline-flex items-center font-medium px-2.5 py-0.5 rounded-full">
+                                                    <span class="w-2 h-2 me-1 rounded-full mr-1" style="background-color: #3182ce;"></span>
+                                                    IsPublic
+                                                </span>
+                                            </div>
+                                            <div v-else class="flex flex-row items-center">
+                                                <span style="background-color: #f9d8db;"
+                                                    class="mr-3 inline-flex items-center font-medium px-2.5 py-0.5 rounded-full">
+                                                    <span class="w-2 h-2 me-1 rounded-full mr-1" style="background-color: #f25858;"></span>
+                                                    IsLimited
+                                                </span>
+                                            </div>
+                                            <n-popconfirm :show="changeUserId === item.Id">
+                                                <template #icon>
+                                                    <i class="ph-fill ph-siren" style="color: #f25858;"></i>
+                                                </template>
+                                                <template #trigger>
+                                                    <n-button @click="changeUserId = item.Id" text class="col-span-1"
+                                                        style="--n-text-color-hover: #f25858; --n-text-color-focus: #f25858;">
+                                                        <template #icon>
+                                                            <i class="ph-bold ph-pencil-line" style="color: #3182ce;"></i>
+                                                        </template>
+                                                        Change
+                                                    </n-button>
+                                                </template>
+                                                Are you sure to change?
+                                                <template #action>
+                                                    <n-button @click="changeUserId = 0" size="tiny" strong
+                                                        secondary>Cancel</n-button>
+                                                    <n-button @click="changeUserStatus(changeUserId, !item.Status)" size="tiny" strong
+                                                        secondary type="error">Change</n-button>
+                                                </template>
+                                            </n-popconfirm>
+                                        </div>
+                                    </n-card>
+                                </n-gi>
+                            </n-grid>
+
+                            <!-- Pagination -->
+                            <n-pagination v-if="totalUserPage !== 1" class="mt-4"
+                                :theme-overrides="themeOverrides" v-model:page="curUserPage" :page-size="pageSize"
+                                :page-count="totalUserPage" :page-slot="5" @update:page="handleUserPageChange">
+                            </n-pagination>
+                        </div>
+                    </div>
+                </n-spin>
+            </n-tab-pane>
+            {{ end }}
+
         </n-tabs>
     </div>
 
@@ -543,6 +639,12 @@
         const curImagePage = ref(1);
         const totalImagePage = ref();
 
+        // User List
+        let userList = ref([]);
+        let userGet = ref(false);
+        const curUserPage = ref(1);
+        const totalUserPage = ref();
+
         // article page
         const curArticlePage = ref(1);
         const totalArticlePage = ref(Math.ceil(total/pageSize.value));
@@ -565,6 +667,7 @@
         let deleteId = 0;
         let delVideoId = 0;
         let delImageId = 0;
+        let changeUserId = 0;
         function deleteArticle(id) {
             if (id !== 0) {
                 fetch("/api/article/" + id, {
@@ -588,6 +691,8 @@
                 getMedias("video", curVideoPage.value)
             } else if (tab === "image" && !imageGet.value) {
                 getMedias("image", curImagePage.value)
+            } else if (tab === "users" && !userGet.value) {
+                getUsers("users", curUserPage.value)
             }
         }
 
@@ -599,6 +704,11 @@
         function handleVideoPageChange(page) {
             curVideoPage.value = page
             getMedias("video", page)
+        }
+
+        function handleUserPageChange(page) {
+            curUserPage.value = page
+            getUsers("users", page)
         }
 
         function handleArticlePageChange(page) {
@@ -630,6 +740,24 @@
                             imageGet.value = true
                             totalImagePage.value = Math.ceil(todos.total/pageSize.value);
                         }
+                        loading.value = false
+                    }
+                });
+        }
+
+        function getUsers(format, curPage) {
+            loading.value = true
+            fetch("/api/users" + "?from=" + curPage + "&limit=" + pageSize.value)
+                .then(res => {
+                    return res.json();
+                })
+                .then(todos => {
+                    if (todos.code === 200) {
+                        userGet.value = true
+                        userList.value = todos.items
+                        totalUserPage.value = Math.ceil(todos.total/pageSize.value);
+                        console.log("userList", userList.value)
+                        console.log("totalUserPage", totalUserPage.value)
                         loading.value = false
                     }
                 });
@@ -677,6 +805,27 @@
             });
         }
 
+        function changeUserStatus(id, status) {
+            // TODO: Fix request body
+            fetch("/api/user/public"+"?uid="+id+"&is_public="+status, {
+                method: "PUT",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    "uid": id,
+                    "is_public": status
+                })
+            }).then(res => {
+                return res.json();
+            })
+            .then(todos => {
+                if (todos.code === 200) {
+                    getUsers("users", curUserPage.value)
+                }
+                changeUserId = 0
+            });
+        }
 
         function loadMore(page) {
             let url = "/api/user/"+ CurrentUser.value.id + "/articles" + "?page=" + page;
@@ -725,14 +874,17 @@
                     totalVideoPage,
                     pageSize,
                     imageList,
+                    userList,
                     curImagePage,
                     totalImagePage,
+                    totalUserPage,
                     curArticlePage,
                     totalArticlePage,
                     viewVideoId,
                     deleteId,
                     delImageId,
                     delVideoId,
+                    changeUserId,
                     themeOverrides,
                     user,
                     loading,
@@ -745,6 +897,7 @@
                 onChangeTab,
                 showModal,
                 handleArticlePageChange,
+                changeUserStatus,
             },
             watch: {
                 curVideoPage(newValue) {

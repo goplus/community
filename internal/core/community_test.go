@@ -105,19 +105,25 @@ func (m *mockS3Writer) Close() error {
 
 // Mock CasdoorSDKService
 type mockCasdoorSDKService struct {
-	DoGetUser         func(name string) (user *casdoorsdk.User, err error)
-	DoParseJwtToken   func(token string) (claims *casdoorsdk.Claims, err error)
-	DoGetUserClaim    func(uid string) (claim *casdoorsdk.User, err error)
-	DoGetUserById     func(uid string) (user *casdoorsdk.User, err error)
-	DoUpdateUserById  func(uid string, user *UserInfo) (res bool, err error)
-	DoUpdateUser      func(user *UserInfo) (res bool, err error)
-	DoGetUserByUserId func(uid string) (user *casdoorsdk.User, err error)
-	DoGetOAuthToken   func(code string, state string) (token *oauth2.Token, err error)
-	DoGetApplication  func(name string) (*casdoorsdk.Application, error)
+	DoGetUser               func(name string) (user *casdoorsdk.User, err error)
+	DoGetUsers              func() ([]*casdoorsdk.User, error)
+	DoParseJwtToken         func(token string) (claims *casdoorsdk.Claims, err error)
+	DoGetUserClaim          func(uid string) (claim *casdoorsdk.User, err error)
+	DoGetUserById           func(uid string) (user *casdoorsdk.User, err error)
+	DoUpdateUserById        func(uid string, user *UserInfo) (res bool, err error)
+	DoUpdateCasdoorUserById func(uid string, user *casdoorsdk.User) (res bool, err error)
+	DoUpdateUser            func(user *UserInfo) (res bool, err error)
+	DoGetUserByUserId       func(uid string) (user *casdoorsdk.User, err error)
+	DoGetOAuthToken         func(code string, state string) (token *oauth2.Token, err error)
+	DoGetApplication        func(name string) (*casdoorsdk.Application, error)
 }
 
 func (m *mockCasdoorSDKService) GetUser(name string) (user *casdoorsdk.User, err error) {
 	return m.DoGetUser(name)
+}
+
+func (m *mockCasdoorSDKService) GetUsers() ([]*casdoorsdk.User, error) {
+	return m.DoGetUsers()
 }
 
 func (m *mockCasdoorSDKService) ParseJwtToken(token string) (claims *casdoorsdk.Claims, err error) {
@@ -134,6 +140,10 @@ func (m *mockCasdoorSDKService) GetUserById(uid string) (user *casdoorsdk.User, 
 
 func (m *mockCasdoorSDKService) UpdateUserById(uid string, user *UserInfo) (res bool, err error) {
 	return m.DoUpdateUserById(uid, user)
+}
+
+func (m *mockCasdoorSDKService) UpdateCasdoorUserById(uid string, user *casdoorsdk.User) (res bool, err error) {
+	return m.DoUpdateCasdoorUserById(uid, user)
 }
 
 func (m *mockCasdoorSDKService) UpdateUser(user *UserInfo) (res bool, err error) {
