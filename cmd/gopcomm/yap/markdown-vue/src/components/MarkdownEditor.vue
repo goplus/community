@@ -536,6 +536,9 @@
             getVttId() {
                 return vtt_id
             },
+            getToc(){
+                return cherrInstance.getToc()
+            }
         }
     }
 </script>
