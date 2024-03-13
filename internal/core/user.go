@@ -1,7 +1,10 @@
 package core
 
 import (
+	"math/rand"
 	"os"
+	"strconv"
+	"time"
 
 	"golang.org/x/oauth2"
 
@@ -93,6 +96,18 @@ func (p *Community) GetUser(token string) (user *User, err error) {
 		return &User{}, ErrNotExist
 	}
 	user, err = p.GetUserById(claim.Id)
+	userId := user.Id
+	if user.Name == "wx_user_"+userId {
+		rand.Seed(time.Now().UnixNano())
+		name := "GOP" + strconv.Itoa(rand.Intn(100000000))
+		claim.User.DisplayName = name
+		_, err := casdoorsdk.UpdateUserById(claim.User.GetId(), &claim.User)
+		if err != nil {
+			p.xLog.Error(err.Error())
+		} else {
+			user.Name = name
+		}
+	}
 	return
 }
 
