@@ -28,7 +28,6 @@ import (
 	"strings"
 
 	"github.com/qiniu/go-sdk/v7/auth"
-	"github.com/qiniu/go-sdk/v7/client"
 	language "golang.org/x/text/language"
 )
 
@@ -78,9 +77,8 @@ func (e *Engine) Video2Text(src string, callback string) (*ASRResponse, error) {
 		Callback: callback,
 	}
 
-	c := client.DefaultClient
 	res := &ASRResponse{}
-	err := c.CredentialedCallWithJson(
+	err := e.QiNiuSDKClient.CredentialedCallWithJson(
 		context.Background(),
 		e.qiniuCred,
 		auth.TokenQiniu,
@@ -102,9 +100,8 @@ func (e *Engine) QueryVideo2TextTask(taskId string) (*ASRTaskData, error) {
 	// Prepare request url
 	requestURL := fmt.Sprintf("%s/%s", qiniuASRAPI, taskId)
 
-	c := client.DefaultClient
 	res := &ASRTaskData{}
-	err := c.CredentialedCallWithJson(
+	err := e.QiNiuSDKClient.CredentialedCallWithJson(
 		context.Background(),
 		e.qiniuCred,
 		auth.TokenQiniu,
@@ -195,9 +192,8 @@ func (e *Engine) Text2Audio(content string) (*TTSResponse, error) {
 		Content: content,
 	}
 
-	c := client.DefaultClient
 	res := &TTSResponse{}
-	err := c.CredentialedCallWithJson(context.Background(), e.qiniuCred, auth.TokenQiniu, &res, "POST", qiniuTTSAPI, nil, requestBody)
+	err := e.QiNiuSDKClient.CredentialedCallWithJson(context.Background(), e.qiniuCred, auth.TokenQiniu, &res, "POST", qiniuTTSAPI, nil, requestBody)
 	if err != nil {
 		return nil, err
 	}

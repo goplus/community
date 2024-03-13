@@ -18,147 +18,151 @@ package translation
 
 import (
 	"context"
-	"fmt"
 	"net/http"
-	"os"
 	"testing"
 
 	"github.com/qiniu/go-sdk/v7/auth"
-	"github.com/qiniu/go-sdk/v7/storage"
+	"github.com/stretchr/testify/assert"
 	language "golang.org/x/text/language"
 )
 
-var (
-	// Your api key
-	mockAccessKey      = os.Getenv("QINIU_ACCESS_KEY")
-	mockSecretKey      = os.Getenv("QINIU_SECRET_KEY")
-	mockBucket         = os.Getenv("QINIU_TEST_BUCKET")
-	mockTranslationKey = os.Getenv("NIUTRANS_API_KEY")
-)
-
-func TestUploadVideo(t *testing.T) {
-	if mockAccessKey == "" {
-		t.Skip("QINIU_ACCESS_KEY not set")
-	}
-
-	if mockSecretKey == "" {
-		t.Skip("QINIU_SECRET_KEY not set")
-	}
-
-	localFile := "./test.mp4"
-	key := "test.mp4"
-	mac := auth.New(mockAccessKey, mockSecretKey)
-	putPolicy := storage.PutPolicy{
-		Scope: mockBucket + ":" + key,
-	}
-	upToken := putPolicy.UploadToken(mac)
-	fmt.Println(upToken)
-	cfg := storage.Config{
-		Zone:          &storage.ZoneHuanan,
-		UseHTTPS:      false,
-		UseCdnDomains: false,
-	}
-
-	client := http.Client{}
-	formUploader := storage.NewFormUploaderEx(&cfg, &storage.Client{Client: &client})
-	ret := storage.PutRet{}
-	err := formUploader.PutFile(context.Background(), &ret, upToken, key, localFile, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Log(ret)
+// Mock API Client
+type mockQiNiuSDKClient struct {
+	DoFunc func(ctx context.Context, cred *auth.Credentials, tokenType auth.TokenType, ret interface{},
+		method, reqUrl string, headers http.Header, param interface{}) error
 }
 
-func TestVideo2Text(t *testing.T) {
-	if mockAccessKey == "" {
-		t.Skip("QINIU_ACCESS_KEY not set")
+// Implement NiuTransClient interface
+func (m *mockQiNiuSDKClient) CredentialedCallWithJson(ctx context.Context, cred *auth.Credentials, tokenType auth.TokenType, ret interface{},
+	method, reqUrl string, headers http.Header, param interface{}) error {
+	return m.DoFunc(ctx, cred, tokenType, ret, method, reqUrl, headers, param)
+}
+
+func TestTranslateVideo(t *testing.T) {
+	tests := []struct {
+		from     language.Tag
+		to       language.Tag
+		src      string
+		callback string
+		result   *ASRResponse
+	}{
+		{
+			from:     language.Chinese,
+			to:       language.English,
+			src:      "http://test.com/test.mp4",
+			callback: "http://test.com/callback",
+			result:   &ASRResponse{},
+		},
 	}
 
-	if mockSecretKey == "" {
-		t.Skip("QINIU_SECRET_KEY not set")
+	for _, test := range tests {
+		res, err := transEngine.TranslateVideo(test.from, test.to, test.src, test.callback)
+		assert.Nil(t, err)
+		assert.Equal(t, test.result, res)
 	}
-
-	e := New("", mockAccessKey, mockSecretKey)
-	resp, err := e.Video2Text("http://test.com/test.mp4", "http://test.com/callback")
-	fmt.Printf("resp: %#v", resp)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Log(resp)
 }
 
 func TestQueryTask(t *testing.T) {
-	if mockAccessKey == "" {
-		t.Skip("QINIU_ACCESS_KEY not set")
+	tests := []struct {
+		taskId string
+		result *ASRTaskData
+	}{
+		{
+			taskId: "8c5bd27079924fe884d4f67b512d6740",
+			result: &ASRTaskData{},
+		},
 	}
 
-	if mockSecretKey == "" {
-		t.Skip("QINIU_SECRET_KEY not set")
+	for _, test := range tests {
+		resp, err := transEngine.QueryVideo2TextTask(test.taskId)
+		assert.Nil(t, err)
+		assert.Equal(t, test.result, resp)
 	}
-
-	e := New("", mockAccessKey, mockSecretKey)
-	resp, err := e.QueryVideo2TextTask("mockTaskId")
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Log(resp)
-}
-
-func TestGenerateWebVTTFile(t *testing.T) {
-	if mockAccessKey == "" {
-		t.Skip("QINIU_ACCESS_KEY not set")
-	}
-
-	if mockSecretKey == "" {
-		t.Skip("QINIU_SECRET_KEY not set")
-	}
-
-	e := New("", mockAccessKey, mockSecretKey)
-	resp, err := e.QueryVideo2TextTask("")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = e.GenerateWebVTTFile(*resp, "test.vtt")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	t.Log(resp)
 }
 
 func TestGenerateWebVTTFileWithTranslation(t *testing.T) {
-	if mockAccessKey == "" {
-		t.Skip("QINIU_ACCESS_KEY not set")
+	tests := []struct {
+		asrTaskData ASRTaskData
+		path        string
+		from        language.Tag
+		to          language.Tag
+	}{
+		{
+			asrTaskData: ASRTaskData{},
+			path:        "test_en.vtt",
+			from:        language.Chinese,
+			to:          language.English,
+		},
 	}
 
-	if mockSecretKey == "" {
-		t.Skip("QINIU_SECRET_KEY not set")
+	for _, test := range tests {
+		err := transEngine.GenerateWebVTTFileWithTranslation(test.asrTaskData, test.path, test.from, test.to)
+		assert.Nil(t, err)
+	}
+}
+
+func TestVideo2TextCallback(t *testing.T) {
+	tests := []struct {
+		callbackData Video2TextCallbackResponse
+		result       string
+	}{
+		{
+			callbackData: Video2TextCallbackResponse{
+				Rtn: 1,
+			},
+			result: "",
+		},
 	}
 
-	if mockTranslationKey == "" {
-		t.Skip("NIUTRANS_API_KEY not set")
+	for _, test := range tests {
+		resp, err := transEngine.Video2TextCallback(test.callbackData)
+		assert.Nil(t, err)
+		assert.Equal(t, test.result, resp)
 	}
-
-	e := New(mockTranslationKey, mockAccessKey, mockSecretKey)
-	resp, err := e.QueryVideo2TextTask("8c5bd27079924fe884d4f67b512d6740")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = e.GenerateWebVTTFileWithTranslation(*resp, "test_en.vtt", language.Chinese, language.English)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	t.Log(resp)
 }
 
 func TestText2Video(t *testing.T) {
-	e := New("", mockAccessKey, mockSecretKey)
-	resp, err := e.Text2Audio("hello world")
-	if err != nil {
-		t.Fatal(err)
+	tests := []struct {
+		content string
+		result  *TTSResponse
+	}{
+		{
+			content: "test",
+			result:  &TTSResponse{},
+		},
 	}
-	t.Log(resp)
+
+	for _, test := range tests {
+		res, err := transEngine.Text2Audio(test.content)
+		assert.Nil(t, err)
+		assert.Equal(t, test.result, res)
+	}
+}
+
+func TestGenerateWebVTT(t *testing.T) {
+	tests := []struct {
+		asrTaskData ASRTaskData
+		path        string
+	}{
+		{
+			asrTaskData: ASRTaskData{
+				Data: Data{
+					SpeechResult: SpeechResult{
+						Detail: []Detail{
+							{
+								StartTime: "0.0",
+								EndTime:   "10.0",
+							},
+						},
+					},
+				},
+			},
+			path: "test.vtt",
+		},
+	}
+
+	for _, test := range tests {
+		err := transEngine.GenerateWebVTTFile(test.asrTaskData, test.path)
+		assert.Nil(t, err)
+	}
 }

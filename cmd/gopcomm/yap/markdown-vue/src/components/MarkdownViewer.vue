@@ -5,6 +5,7 @@
 <script>
 import Plyr from 'plyr';
 import 'plyr/dist/plyr.css'
+import 'https://goplus-builder.qiniu.io/widgets/loader.js'
 
 import 'https://builder.goplus.org/widgets/loader.js'
 
@@ -70,6 +71,7 @@ function initCherryMD(value, config) {
             }
         },
     });
+
 
     // import 'https://unpkg.com/vue@2.6.12/dist/vue.min.js'
     var CustomHookA = Cherry.createSyntaxHook('important', Cherry.constants.HOOKS_TYPE_LIST.SEN, {
