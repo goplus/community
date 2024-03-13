@@ -7,19 +7,14 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/gabriel-vasile/mimetype"
-
 	"gocloud.dev/blob"
 
 	"github.com/google/uuid"
-	"github.com/goplus/yap"
 	_ "github.com/qiniu/go-cdk-driver/kodoblob"
-	"github.com/qiniu/x/xlog"
 )
 
 // todo
@@ -60,7 +55,7 @@ func (c *Community) DelMedia(ctx context.Context, userId, mediaId string) error 
 	if err != nil {
 		return err
 	}
-	if err := c.bucket.Delete(context.Background(), fileKey); err != nil {
+	if err := c.S3Service.Delete(context.Background(), fileKey); err != nil {
 		return err
 	}
 	// del db media
@@ -129,7 +124,6 @@ func (c *Community) SaveMedia(ctx context.Context, userId string, data []byte, f
 	opts := &blob.WriterOptions{}
 	// upload cloud oss
 	fileKey := uuid.New().String()
-	c.xLog.Info(fileKey)
 	if strings.Contains(fileExt, "video") {
 		fileExt = ".mp4"
 		encoding := base64.URLEncoding.EncodeToString([]byte(c.bucketName + ":" + fileKey + fileExt))
@@ -137,7 +131,6 @@ func (c *Community) SaveMedia(ctx context.Context, userId string, data []byte, f
 		opts.Metadata["persistent-ops"] = "avthumb/mp4/vcodec/libx264|saveas/" + encoding
 	}
 	fileKey = fileKey + fileExt
-	c.xLog.Info(fileKey)
 	err := c.uploadMedia(fileKey, data, opts)
 	if err != nil {
 		c.xLog.Warn(err.Error())
@@ -152,7 +145,7 @@ func (c *Community) SaveMedia(ctx context.Context, userId string, data []byte, f
 
 	var duration string = ""
 	if fileInfo.Format == "video/mp4" {
-		duration, err = GetVideoDuration(c.domain + fileKey + "?avinfo")
+		duration, err = c.GetVideoDuration(c.domain + fileKey + "?avinfo")
 		if err != nil {
 			c.xLog.Warn(err.Error())
 			return 0, err
@@ -176,9 +169,7 @@ func (c *Community) SaveMedia(ctx context.Context, userId string, data []byte, f
 
 // for internal use,no need to add ctx
 func (c *Community) getMediaInfo(fileKey string) (*File, error) {
-
-	bucket := c.bucket
-	r, err := bucket.NewReader(context.Background(), fileKey, nil)
+	r, err := c.S3Service.NewReader(context.Background(), fileKey, nil)
 	defer func() {
 		err = r.Close()
 		if err != nil {
@@ -196,11 +187,18 @@ func (c *Community) getMediaInfo(fileKey string) (*File, error) {
 	}
 
 	return fileInfo, nil
-
 }
 
-func GetVideoDuration(url string) (duration string, err error) {
-	resp, err := http.Get(url)
+func (c *Community) GetVideoDuration(url string) (duration string, err error) {
+	// resp, err := http.Get(url)
+	var req *http.Request
+	req, err = http.NewRequest("GET", url, nil)
+	if err != nil {
+		return "", err
+	}
+
+	// Use mock client instead of real client
+	resp, err := c.translation.Engine.HTTPClient.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -238,92 +236,22 @@ func GetVideoDuration(url string) (duration string, err error) {
 }
 
 func (c *Community) uploadMedia(fileKey string, data []byte, opts *blob.WriterOptions) error {
+	if c.S3Service == nil {
+		return nil
+	}
 
-	w, err := c.bucket.NewWriter(context.Background(), fileKey, opts)
+	w, err := c.S3Service.NewWriter(context.Background(), fileKey, nil)
 	if err != nil {
+		c.xLog.Warn(err.Error())
 		return err
 	}
 	defer w.Close()
 	_, err = w.Write(data)
 	if err != nil {
+		c.xLog.Warn(err.Error())
 		return err
 	}
 	return nil
-}
-
-func (c *Community) UploadFile(ctx *yap.Context) {
-	xLog := xlog.New("")
-	file, header, err := ctx.FormFile("file")
-	if err != nil {
-		xLog.Error("upload file error:", header)
-		ctx.JSON(500, err.Error())
-		return
-	}
-	filename := header.Filename
-	err = ctx.ParseMultipartForm(10 << 20)
-	if err != nil {
-		xLog.Error("upload file error:", filename)
-		ctx.JSON(500, err.Error())
-		return
-	}
-
-	dst, err := os.Create(filename)
-	if err != nil {
-		xLog.Error("create file error:", file)
-		ctx.JSON(500, err.Error())
-		return
-	}
-	defer func() {
-		file.Close()
-		dst.Close()
-		err = os.Remove(filename)
-		if err != nil {
-			xLog.Error("delete file error:", filename)
-			return
-		}
-	}()
-
-	_, err = io.Copy(dst, file)
-	if err != nil {
-		xLog.Error("copy file errer:", filename)
-		ctx.JSON(500, err.Error())
-		return
-	}
-
-	bytes, err := os.ReadFile(filename)
-	if err != nil {
-		xLog.Error("read file errer:", filename)
-		ctx.JSON(500, err.Error())
-		return
-	}
-
-	token, err := GetToken(ctx)
-	if err != nil {
-		ctx.JSON(500, err.Error())
-	}
-
-	uid, err := c.ParseJwtToken(token.Value)
-	if err != nil {
-		ctx.JSON(500, err.Error())
-	}
-	ext := mimetype.Detect(bytes).String()
-	id, err := c.SaveMedia(context.Background(), uid, bytes, ext)
-	if err != nil {
-		xLog.Error("save file", err.Error())
-		ctx.JSON(500, err.Error())
-		return
-	}
-
-	// Judge the file type and start the corresponding task
-	if strings.Contains(ext, "video") {
-		// Start captioning task
-		err := c.NewVideoTask(context.Background(), uid, strconv.FormatInt(id, 10))
-		if err != nil {
-			xLog.Error("start video task error:", err)
-		}
-	}
-
-	ctx.JSON(200, id)
 }
 
 func (c *Community) RetryCaptionGenerate(ctx context.Context, userId, videoId string) error {
@@ -377,44 +305,4 @@ func (c *Community) ListMediaByUserId(ctx context.Context, userId string, format
 		return files, 0, err
 	}
 	return files, count, nil
-}
-
-func (c *Community) ListSubtitleByVideoId(ctx context.Context, videoId int) ([]VideoSubtitle, error) {
-	sqlStr := "select * from video_subtitle where video_id =? and "
-	rows, err := c.db.Query(sqlStr, videoId)
-	var videoSubtitles []VideoSubtitle
-	if err != nil {
-		return videoSubtitles, err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var videoSubtitle VideoSubtitle
-		err = rows.Scan(&videoSubtitle.VideoId, &videoSubtitle.SubtitleId, &videoSubtitle.UserId, &videoSubtitle.Language)
-		if err != nil {
-			return videoSubtitles, err
-		}
-		videoSubtitles = append(videoSubtitles, videoSubtitle)
-	}
-	return videoSubtitles, nil
-}
-
-func (c *Community) AddSubtitle(ctx context.Context, videoId, subtitleId, userId int, language string) error {
-	sqlStr := "INSERT INTO video_subtitle (video_id,user_id,subtitle_id,language) values (?,?,?,?)"
-	_, err := c.db.Exec(sqlStr, videoId, userId, subtitleId, language)
-	if err != nil {
-		c.xLog.Fatalln(err.Error())
-		return err
-	}
-	return nil
-}
-
-func (c *Community) DelSubtitle(ctx context.Context, videoId, subtitleId, userId int) error {
-	sqlStr := "DELETE FROM video_subtitle where video_id = ? and subtitle_id = ? and user_id = ?"
-	_, err := c.db.Exec(sqlStr, videoId, subtitleId, userId)
-	if err != nil {
-		c.xLog.Fatalln(err.Error())
-		return err
-	}
-	return nil
 }

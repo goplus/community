@@ -21,11 +21,21 @@ require (
 	golang.org/x/oauth2 v0.17.0
 )
 
-require github.com/liuscraft/gop-casdoor-account-sdk v1.1.0
+require (
+	github.com/liuscraft/gop-casdoor-account-sdk v1.1.0
+	github.com/mattn/go-sqlite3 v1.14.22
+	github.com/stretchr/testify v1.9.0
+)
 
-require github.com/gabriel-vasile/mimetype v1.4.3 // indirect
+require github.com/gabriel-vasile/mimetype v1.4.3
 
 replace github.com/qiniu/go-cdk-driver v0.1.0 => github.com/xhyqaq/go-cdk-driver v1.0.0
+
+require (
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
+)
 
 require (
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
