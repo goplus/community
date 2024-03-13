@@ -2,7 +2,6 @@ package core
 
 import (
 	"net/http"
-	"os"
 
 	"github.com/goplus/yap"
 
@@ -19,18 +18,6 @@ type User struct {
 
 type UserClaim casdoorsdk.Claims
 type UserInfo casdoorsdk.User
-
-// Init casdoor parser
-func CasdoorConfigInit() {
-	endPoint := os.Getenv("GOP_CASDOOR_ENDPOINT")
-	clientID := os.Getenv("GOP_CASDOOR_CLIENTID")
-	clientSecret := os.Getenv("GOP_CASDOOR_CLIENTSECRET")
-	certificate := os.Getenv("GOP_CASDOOR_CERTIFICATE")
-	organizationName := os.Getenv("GOP_CASDOOR_ORGANIZATIONNAME")
-	applicationName := os.Getenv("GOP_CASDOOR_APPLICATONNAME")
-
-	casdoorsdk.InitConfig(endPoint, clientID, clientSecret, certificate, organizationName, applicationName)
-}
 
 // GetUser return author by token
 func (p *Community) GetUser(token string) (user *User, err error) {
