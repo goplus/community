@@ -56,13 +56,6 @@
 <script data-widgets="code" src="https://goplus.org/widgets/loader.js"></script>
 <script src="/static/GoplusMarkdown/GoplusMarkdown.umd.cjs"></script>
 
-<script type="importmap">
-  { "imports": { 
-      "vue":        "https://cdnjs.cloudflare.com/ajax/libs/vue/3.2.41/vue.esm-browser.prod.js", 
-      "vue-router": "https://cdnjs.cloudflare.com/ajax/libs/vue-router/4.1.5/vue-router.esm-browser.min.js" 
-  } } 
-</script>
-
 <body style="background-color: #f7fafc;">
     {{ template "header" .}}
 
@@ -187,7 +180,7 @@
                             <!-- <p class="ml-1 text-sm" style="color: #a0aec0;">${ likeCount }</p> -->
                         </div>
                         <!-- Quick Sharing -->
-                        <div class="flex items-center">
+                        <div class="flex items-center" v-if="user">
                             <span class="mr-2" style="color: #a0aec0;">Share to</span>
 
                             <!-- Facebook Button -->
@@ -384,8 +377,9 @@
                             style="margin-left: -2px; --n-font-size: 15px;" show-zero></n-badge>
                         <!-- <p class="ml-1 text-sm" style="color: #a0aec0;">${ likeCount }</p> -->
                     </div>
+                    
                     <!-- Quick Sharing -->
-                    <div class="flex items-center">
+                    <div class="flex items-center" v-if="user">
                         <span class="mr-2" style="color: #a0aec0;">Share to</span>
 
                         <!-- Facebook Button -->
