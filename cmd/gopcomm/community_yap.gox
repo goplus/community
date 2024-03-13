@@ -618,7 +618,8 @@ get "/api/video/:id", ctx => {
 	}
 	m["fileKey"] = htmlUrl
 	m["type"] = format
-	m["subtitle"] = domain + id
+	m["origin_vtt"] = domain + id
+	m["translated_vtt"] = domain + id
 	m["status"] = "0"
 	match, _ := regexp.MatchString("^video", format)
 	if match {

@@ -109,20 +109,21 @@ func (c *Community) GetMediaType(ctx context.Context, mediaId string) (string, e
 	return Format, nil
 
 }
-func (c *Community) GetVideoSubtitle(ctx context.Context, mediaId string) (string, string, error) {
+func (c *Community) GetVideoSubtitle(ctx context.Context, mediaId string) (string, string, string, error) {
 	ID, err := strconv.Atoi(mediaId)
 	if err != nil {
-		return "", "-1", err
+		return "", "", "-1", err
 	}
-	row := c.db.QueryRow(`select output, status from video_task where resource_id = ?`, ID)
-	var fileKey string
+	row := c.db.QueryRow(`select origin_vtt, translated_vtt, status from video_task where resource_id = ?`, ID)
+	var origin_vtt string
+	var translated_vtt string
 	var status string
-	err = row.Scan(&fileKey, &status)
+	err = row.Scan(&origin_vtt, &translated_vtt, &status)
 	if err != nil {
-		return "", "-1", err
+		return "", "", "-1", err
 	}
 
-	return fileKey, status, nil
+	return origin_vtt, translated_vtt, status, nil
 }
 
 func (c *Community) SaveMedia(ctx context.Context, userId string, data []byte, fileExt string) (int64, error) {

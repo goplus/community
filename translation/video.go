@@ -241,29 +241,34 @@ func (e *Engine) GenerateWebVTTFile(asrTaskData ASRTaskData, path string) error 
 }
 
 // GenerateWebVTTBytesWithTranslation generate caption for speech result with translation
-func (e *Engine) GenerateWebVTTBytesWithTranslation(asrTaskData ASRTaskData, from, to language.Tag) (bytes.Buffer, error) {
-	var buffer bytes.Buffer
+func (e *Engine) GenerateWebVTTBytesWithTranslation(asrTaskData ASRTaskData, from, to language.Tag) (bytes.Buffer, bytes.Buffer, error) {
+	var originBuffer bytes.Buffer
+	var translatedBuffer bytes.Buffer
 
 	// Write head
 	webVTTBuffer := GenerateSimpleWebVTTFileFromASRTaskData(asrTaskData)
+	_, err := webVTTBuffer.ToBuffer().WriteTo(&originBuffer)
+	if err != nil {
+		return originBuffer, translatedBuffer, err
+	}
 
 	// Translate buffer
-	err := e.TranslateWebVTT(&webVTTBuffer, from.String(), to)
+	err = e.TranslateWebVTT(&webVTTBuffer, from.String(), to)
 	if err != nil {
-		return buffer, err
+		return originBuffer, translatedBuffer, err
 	}
 
-	_, err = webVTTBuffer.ToBuffer().WriteTo(&buffer)
+	_, err = webVTTBuffer.ToBuffer().WriteTo(&translatedBuffer)
 	if err != nil {
-		return buffer, err
+		return originBuffer, translatedBuffer, err
 	}
 
-	return buffer, nil
+	return originBuffer, translatedBuffer, nil
 }
 
 // GenerateWebVTTFileWithTranslation generate caption for speech result with translation
 func (e *Engine) GenerateWebVTTFileWithTranslation(asrTaskData ASRTaskData, path string, from, to language.Tag) error {
-	buffer, err := e.GenerateWebVTTBytesWithTranslation(asrTaskData, from, to)
+	originBuffer, translatedBuffer, err := e.GenerateWebVTTBytesWithTranslation(asrTaskData, from, to)
 	if err != nil {
 		return err
 	}
@@ -275,7 +280,19 @@ func (e *Engine) GenerateWebVTTFileWithTranslation(asrTaskData ASRTaskData, path
 	}
 	defer file.Close()
 
-	_, err = buffer.WriteTo(file)
+	_, err = originBuffer.WriteTo(file)
+	if err != nil {
+		return err
+	}
+
+	// Write buffer to file
+	transFile, err := os.Create(fmt.Sprintf("trans.%s", path))
+	if err != nil {
+		return err
+	}
+	defer transFile.Close()
+
+	_, err = translatedBuffer.WriteTo(transFile)
 	if err != nil {
 		return err
 	}

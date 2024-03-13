@@ -20,9 +20,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/gabriel-vasile/mimetype"
 	"sync"
 	"time"
+
+	"github.com/gabriel-vasile/mimetype"
 
 	language "golang.org/x/text/language"
 )
@@ -111,8 +112,8 @@ func (c *Community) SetVideoTaskFailed(ctx context.Context, resourceId string) e
 }
 
 // SetVideoTaskOutput set video task output link
-func (c *Community) SetVideoTaskOutput(ctx context.Context, resourceId string, output string) error {
-	return c.updateVideoTaskOutput(ctx, resourceId, output)
+func (c *Community) SetVideoTaskOutput(ctx context.Context, resourceId string, originVtt string, translatedVtt string) error {
+	return c.updateVideoTaskOutput(ctx, resourceId, originVtt, translatedVtt)
 }
 
 type VideoTaskTimestamp int64
@@ -249,7 +250,7 @@ func (c *Community) updateASRResult(ctx context.Context, resourceId string, task
 
 	if asrTaskData.Rtn == 0 && asrTaskData.Data.StatusCode == 3 {
 		// Upload ASR result
-		buffer, err := c.translation.Engine.GenerateWebVTTBytesWithTranslation(*asrTaskData, language.Chinese, language.English)
+		originBuffer, translatedBuffer, err := c.translation.Engine.GenerateWebVTTBytesWithTranslation(*asrTaskData, language.Chinese, language.English)
 		if err != nil {
 			c.xLog.Errorf("TimedCheckVideoTask GenerateWebVTTBytesWithTranslation failed, resourceId: %s, err: %v", resourceId, err)
 			// Can not parse ASR result
@@ -257,10 +258,11 @@ func (c *Community) updateASRResult(ctx context.Context, resourceId string, task
 
 			return err
 		}
-		bytes := buffer.Bytes()
+		originBytes := originBuffer.Bytes()
+		translatedBytes := translatedBuffer.Bytes()
 
-		// Upload ASR result
-		captionId, err := c.SaveMedia(ctx, task.UserId, bytes, mimetype.Detect(bytes).String())
+		// Upload origin ASR result
+		oriCaptionId, err := c.SaveMedia(ctx, task.UserId, originBytes, mimetype.Detect(originBytes).String())
 		if err != nil {
 			c.xLog.Errorf("TimedCheckVideoTask SaveMedia failed, resourceId: %s, err: %v", resourceId, err)
 			// Can not save ASR result
@@ -268,7 +270,23 @@ func (c *Community) updateASRResult(ctx context.Context, resourceId string, task
 		}
 
 		// Get ASR result id
-		output, err := c.GetMediaUrl(ctx, fmt.Sprintf("%d", captionId))
+		originVtt, err := c.GetMediaUrl(ctx, fmt.Sprintf("%d", oriCaptionId))
+		if err != nil {
+			c.xLog.Errorf("TimedCheckVideoTask GetMediaURL failed, resourceId: %s, err: %v", resourceId, err)
+			// Can not get ASR result link
+			return err
+		}
+
+		// Upload origin ASR result
+		traCaptionId, err := c.SaveMedia(ctx, task.UserId, translatedBytes, mimetype.Detect(translatedBytes).String())
+		if err != nil {
+			c.xLog.Errorf("TimedCheckVideoTask SaveMedia failed, resourceId: %s, err: %v", resourceId, err)
+			// Can not save ASR result
+			return err
+		}
+
+		// Get ASR result id
+		translatedVtt, err := c.GetMediaUrl(ctx, fmt.Sprintf("%d", traCaptionId))
 		if err != nil {
 			c.xLog.Errorf("TimedCheckVideoTask GetMediaURL failed, resourceId: %s, err: %v", resourceId, err)
 			// Can not get ASR result link
@@ -284,7 +302,7 @@ func (c *Community) updateASRResult(ctx context.Context, resourceId string, task
 		c.xLog.Infof("TimedCheckVideoTask GetMediaURL success, resourceId: %s, output: %s", resourceId, output)
 
 		// Update status of video task
-		err = c.SetVideoTaskOutput(ctx, resourceId, output)
+		err = c.SetVideoTaskOutput(ctx, resourceId, originVtt, translatedVtt)
 		if err != nil {
 			c.xLog.Errorf("TimedCheckVideoTask SetVideoTaskOutput failed, resourceId: %s, err: %v", resourceId, err)
 
