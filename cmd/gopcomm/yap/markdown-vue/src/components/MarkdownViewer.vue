@@ -7,6 +7,8 @@ import Plyr from 'plyr';
 import 'plyr/dist/plyr.css'
 import 'https://goplus-builder.qiniu.io/widgets/loader.js'
 
+import 'https://builder.goplus.org/widgets/loader.js'
+
 var cherrInstance = null
 
 var vtt_src = ""
@@ -17,9 +19,12 @@ let fileType = "video/mp4"
 
 function checkSpx(text){
     var pattern = /<spx-runner\s+projectid="(\d+)"><\/spx-runner>/g;
-    var match = pattern.test(text); 
-    if(match) {
-        text = text.replace(pattern, '```spx\n$1\n```');
+    var isMatch = pattern.test(text); 
+    if(isMatch) {
+        text = text.replace(pattern, 
+            `<div style="margin-left: auto; margin-right: auto; width: 30vw; height: 30vw;">
+                <spx-runner projectid="$1"></spx-runner>
+            </div>`);
     }
     return text
 }
@@ -37,10 +42,12 @@ function initCherryMD(value, config) {
                     fileType = matchType[0].replace("[","").replace("]","")
                 }
                 // ()
+                // console.log("all video ", whole)
                 const regex = /\((.*?)\)/g; // 定义正则表达式，其中 \() 表示左括号，(.*?) 表示非贪婪模式匹配任意字符，\)) 表示右括号
                 const matchResult = whole.match(regex); // 使用 match 函数进行匹配
                 if (matchResult) {
                     let video_src = matchResult[0].replace("(","").replace(")","")
+                    // console.log("video src", video_src)
                     let poster = video_src + "?vframe/jpg/offset/7"
                     if(matchResult[1]){
                         vtt_src = matchResult[1].replace("(","").replace(")","")
@@ -69,13 +76,13 @@ function initCherryMD(value, config) {
     // import 'https://unpkg.com/vue@2.6.12/dist/vue.min.js'
     var CustomHookA = Cherry.createSyntaxHook('important', Cherry.constants.HOOKS_TYPE_LIST.SEN, {
         makeHtml(str) {
-            console.log("custom hook", str)
+            // console.log("custom hook", str)
             return str.replace(this.RULE.reg, function(whole, m1, m2) {
                 return `<span style="color: green;"><strong>${m2}</strong></span>`;
             });
         },
         rule(str) {
-            console.log("rule", str)
+            // console.log("rule", str)
             return { reg: /(\*\*\*)([^\*]+)\1/g };
         },
     })
@@ -146,17 +153,13 @@ function initCherryMD(value, config) {
                         // 创建自定义渲染函数
                         gop: {
                             render: (src, sign, cherryEnding)=> {
-                                console.log("custom render", src)
-                                // return `<p style="color: red">${src}</p>`;
                                 return `<goplus-code half-code language="gop" style="width: 85vw">${src}</goplus-code>`;
                             }
                         },
                         spx: {
                             render: (src, sign, cherryEnding)=> {
-                                console.log(cherryEnding)
-                                // return `<p style="color: red">${src}</p>`;
-                                return `<div style="width: 500px;height: 500px; padding:5px 0">
-                                            <spx-runner projectid=${src}></spx-runner>
+                                return `<div style="margin-left: auto; margin-right: auto; width: 30vw; height: 30vw;">
+                                            ${src}
                                         </div>`;
                             }
                         }
@@ -266,7 +269,7 @@ export default {
     },
     watch: {
         md(newValue) {
-            cherrInstance.setMarkdown(checkSpx(newValue))
+            cherrInstance.setMarkdown(checkSpx(newValue));
         }
     },
     mounted() {
@@ -294,6 +297,7 @@ export default {
     
     .cherry{
         box-shadow: none;
+        background: #ffffff;
     }
 
     .viewer {

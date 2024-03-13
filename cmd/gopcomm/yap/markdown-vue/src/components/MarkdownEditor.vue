@@ -1,6 +1,5 @@
 <template>
     <div id="markdown-container"></div>
-    <!-- <script type="module" src="https://goplus-builder.qiniu.io/widgets/loader.js"></script> -->
 </template>
 
 <script>
@@ -10,7 +9,7 @@
     import Plyr from 'plyr';
     import 'plyr/dist/plyr.css'
 
-    import 'https://goplus-builder.qiniu.io/widgets/loader.js'
+    import 'https://builder.goplus.org/widgets/loader.js'
 
     // axios.defaults.baseURL = 'http://localhost:8080/';
 
@@ -122,37 +121,31 @@
     }
             
     function afterChange(text, html) {
-        this.content = text
-        checkSpxHtml(html)
-        // console.log(cherrInstance.previewer.refresh(html))
+        // video
         let video = document.querySelectorAll('video');
         for (var i = 0; i < video.length; i++) {
             const player = new Plyr(video[i], {captions: {active: true, update: true, language: 'en'}});
         }
-    }
 
-    // checkout spx
-    function checkSpx(text){
-        var pattern = /<spx-runner\s+projectid="(\d+)"><\/spx-runner>/;
-        var match = pattern.test(text); 
-        if(match) {
-            // change spx-runner into ```spx
-            text = text.replace(pattern, '```spx\n$1\n```');
-            // cherrInstance.setMarkdown(text)
-        }
-        return text
+        // spx
+        this.content = text;
+        checkSpxHtml(html);
     }
-
+    
     // checkout spx
     function checkSpxHtml(html){
-        // let html = cherrInstance.getHtml()
+        // let html = cherrInstance.getHtml(); // 不可行
+        // console.log("当前", html);
         var pattern = /&lt;spx-runner projectid="(\d+)".*?&gt;&lt;\/spx-runner&gt;/g;
-        var match = pattern.test(html); 
-        if(match){
-            html = html.replace(pattern,`<div style="width: 500px;height: 500px; padding:5px 0">
-                                        <spx-runner projectid="$1"></spx-runner>
-                                    </div>`)
-            cherrInstance.getPreviewer().refresh(html)
+        var isMatch = pattern.test(html);
+        
+        if(isMatch){
+            let newHtml = html.replace(pattern,
+                `<div style="margin-left: auto; margin-right: auto; width: 30vw; height: 30vw;">
+                    <spx-runner projectid="$1"></spx-runner>
+                </div>`)
+            // console.log("替换后", newHtml);
+            cherrInstance.getPreviewer().refresh(newHtml)
         }
     }
 
@@ -173,7 +166,6 @@
         }
         // this.cherrInstance.setMarkdown(content, 0)
         cherrInstance.insert(content, false, false, true)
-
     }
 
     function getCherryContent() {
@@ -193,6 +185,7 @@
     function initCherryMD(value, config) {
         var defaultValue = value || ""
 
+        // video
         var myBlockHook = Cherry.createSyntaxHook('myBlock', Cherry.constants.HOOKS_TYPE_LIST.PAR, {
             makeHtml(str) {
                 return str.replace(this.RULE.reg, function(whole, m1) {
@@ -232,23 +225,6 @@
             },
         });
 
-        var spxRunnerHook = Cherry.createSyntaxHook('spxRunner', Cherry.constants.HOOKS_TYPE_LIST.PAR, {
-            beforeMakeHtml(str) {
-                return str.replace(this.RULE.reg, function(whole, m1) {
-                    // var pattern = /\<spx-runner\s+projectid="(\d+)".*?\>\<\/spx-runner\>/;
-                    var pattern = /&#60;spx-runner projectid="(\d+)".*?&#62;&#60;\/spx-runner&#62;/;
-                    return whole.replace(pattern, '```spx\n$1\n```');
-                });
-            },
-            
-            rule(str) {
-                return {
-                    reg: /&#60;spx-runner projectid=.*?&#62;&#60;\/spx-runner&#62;/g
-                }
-            },
-        });
-
-        // import 'https://unpkg.com/vue@2.6.12/dist/vue.min.js'
         var CustomHookA = Cherry.createSyntaxHook('important', Cherry.constants.HOOKS_TYPE_LIST.SEN, {
             makeHtml(str) {
                 console.log("custom hook", str)
@@ -276,11 +252,6 @@
                     force: true,
                     before: 'blockquote',
                 },
-                // spxRunner: {
-                //     syntaxClass: spxRunnerHook,
-                //     force: true,
-                //     before: 'blockquote',
-                // }
             },
             fileUpload: fileUpload,
             // 第三方包
@@ -308,9 +279,7 @@
                     // 语法开关
                     // 'hookName': false,
                     // 语法配置
-                    // 'hookName': {
-                    //
-                    // }
+                    // 'hookName': {}
                     autoLink: {
                         /** 是否开启短链接 */
                         enableShortLink: true,
@@ -324,9 +293,9 @@
                         indentSpace: 2 // 默认2个空格缩进
                     },
                     table: {
-                        enableChart: false // chartRenderEngine: EChartsTableEngine,
+                        enableChart: false, 
+                        // chartRenderEngine: EChartsTableEngine,
                         // externals: ['echarts'],
-
                     },
                     inlineCode: {
                         theme: 'red'
@@ -344,15 +313,13 @@
                             // 创建自定义渲染函数
                             gop: {
                                 render: (src, sign, cherryEnding)=> {
-                                    console.log("custom render", src)
-                                    // return `<p style="color: red">${src}</p>`;
                                     return `<goplus-code half-code language="gop" style="width: 85vw">${src}</goplus-code>`;
                                 }
                             },
                             spx: {
                                 render: (src, sign, cherryEnding)=> {
-                                    return `<div style="width: 500px;height: 500px; padding:5px 0">
-                                                <spx-runner projectid=${src}></spx-runner>
+                                    return `<div style="margin-left: auto; margin-right: auto; width: 30vw; height: 30vw;">
+                                                ${src}
                                             </div>`;
                                 }
                             }
@@ -521,7 +488,6 @@
                 file: '*',
             },
             callback: {
-                
                 afterChange: afterChange,
                 // afterInit: afterInit,
                 // beforeImageMounted: beforeImageMounted,
@@ -541,8 +507,8 @@
             // The locale Cherry is going to use. Locales live in /src/locales/
             locale: "en_US",
         })
-        console.log(cherrInstance.engine)
 
+        console.log(cherrInstance.engine)
     }
 
     import 'cherry-markdown/dist/cherry-markdown.min.css'
