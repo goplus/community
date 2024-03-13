@@ -19,7 +19,6 @@ package translation
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -622,33 +621,8 @@ func TestTranslateEmpty(t *testing.T) {
 		}
 
 		translatedResult, err := transEngine.TranslateMarkdownText(test.src, test.from, test.to)
-		fmt.Println(translatedResult, err)
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-}
 
-func TestTranslateEmpty(t *testing.T) {
-	if mockKey == "" {
-		t.Skip("NIUTRANS_API_KEY not set")
-	}
-
-	tests := []struct {
-		src  string
-		from string
-		to   language.Tag
-	}{
-		{"", "auto", language.English},
-		{"", "auto", language.Chinese},
-	}
-
-	trans := New(mockKey, "", "")
-	for _, test := range tests {
-		translatedResult, err := trans.TranslateMarkdownText(test.src, test.from, test.to)
-		fmt.Println(translatedResult, err)
-		if err != nil {
-			t.Fatal(err)
-		}
+		assert.Nil(t, err)
+		assert.EqualValues(t, test.result, translatedResult)
 	}
 }
