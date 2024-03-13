@@ -1,5 +1,6 @@
 import (
 	"context"
+	"flag"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/goplus/community/internal/core"
 	"github.com/goplus/community/translation"
+	"github.com/joho/godotenv"
 	_ "github.com/joho/godotenv/autoload"
 	gopaccountsdk "github.com/liuscraft/gop-casdoor-account-sdk"
 	"github.com/qiniu/x/xlog"
@@ -21,6 +23,8 @@ import (
 var (
 	community *core.Community
 	trans     *translation.Engine
+	domain    string
+	htmlUrl   string
 )
 
 const (
@@ -31,8 +35,6 @@ const (
 )
 
 todo := context.TODO()
-endpoint := os.Getenv("GOP_COMMUNITY_ENDPOINT")
-domain := os.Getenv("GOP_COMMUNITY_DOMAIN")
 xLog := xlog.New("")
 
 // Modify / to /static
@@ -651,6 +653,7 @@ get "/api/video/:id", ctx => {
 }
 
 post "/api/media", ctx => {
+	xLog := xlog.New("")
 	file, header, err := ctx.FormFile("file")
 	if err != nil {
 		xLog.Error("upload file error:", header)
@@ -805,10 +808,11 @@ get "/login/callback", ctx => {
 		xLog.Error("set token error:", err)
 	}
 	cookie := http.Cookie{
-		Name:   "token",
-		Value:  token.AccessToken,
-		Path:   "/",
-		MaxAge: 3600,
+		Name:     "token",
+		Value:    token.AccessToken,
+		Path:     "/",
+		MaxAge:   168 * 60 * 60,
+		HttpOnly: true,
 	}
 	http.SetCookie(ctx.ResponseWriter, &cookie)
 
@@ -859,14 +863,22 @@ post "/api/article/like", ctx => {
 	}
 }
 
-conf := &core.Config{}
-community, _ = core.New(todo, conf)
-core.CasdoorConfigInit()
-
 // 404
 handle "/", ctx => {
 	ctx.yap "4xx", {}
 }
+
+configFile := ".env"
+flag.StringVar(&configFile, "config", ".env", "Path to the config file")
+flag.Parse()
+if err := godotenv.Load(configFile); err != nil {
+	xLog.Error(err)
+}
+
+conf := core.NewConfigFromEnv()
+community, _ = core.New(todo, conf)
+domain = conf.QiNiuConfig.Domain
+endpoint := conf.AppConfig.EndPoint
 
 xLog.Info "Started in endpoint: ", endpoint
 

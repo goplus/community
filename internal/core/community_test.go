@@ -86,6 +86,7 @@ func (m *mockS3Reader) Size() int64 {
 }
 
 // Mock S3Writer
+//
 //lint:ignore U1000 This is a mock
 type mockS3Writer struct {
 	DoWrite func(p []byte) (n int, err error)
@@ -176,9 +177,13 @@ func TestMain(m *testing.M) {
 
 func initClient() {
 	conf := &Config{
-		Driver: "sqlite3",
-		DSN:    ":memory:",
-		BlobUS: "kodo://123:456@gop-community?useHttps",
+		DBConfig: DBConfig{
+			DSN:    ":memory:",
+			Driver: "sqlite3",
+		},
+		QiNiuConfig: QiNiuConfig{
+			BlobUS: "kodo://123:456@gop-community?useHttps",
+		},
 	}
 	todo = context.TODO()
 	comm, err := New(todo, conf)
