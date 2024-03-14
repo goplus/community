@@ -146,6 +146,7 @@ func (c *Community) SaveMedia(ctx context.Context, userId string, data []byte, f
 	var duration string = ""
 	if fileInfo.Format == "video/mp4" {
 		duration, err = c.GetVideoDuration(c.domain + fileKey + "?avinfo")
+		duration = strings.ReplaceAll(duration, ".", ":")
 		if err != nil {
 			c.xLog.Warn(err.Error())
 			return 0, err
