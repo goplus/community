@@ -502,13 +502,19 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 			return []*ArticleEntry{}, from, err
 		}
 		// add author info
-		user, err := p.GetUserById(article.UId)
+		user, err := p.GetUserAuthById(article.UId)
 		if err != nil {
 			return []*ArticleEntry{}, from, err
 		}
-		article.User = *user
+		if user.Status && key == "search" || key == "user" {
+			article.User = User{
+				Name:   user.Name,
+				Id:     user.Id,
+				Avatar: user.Avatar,
+			}
+			items = append(items, article)
+		}
 
-		items = append(items, article)
 		rowLen++
 	}
 
