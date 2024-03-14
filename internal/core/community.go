@@ -343,6 +343,7 @@ func (p *Community) Article(ctx context.Context, id string) (article *Article, e
 		save_vid := []string{}
 		vids := strings.Split(article.VttId, ";")
 		var fileKey string
+		// var originKey string
 		var status string
 		for _, vid := range vids {
 			row := p.db.QueryRow(`select output, status from video_task where resource_id = ?`, vid)
@@ -353,11 +354,12 @@ func (p *Community) Article(ctx context.Context, id string) (article *Article, e
 			// vtt finish
 			if status == "1" {
 				article.Content = strings.Replace(article.Content, "("+p.domain+vid+")", "("+p.domain+fileKey+")", -1)
+				// article.Content = strings.Replace(article.Content, "("+p.domain+"origin"+vid+")", "("+p.domain+originKey+")", -1)
 			} else {
 				save_vid = append(save_vid, vid)
 			}
 		}
-		if len(save_vid) != len(vids) {
+		if len(save_vid) != 0 && len(save_vid) != len(vids) {
 			sqlStr := "update article set content=?, vtt_id=? where id=?"
 			_, err := p.db.Exec(sqlStr, article.Content, strings.Join(save_vid, ";"), id)
 			if err != nil {
@@ -500,13 +502,19 @@ func (p *Community) getPageArticles(sqlStr string, from string, limit int, value
 			return []*ArticleEntry{}, from, err
 		}
 		// add author info
-		user, err := p.GetUserById(article.UId)
+		user, err := p.GetUserAuthById(article.UId)
 		if err != nil {
 			return []*ArticleEntry{}, from, err
 		}
-		article.User = *user
+		if user.Status && key == "search" || key == "user" {
+			article.User = User{
+				Name:   user.Name,
+				Id:     user.Id,
+				Avatar: user.Avatar,
+			}
+			items = append(items, article)
+		}
 
-		items = append(items, article)
 		rowLen++
 	}
 

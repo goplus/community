@@ -1,6 +1,5 @@
 <template>
     <div id="markdown-container"></div>
-    <!-- <script type="module" src="https://goplus-builder.qiniu.io/widgets/loader.js"></script> -->
 </template>
 
 <script>
@@ -10,7 +9,7 @@
     import Plyr from 'plyr';
     import 'plyr/dist/plyr.css'
 
-    import 'https://goplus-builder.qiniu.io/widgets/loader.js'
+    import 'https://builder.goplus.org/widgets/loader.js'
 
     // axios.defaults.baseURL = 'http://localhost:8080/';
 
@@ -18,7 +17,7 @@
 
     var vtt_src = ""
 
-    var origin_vtt_src = ""
+    // var origin_vtt_src = ""
 
     let fileType = "video/mp4"
 
@@ -68,15 +67,16 @@
                     }).then(res => {
                         console.log("get video")
                         let url = res.data.url.fileKey
-                        let stitle = res.data.url.translated_vtt
+                        // let stitle = res.data.url.translated_vtt
+                        let stitle = res.data.url.subtitle
                         let status = res.data.url.status
                         let newType = res.data.url.type
-                        let origin_vtt = res.data.url.origin_vtt
+                        // let origin_vtt = res.data.url.origin_vtt
                         if(status !== "1"){
                             vtt_id.push(response.data)
                         }
                         vtt_src = stitle
-                        origin_vtt_src = origin_vtt
+                        // origin_vtt_src = origin_vtt
                         
                         console.log("URL", url)
                         onloadCallback(newType, url)                       
@@ -106,7 +106,8 @@
         fileType = type
         if (/mp4|avi|rmvb|mov|wmv|flv|avi|webm/i.test(type.toLowerCase())) {
             // replace <video controls src=""> <video> into !video
-            imgMdStr = `!video[${type}](${url})(${vtt_src})(${origin_vtt_src})\n`;
+            // imgMdStr = `!video[${type}](${url})(${vtt_src})(${origin_vtt_src})\n`;
+            imgMdStr = `!video[${type}](${url})(${vtt_src})\n`;
         } else if (/mp3/i.test(type)) {
             imgMdStr = `!audio[${type}](${url})\n`;
         } else if (/bmp|gif|jpg|jpeg|png/i.test(type)) {
@@ -122,37 +123,31 @@
     }
             
     function afterChange(text, html) {
-        this.content = text
-        checkSpxHtml(html)
-        // console.log(cherrInstance.previewer.refresh(html))
+        // video
         let video = document.querySelectorAll('video');
         for (var i = 0; i < video.length; i++) {
             const player = new Plyr(video[i], {captions: {active: true, update: true, language: 'en'}});
         }
-    }
 
-    // checkout spx
-    function checkSpx(text){
-        var pattern = /<spx-runner\s+projectid="(\d+)"><\/spx-runner>/;
-        var match = pattern.test(text); 
-        if(match) {
-            // change spx-runner into ```spx
-            text = text.replace(pattern, '```spx\n$1\n```');
-            // cherrInstance.setMarkdown(text)
-        }
-        return text
+        // spx
+        this.content = text;
+        checkSpxHtml(html);
     }
-
+    
     // checkout spx
     function checkSpxHtml(html){
-        // let html = cherrInstance.getHtml()
+        // let html = cherrInstance.getHtml(); // 不可行
+        // console.log("当前", html);
         var pattern = /&lt;spx-runner projectid="(\d+)".*?&gt;&lt;\/spx-runner&gt;/g;
-        var match = pattern.test(html); 
-        if(match){
-            html = html.replace(pattern,`<div style="width: 500px;height: 500px; padding:5px 0">
-                                        <spx-runner projectid="$1"></spx-runner>
-                                    </div>`)
-            cherrInstance.getPreviewer().refresh(html)
+        var isMatch = pattern.test(html);
+        
+        if(isMatch){
+            let newHtml = html.replace(pattern,
+                `<div style="margin-left: auto; margin-right: auto; width: 30vw; height: 30vw;">
+                    <spx-runner projectid="$1"></spx-runner>
+                </div>`)
+            // console.log("替换后", newHtml);
+            cherrInstance.getPreviewer().refresh(newHtml)
         }
     }
 
@@ -173,7 +168,6 @@
         }
         // this.cherrInstance.setMarkdown(content, 0)
         cherrInstance.insert(content, false, false, true)
-
     }
 
     function getCherryContent() {
@@ -193,6 +187,7 @@
     function initCherryMD(value, config) {
         var defaultValue = value || ""
 
+        // video
         var myBlockHook = Cherry.createSyntaxHook('myBlock', Cherry.constants.HOOKS_TYPE_LIST.PAR, {
             makeHtml(str) {
                 return str.replace(this.RULE.reg, function(whole, m1) {
@@ -211,11 +206,12 @@
                         if(matchResult[1]){
                             vtt_src = matchResult[1].replace("(","").replace(")","")
                         }
-                        if(matchResult[2]){
-                            origin_vtt_src = matchResult[2].replace("(","").replace(")","")
-                        }
+                        // if(matchResult[2]){
+                        //     origin_vtt_src = matchResult[2].replace("(","").replace(")","")
+                        // }
                         const p = new Plyr('video', {captions: {active: true}});
-                        return `<div><video controls="" crossorigin="" playsinline="" data-poster=${poster}><source src=${video_src} type=${fileType} size="576"/><track kind="captions" label="English" srclang="en" src=${vtt_src} default/><track kind="captions" label="Original" srclang="or" src=${origin_vtt_src} default/><a href=${video_src} download>Download</a></video></div>`
+                        // return `<div><video controls="" crossorigin="" playsinline="" data-poster=${poster}><source src=${video_src} type=${fileType} size="576"/><track kind="captions" label="English" srclang="en" src=${vtt_src} default/><track kind="captions" label="Original" srclang="or" src=${origin_vtt_src} default/><a href=${video_src} download>Download</a></video></div>`
+                        return `<div><video controls="" crossorigin="" playsinline="" data-poster=${poster}><source src=${video_src} type=${fileType} size="576"/><track kind="captions" label="English" srclang="en" src=${vtt_src} default/><a href=${video_src} download>Download</a></video></div>`
                         
                     } else {
                         console.log("can't match ()");
@@ -227,28 +223,12 @@
             
             rule(str) {
                 return {
-                    reg: /!video\[.*?\]\(.*?\)\(.*?\)\(.*?\)/g
+                    // reg: /!video\[.*?\]\(.*?\)\(.*?\)\(.*?\)/g
+                    reg: /!video\[.*?\]\(.*?\)\(.*?\)/g
                 }
             },
         });
 
-        var spxRunnerHook = Cherry.createSyntaxHook('spxRunner', Cherry.constants.HOOKS_TYPE_LIST.PAR, {
-            beforeMakeHtml(str) {
-                return str.replace(this.RULE.reg, function(whole, m1) {
-                    // var pattern = /\<spx-runner\s+projectid="(\d+)".*?\>\<\/spx-runner\>/;
-                    var pattern = /&#60;spx-runner projectid="(\d+)".*?&#62;&#60;\/spx-runner&#62;/;
-                    return whole.replace(pattern, '```spx\n$1\n```');
-                });
-            },
-            
-            rule(str) {
-                return {
-                    reg: /&#60;spx-runner projectid=.*?&#62;&#60;\/spx-runner&#62;/g
-                }
-            },
-        });
-
-        // import 'https://unpkg.com/vue@2.6.12/dist/vue.min.js'
         var CustomHookA = Cherry.createSyntaxHook('important', Cherry.constants.HOOKS_TYPE_LIST.SEN, {
             makeHtml(str) {
                 console.log("custom hook", str)
@@ -276,11 +256,6 @@
                     force: true,
                     before: 'blockquote',
                 },
-                // spxRunner: {
-                //     syntaxClass: spxRunnerHook,
-                //     force: true,
-                //     before: 'blockquote',
-                // }
             },
             fileUpload: fileUpload,
             // 第三方包
@@ -308,9 +283,7 @@
                     // 语法开关
                     // 'hookName': false,
                     // 语法配置
-                    // 'hookName': {
-                    //
-                    // }
+                    // 'hookName': {}
                     autoLink: {
                         /** 是否开启短链接 */
                         enableShortLink: true,
@@ -324,9 +297,9 @@
                         indentSpace: 2 // 默认2个空格缩进
                     },
                     table: {
-                        enableChart: false // chartRenderEngine: EChartsTableEngine,
+                        enableChart: false, 
+                        // chartRenderEngine: EChartsTableEngine,
                         // externals: ['echarts'],
-
                     },
                     inlineCode: {
                         theme: 'red'
@@ -344,15 +317,13 @@
                             // 创建自定义渲染函数
                             gop: {
                                 render: (src, sign, cherryEnding)=> {
-                                    console.log("custom render", src)
-                                    // return `<p style="color: red">${src}</p>`;
                                     return `<goplus-code half-code language="gop" style="width: 85vw">${src}</goplus-code>`;
                                 }
                             },
                             spx: {
                                 render: (src, sign, cherryEnding)=> {
-                                    return `<div style="width: 500px;height: 500px; padding:5px 0">
-                                                <spx-runner projectid=${src}></spx-runner>
+                                    return `<div style="margin-left: auto; margin-right: auto; width: 30vw; height: 30vw;">
+                                                ${src}
                                             </div>`;
                                 }
                             }
@@ -521,7 +492,6 @@
                 file: '*',
             },
             callback: {
-                
                 afterChange: afterChange,
                 // afterInit: afterInit,
                 // beforeImageMounted: beforeImageMounted,
@@ -541,8 +511,8 @@
             // The locale Cherry is going to use. Locales live in /src/locales/
             locale: "en_US",
         })
-        console.log(cherrInstance.engine)
 
+        console.log(cherrInstance.engine)
     }
 
     import 'cherry-markdown/dist/cherry-markdown.min.css'

@@ -1,11 +1,3 @@
-<!--
- * @Author: Shi Zhaofan
- * @Date: 2024-03-13 00:35:59
- * @LastEditors: Shi Zhaofan
- * @LastEditTime: 2024-03-13 00:36:19
- * @FilePath: \community\cmd\gopcomm\yap\markdown-vue\src\App.vue
- * @Description: 
--->
 <script setup>
 import MarkdownEditor from './components/MarkdownEditor.vue';
 import MarkdownViewerOld from './components/MarkdownViewerOld.vue';
@@ -16,7 +8,7 @@ import MarkdownViewer from './components/MarkdownViewer.vue';
     <!-- <div class="bg"> -->
         <!-- <div>测试父级元素样式</div> -->
         <markdown-editor></markdown-editor>
-        <!-- <markdown-viewer :md="c"></markdown-viewer> -->
+        <markdown-viewer :md="c"></markdown-viewer>
         <!-- <markdown-viewer-old :md="c"></markdown-viewer-old> -->
     <!-- </div> -->
 </template> 
@@ -28,24 +20,22 @@ import 'plyr/dist/plyr.css'
 export default  {
     data() {
         return {
+            // 测试视频用
             // c: "!video[video/mp4](https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)"
-//             c: `!video[video/mp4](https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)
+            c: `!video[video/mp4](https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)
+            
+!video[video/mp4](https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)`
+            
+            // 测试md文章用
+            // c: `# head
+            // ## sss
+            // - 123
+            // > 456
+            // # welcome to cherry editor!
+            // `
 
-
-// !video[video/mp4](https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)(https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt)`
-// c: `# head
-// ## sss
-
-// - 123
-// > 456
-// # welcome to cherry editor!
-// `
-
-c:`<spx-runner projectid="8"></spx-runner>
-
-<spx-runner projectid="1"></spx-runner>`
-
-// c:"```spx\n8\n```"
+            // 测试spx用
+            // c:"```spx\n <spx-runner projectid=\"56\"></spx-runner> \n```"
         }
     },
     mounted() {
@@ -58,7 +48,6 @@ c:`<spx-runner projectid="8"></spx-runner>
         }
     }
 }
-
 </script>
 
 <style>

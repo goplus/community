@@ -118,7 +118,7 @@
 
                                 <button
                                     class="mt-2 block rounded-lg bg-transparent py-1.5 px-4 font-medium text-blue-600 transition-colors hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50">
-                                    <a href="/">
+                                    <a href="/add">
                                         Go to add article
                                     </a>
                                 </button>
@@ -242,7 +242,7 @@
 
                                 <button
                                     class="mt-2 block rounded-lg bg-transparent py-1.5 px-4 font-medium text-blue-600 transition-colors hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50">
-                                    <a href="/">
+                                    <a href="/add">
                                         Go to add article
                                     </a>
                                 </button>
@@ -366,7 +366,7 @@
 
                                 <button
                                     class="mt-2 block rounded-lg bg-transparent py-1.5 px-4 font-medium text-blue-600 transition-colors hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50">
-                                    <a href="/">
+                                    <a href="/add">
                                         Go to add article
                                     </a>
                                 </button>
@@ -652,6 +652,9 @@
                                 if (todos.next === "eof") {
                                     haveMoreData.value[tabName] = false;
                                 }
+                                isBottom.value[tabName] = true
+                            }else {
+                                haveMoreData.value[tabName] = false;
                                 isBottom.value[tabName] = true
                             }
                         });
