@@ -384,6 +384,11 @@
                                             </n-card>
                                         </n-modal>
 
+                                        <!-- Duration -->
+                                        <n-tag :bordered="false" size="small">
+                                            ${ item.Duration }
+                                        </n-tag>
+
                                         <!-- Update Time -->
                                         <span class="absolute bottom-4" style="color: #A0AEC0;">
                                             ${ item.CreateAt.slice(0,10) }
