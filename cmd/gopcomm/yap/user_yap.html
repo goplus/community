@@ -348,8 +348,12 @@
                                 <n-list-item v-for="(item,i) in videoList" :key="index" class="flex">
                                     <!-- prefix -->
                                     <template #prefix>
-                                        <img class="w-full object-cover rounded" style="height: 20vh; width: 32vh;"
-                                            :src="item.FileKey+'?vframe/jpg/offset/7'" alt="">
+                                        <n-image
+                                            class="w-full object-cover rounded" alt="" style="height: 20vh; width: 32vh;"
+                                            :src="item.FileKey+'?vframe/jpg/offset/7' || '/static/img/default-cover.jpg'"
+                                        />
+                                        <!-- <img v-if="imgVisible" class="w-full object-cover rounded" style="height: 20vh; width: 32vh;"
+                                            :src="item.FileKey+'?vframe/jpg/offset/7' || '/static/img/default-cover.jpg'" alt=""> -->
                                     </template>
 
                                     <!-- content -->
