@@ -745,11 +745,11 @@
                 .then(todos => {
                     if (todos.code === 200) {
                         if (format === "video") {
-                            videoList.value = todos.items
+                            videoList.value = todos.items || []
                             videoGet.value = true
                             totalVideoPage.value = Math.ceil(todos.total/pageSize.value);
                         } else {
-                            imageList.value = todos.items
+                            imageList.value = todos.items || []
                             imageGet.value = true
                             totalImagePage.value = Math.ceil(todos.total/pageSize.value);
                         }
@@ -769,7 +769,7 @@
                 .then(todos => {
                     if (todos.code === 200) {
                         userGet.value = true
-                        userList.value = todos.items
+                        userList.value = todos.items || []
                         totalUserPage.value = Math.ceil(todos.total/pageSize.value);
                         console.log("userList", userList.value)
                         console.log("totalUserPage", totalUserPage.value)
@@ -851,7 +851,7 @@
                 })
                 .then(todos => {
                     if (todos.code === 200) {
-                        articleList.value = todos.items;
+                        articleList.value = todos.items || [];
                         totalArticlePage.value = Math.ceil(todos.total/pageSize.value);
                         addShareCount();
                     }

@@ -574,10 +574,11 @@
         /*======= load more data after reaching bottom =======*/
         // const videoGet = ref(false);
         // const stemGet = ref(false);
+        console.log("articles", articles)
         const videoList = ref([]);
         const stemList = ref([]);
         const articleList = ref({
-            article: articles,
+            article: articles || [],
             video: [],
             stem: [],
         });
@@ -651,7 +652,7 @@
                         .then(todos => {
                             if (todos.code === 200) {
                                 console.log("todos.next", todos.next)
-                                if(todos.items == null){
+                                if(todos.items === null){
                                     todos.items = []
                                 }
                                 articleList.value[tabName].push(...todos.items);
