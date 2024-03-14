@@ -404,11 +404,15 @@ get "/user/edit", ctx => {
 		xLog.Error("get application info error:", err)
 		http.Redirect(ctx.ResponseWriter, ctx.Request, "/error", http.StatusTemporaryRedirect)
 	}
+	providers := gac.GetProviders()
+
 	ctx.yap "user_edit", {
 		"User":        user,
 		"CurrentUser": userClaim,
 		"Application": appInfo,
 		"Binds":       gac.GetProviderBindStatus(),
+		"casdoorUrl":  gopaccountsdk.GetCasdoorEndPoint(),
+		"providers":   providers,
 	}
 }
 
@@ -455,8 +459,8 @@ get "/api/users", ctx => {
 	} else {
 		xLog.Error("get token error:", err)
 		ctx.json {
-			"code": 0,
-			"msg":  "get token failed",
+			"code":  0,
+			"msg":   "get token failed",
 			"users": nil,
 			"next":  1,
 		}
@@ -481,11 +485,11 @@ get "/api/users", ctx => {
 
 	if !userAuth.Status {
 		ctx.json {
-			"code": 0,
-			"msg":  "auth failed",
+			"code":  0,
+			"msg":   "auth failed",
 			"items": nil,
 			"total": 10,
-			"next": 1,
+			"next":  1,
 		}
 	}
 
@@ -493,20 +497,20 @@ get "/api/users", ctx => {
 	if err != nil {
 		xLog.Error("get users error:", err)
 		ctx.json {
-			"code": 0,
-			"msg":  "get users failed",
+			"code":  0,
+			"msg":   "get users failed",
 			"items": nil,
 			"total": 10,
-			"next": 1,
+			"next":  1,
 		}
 	}
 
 	ctx.json {
-		"code": 200,
-		"msg":  "ok",
+		"code":  200,
+		"msg":   "ok",
 		"items": users,
 		"total": len(users),
-		"next": next,
+		"next":  next,
 	}
 }
 
@@ -522,8 +526,8 @@ put "/api/user/public", ctx => {
 	} else {
 		xLog.Error("get token error:", err)
 		ctx.json {
-			"code": 0,
-			"msg":  "get token failed",
+			"code":  0,
+			"msg":   "get token failed",
 			"users": nil,
 			"next":  1,
 		}
@@ -537,11 +541,11 @@ put "/api/user/public", ctx => {
 
 	if !userAuth.Status {
 		ctx.json {
-			"code": 0,
-			"msg":  "auth failed",
+			"code":  0,
+			"msg":   "auth failed",
 			"items": nil,
 			"total": 10,
-			"next": 1,
+			"next":  1,
 		}
 	}
 
@@ -570,7 +574,35 @@ put "/api/user/public", ctx => {
 	}
 }
 
-get "/api/user/unlink", ctx => {
+get "/api/user/get-qrcode", ctx => {
+	token, err := ctx.Request.Cookie("token")
+	if err != nil {
+		ctx.json {
+			"code": 500,
+		}
+		return
+	}
+	gac, err := gopaccountsdk.GetClient(token.Value)
+	if err != nil {
+		ctx.json {
+			"code": 500,
+		}
+		return
+	}
+	qrData, ticket, err := gac.GetProviderWeChatQRCode("provider_wechat")
+	if err != nil {
+		ctx.json {
+			"code": 500,
+		}
+		return
+	}
+	ctx.json {
+		"data":  qrData,
+		"data2": ticket,
+		"code":  200,
+	}
+}
+get "/api/user/acoount/unlink", ctx => {
 	pv := ctx.param("pv")
 	token, err := ctx.Request.Cookie("token")
 	if err != nil {
