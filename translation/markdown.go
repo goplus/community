@@ -83,6 +83,7 @@ type translateResponse struct {
 }
 
 // translateErrorResponse is the error response of translation server
+//
 //lint:ignore U1000 This is a struct for json unmarshal
 type translateErrorResponse struct {
 	ErrorCode string `json:"error_code"`
@@ -256,7 +257,7 @@ func generateSeparator() string {
 	// return fmt.Sprintf("%d", time.Now().Unix())
 
 	// Use fixed Separator
-	return fmt.Sprintf("%d", math.MaxInt64)
+	return fmt.Sprintf("%d", int32(math.MaxInt32))
 }
 
 // Translate translate sequence of bytes
