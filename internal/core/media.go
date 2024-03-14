@@ -5,7 +5,9 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -146,7 +148,12 @@ func (c *Community) SaveMedia(ctx context.Context, userId string, data []byte, f
 	var duration string = ""
 	if fileInfo.Format == "video/mp4" {
 		duration, err = c.GetVideoDuration(c.domain + fileKey + "?avinfo")
-		duration = strings.ReplaceAll(duration, ".", ":")
+		if err != nil {
+			c.xLog.Warn(err.Error())
+			return 0, err
+		}
+		duration, err = formatVideoDuration(duration)
+		c.xLog.Info(duration)
 		if err != nil {
 			c.xLog.Warn(err.Error())
 			return 0, err
@@ -166,6 +173,19 @@ func (c *Community) SaveMedia(ctx context.Context, userId string, data []byte, f
 	}
 	id, err := res.LastInsertId()
 	return id, err
+}
+
+func formatVideoDuration(duration string) (string, error) {
+	seconds, err := strconv.ParseFloat(duration, 64)
+	if err != nil {
+		return "", err
+	}
+
+	minutes := math.Floor(seconds / 60)
+	secondsRemainder := int(seconds) % 60
+
+	formattedTime := fmt.Sprintf("%d:%02d", int(minutes), secondsRemainder)
+	return formattedTime, nil
 }
 
 // for internal use,no need to add ctx
