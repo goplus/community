@@ -203,6 +203,9 @@
                 </div>
             </n-tab-pane>
         </n-tabs>
+        <n-modal v-model:show="wechatModel.show">
+            <img :src="wechatModel.data"/>
+          </n-modal>
     </div>
 
     <script>
@@ -212,6 +215,11 @@
         const application = {{.Application}}
         const accountBinds = {{.Binds}}
         const user = {{.User}}
+        const wechatModel = ref({
+            show: false,
+            data: "",
+            ticket: "",
+        })
 
         /*======= user =======*/
         if (userProfile.value.birthday === "" || userProfile.value.birthday === "undefined"){
@@ -653,172 +661,7 @@
             },
         };
 
-        const providers = [
-            {
-                "owner": "admin",
-                "name": "provider_github",
-                "createdTime": "2024-01-22T11:15:22+08:00",
-                "displayName": "New Provider - github",
-                "category": "OAuth",
-                "type": "GitHub",
-                "subType": "",
-                "method": "Normal",
-                "clientId": "Iv1.de7a592b6cc33131",
-                "clientSecret": "***",
-                "clientId2": "",
-                "clientSecret2": "",
-                "cert": "",
-                "customAuthUrl": "",
-                "customTokenUrl": "",
-                "customUserInfoUrl": "",
-                "customLogo": "",
-                "scopes": "",
-                "userMapping": {},
-                "host": "",
-                "port": 0,
-                "disableSsl": false,
-                "title": "",
-                "content": "",
-                "receiver": "",
-                "regionId": "",
-                "signName": "",
-                "templateCode": "",
-                "appId": "",
-                "endpoint": "",
-                "intranetEndpoint": "",
-                "domain": "",
-                "bucket": "",
-                "pathPrefix": "",
-                "metadata": "",
-                "idP": "",
-                "issuerUrl": "",
-                "enableSignAuthnRequest": false,
-                "providerUrl": "https://github.com/organizations/xxx/settings/applications/1234567"
-            },
-            {
-                "owner": "admin",
-                "name": "provider_twitter",
-                "createdTime": "2024-01-22T11:20:19+08:00",
-                "displayName": "New Provider - twitter",
-                "category": "OAuth",
-                "type": "Twitter",
-                "subType": "",
-                "method": "Normal",
-                "clientId": "VmNJS2otVTlZYUVLNEVVZ0ZJc2w6MTpjaQ",
-                "clientSecret": "***",
-                "clientId2": "",
-                "clientSecret2": "",
-                "cert": "",
-                "customAuthUrl": "",
-                "customTokenUrl": "",
-                "customUserInfoUrl": "",
-                "customLogo": "",
-                "scopes": "",
-                "userMapping": {},
-                "host": "",
-                "port": 0,
-                "disableSsl": false,
-                "title": "",
-                "content": "",
-                "receiver": "",
-                "regionId": "",
-                "signName": "",
-                "templateCode": "",
-                "appId": "",
-                "endpoint": "",
-                "intranetEndpoint": "",
-                "domain": "",
-                "bucket": "",
-                "pathPrefix": "",
-                "metadata": "",
-                "idP": "",
-                "issuerUrl": "",
-                "enableSignAuthnRequest": false,
-                "providerUrl": "https://github.com/organizations/xxx/settings/applications/1234567"
-            },
-            {
-                "owner": "admin",
-                "name": "provider_facebook",
-                "createdTime": "2024-01-22T11:19:03+08:00",
-                "displayName": "New Provider - facebook",
-                "category": "OAuth",
-                "type": "Facebook",
-                "subType": "",
-                "method": "Normal",
-                "clientId": "927083362474156",
-                "clientSecret": "***",
-                "clientId2": "",
-                "clientSecret2": "",
-                "cert": "",
-                "customAuthUrl": "",
-                "customTokenUrl": "",
-                "customUserInfoUrl": "",
-                "customLogo": "",
-                "scopes": "",
-                "userMapping": {},
-                "host": "",
-                "port": 0,
-                "disableSsl": false,
-                "title": "",
-                "content": "",
-                "receiver": "",
-                "regionId": "",
-                "signName": "",
-                "templateCode": "",
-                "appId": "",
-                "endpoint": "",
-                "intranetEndpoint": "",
-                "domain": "",
-                "bucket": "",
-                "pathPrefix": "",
-                "metadata": "",
-                "idP": "",
-                "issuerUrl": "",
-                "enableSignAuthnRequest": false,
-                "providerUrl": "https://github.com/organizations/xxx/settings/applications/1234567"
-            },
-            {
-                "owner": "admin",
-                "name": "provider_wechat",
-                "createdTime": "2024-01-25T10:20:42+08:00",
-                "displayName": "wechat",
-                "category": "OAuth",
-                "type": "WeChat",
-                "subType": "",
-                "method": "Normal",
-                "clientId": "wxf6fad0f92d9e8313",
-                "clientSecret": "***",
-                "clientId2": "wxf6fad0f92d9e8313",
-                "clientSecret2": "***",
-                "cert": "",
-                "customAuthUrl": "",
-                "customTokenUrl": "",
-                "customUserInfoUrl": "",
-                "customLogo": "",
-                "scopes": "",
-                "userMapping": {},
-                "host": "",
-                "port": 0,
-                "disableSsl": true,
-                "title": "",
-                "content": "iVBORw0KGgoAAAANSUhEUgAAAQAAAAEAAQMAAABmvDolAAAABlBMVEX///8AAABVwtN+AAAB+ElEQVR42uyYPfLrIAzE10NByRE4Cjfzx804CkegpGC8byQ8SZyX6l9ZHquK418jI1Yr4YknnvhbLCTZAFbMAMiy9CD/8V4AgKkhsWJiTY5l6iEfL+wAjtxazI5laZrmjJAlW4MA+8i2ezksq4AeDytcA3BHQGsyZlZ5Sh1xx4+ivTqg+hBzD2X2NbkWt18CcnFgRCQUGDfrR1wckJLjULkZgR2Rmma5FwDWtHrS1ShHKDXpmKf3zTIBLK4eNyuyhexaXF3F7rnaApjhC0iuCHQNU9fOBFtAxSK9KBTR6nFgSWzPvQAErohkjVsLlE8i8v7p5WwAeRH/IGlSzJBYOiCulgA4cvcFesEAeK5DH2AKQJDHpJUXCD23tPu3DN4GmD2lD+3aebkjcOJLBm0AfJ2dyIQOQfgUcxPA0rUQs9o3TXNTMX/rgwnA1bSRuYvY6RA0j0u23A7YMfyDDEGjJZ3mbguA6MMoxvmV5rfaXx9wYqjFjeoQJPrgaprOLsgCkIazEcHTJYJAJ8t6A+Bj1hP/wKaScmpJBoBjeZi6/pTxgT3kz+9gAjh2IB3qSDv+S9MEcOyjBBgqt43EbwloTbah4pS7ViwC+chP5m4Efq16rg+MrbtqhKTpxcuJr7YFHMtDnUKrcjJW80tArANPPPHEOf4FAAD//zp6rk3/kINSAAAAAElFTkSuQmCC",
-                "receiver": "",
-                "regionId": "",
-                "signName": "",
-                "templateCode": "",
-                "appId": "",
-                "endpoint": "",
-                "intranetEndpoint": "",
-                "domain": "",
-                "bucket": "",
-                "pathPrefix": "",
-                "metadata": "",
-                "idP": "",
-                "issuerUrl": "",
-                "enableSignAuthnRequest": false,
-                "providerUrl": "https://open.weixin.qq.com/connect/oauth2/authorize"
-            }
-        ]
+        const providers = {{.providers}}
 
         function getStateFromQueryParams(applicationName, providerName, method, isShortState) {
             let query = window.location.search;
@@ -836,12 +679,13 @@
             }
         }
 
-        function getAuthUrl(provider, method, res) {
+        function getAuthUrl(provider, method, code) {
             if (provider === null) {
                 return "";
             }
+            console.log(provider)
             let endpoint = authInfo[provider.type].endpoint;
-            let redirectUri = `https://casdoor-community.qiniu.io/callback`;
+            let redirectUri = `{{.casdoorUrl}}/callback`;
             const scope = authInfo[provider.type].scope;
 
             // rm (provider.type === "Twitter")
@@ -854,7 +698,7 @@
                     endpoint = endpoint.replace("common", provider.domain);
                 }
             } else if (provider.type === "Apple") {
-                redirectUri = `https://casdoor-community.qiniu.io/api/callback`;
+                redirectUri = `{{.casdoorUrl}}/api/callback`;
             }
 
             if (provider.type === "Google" || provider.type === "GitHub" || provider.type === "QQ" || provider.type === "Facebook"
@@ -874,10 +718,14 @@
             } else if (provider.type === "DingTalk") {
                 return `${endpoint}?client_id=${provider.clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code&prompt=consent&state=${state}`;
             } else if (provider.type === "WeChat") {
-                if (provider.clientId !== "") {
+                if (navigator.userAgent.includes("MicroMessenger")) {
+                    return `${authInfo[provider.type].mpEndpoint}?appid=${provider.clientId2}&redirect_uri=${redirectUri}&state=${state}&scope=${authInfo[provider.type].mpScope}&response_type=code#wechat_redirect`;
+                } else {
+                    if (provider.clientId2 && provider?.disableSsl && provider?.signName === "media") {
+                        return `{{.casdoorUrl}}/callback?state=${state}&code=${"wechat_oa:" + code}`;
+                    }
                     return `${endpoint}?appid=${provider.clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code&state=${state}#wechat_redirect`;
                 }
-                return `/callback?appid=${provider.clientId2}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code&state=${state}&code=${res?.data2 || ""}`;
             } else if (provider.type === "WeCom") {
                 if (provider.subType === "Internal") {
                     if (provider.method === "Silent") {
@@ -916,7 +764,7 @@
             } else if (provider.type === "Apple") {
                 return `${endpoint}?client_id=${provider.clientId}&redirect_uri=${redirectUri}&state=${state}&response_type=code%20id_token&scope=${scope}&response_mode=form_post`;
             } else if (provider.type === "Steam") {
-                return `${endpoint}?openid.claimed_id=http://specs.openid.net/auth/2.0/identifier_select&openid.identity=http://specs.openid.net/auth/2.0/identifier_select&openid.mode=checkid_setup&openid.ns=http://specs.openid.net/auth/2.0&openid.realm=https://casdoor-community.qiniu.io&openid.return_to=${redirectUri}?state=${state}`;
+                return `${endpoint}?openid.claimed_id=http://specs.openid.net/auth/2.0/identifier_select&openid.identity=http://specs.openid.net/auth/2.0/identifier_select&openid.mode=checkid_setup&openid.ns=http://specs.openid.net/auth/2.0&openid.realm={{.casdoorUrl}}&openid.return_to=${redirectUri}?state=${state}`;
             } else if (provider.type === "Okta") {
                 return `${provider.domain}/v1/authorize?client_id=${provider.clientId}&redirect_uri=${redirectUri}&state=${state}&response_type=code&scope=${scope}`;
             } else if (provider.type === "Douyin" || provider.type === "TikTok") {
@@ -939,8 +787,47 @@
                 return `${redirectUri}?state=${state}`;
             }
         }
-
+        var _wechatHook = 0
+        var wechatData = undefined
+        const startWebhook = ()=>{
+            if (_wechatHook) {
+                clearInterval(_wechatHook)
+            }
+            _wechatHook = setInterval(()=> {
+                fetch(`{{.casdoorUrl}}/api/get-webhook-event?ticket=${wechatModel.value.ticket}`, {method: "GET"}).then(res=>{
+                    return res.json()
+                }).then(res=>{
+                    if(res.status == "ok") {
+                        wechatData = res.data2
+                        clearInterval(_wechatHook)
+                        window.location.href = getAuthUrl(findProvider("WeChat"), "link", wechatData)
+                    }
+                })
+            }, 1000)
+        }
         function openBindPage(url) {
+            if(url == "WeChat") {
+                fetch("/api/user/get-qrcode", {method: "GET"}).then(res=> {
+                    return res.json();
+                }).then(res=> {
+                    if(res.code != 200) {
+                        wechatModel.value = {
+                            show: false,
+                            data: "",
+                            ticket: ""
+                        }
+
+                        return
+                    }
+                    startWebhook()
+                    wechatModel.value = {
+                        show: true,
+                        data: `data:image/jpeg;base64,${res.data}`,
+                        ticket: res.data2
+                    }
+                })
+                return
+            }
             window.location.href= (url);
         }
 
@@ -948,7 +835,7 @@
             const requestunlinkOptions = {
                         method: "GET"
                     };
-            fetch("/api/user/unlink?pv=" + url, requestunlinkOptions).then(res => {
+            fetch("/api/user/acoount/unlink?pv=" + url, requestunlinkOptions).then(res => {
                             return res.json();
                         })
                         .then(todos => {
@@ -1036,11 +923,19 @@
             tabBorderColor: '#cee1f5',
             tabGapMediumCard: '20px',
         }
+        function findProvider(type) {
+            let prov = providers.find(element => element.provider.type == type)
+            if(prov) {
+                return prov.provider
+            }
+            return {};
+        }
 
         /*======= register vue component =======*/
         const app = Vue.createApp({
             data() {
                 return {
+                    wechatModel,
                     buttonTheme,
                     inputTheme,
                     selectTheme,
@@ -1060,7 +955,7 @@
                             desc: "https://github.com",
                             bind: accountBinds.Github,
                             provider: authInfo.GitHub,
-                            url: getAuthUrl(providers[0], "link")
+                            url: getAuthUrl(findProvider("GitHub"), "link")
                         },
                         {
                             img: "/static/img/social_twitter.png",
@@ -1068,7 +963,7 @@
                             desc: "https://twitter.com",
                             bind: accountBinds.Twitter,
                             provider: authInfo.Twitter,
-                            url: getAuthUrl(providers[1], "link")
+                            url: getAuthUrl(findProvider("Twitter"), "link")
                         },
                         {
                             img: "/static/img/social_facebook.png",
@@ -1076,7 +971,7 @@
                             desc: "https://facebook.com",
                             bind: accountBinds.Facebook,
                             provider: authInfo.Facebook,
-                            url: getAuthUrl(providers[2], "link")
+                            url: getAuthUrl(findProvider("Facebook"), "link")
                         },
                         {
                             img: "/static/img/social_wechat.png",
@@ -1084,7 +979,7 @@
                             desc: "https://weixin.qq.com",
                             bind: accountBinds.WeChat,
                             provider: authInfo.WeChat,
-                            url: getAuthUrl(providers[3], "link")
+                            url: "WeChat"
                         }
                     ]
                 }

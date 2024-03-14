@@ -22,12 +22,12 @@ require (
 )
 
 require (
-	github.com/liuscraft/gop-casdoor-account-sdk v1.1.0
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/stretchr/testify v1.9.0
+	github.com/gabriel-vasile/mimetype v1.4.3
+	github.com/joho/godotenv v1.5.1
+	github.com/liuscraft/gop-casdoor-account-sdk v1.2.0
 )
-
-require github.com/gabriel-vasile/mimetype v1.4.3
 
 replace github.com/qiniu/go-cdk-driver v0.1.0 => github.com/xhyqaq/go-cdk-driver v1.0.0
 
@@ -42,7 +42,6 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
-	github.com/joho/godotenv v1.5.1
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/net v0.21.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect
