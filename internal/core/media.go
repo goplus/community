@@ -31,7 +31,7 @@ type File struct {
 	Id       int
 	FileKey  string
 	Format   string
-	UserId   int
+	UserId   string
 	Size     int64
 	CreateAt time.Time
 	UpdateAt time.Time
