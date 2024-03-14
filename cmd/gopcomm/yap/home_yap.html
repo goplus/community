@@ -612,6 +612,10 @@
 
         let tabName = tab || "article"
 
+        if(articleList.value[tabName].length < 5){
+            loadMore()
+        }
+
         function listenBottom() {
             let scrollTop = window.scrollY;
             let clientHeight = document.documentElement.clientHeight;
@@ -647,12 +651,18 @@
                         .then(todos => {
                             if (todos.code === 200) {
                                 console.log("todos.next", todos.next)
+                                if(todos.items == null){
+                                    todos.items = []
+                                }
                                 articleList.value[tabName].push(...todos.items);
                                 next.value[tabName] = todos.next;
                                 if (todos.next === "eof") {
                                     haveMoreData.value[tabName] = false;
                                 }
                                 isBottom.value[tabName] = true
+                                if(articleList.value[tabName].length < 5){
+                                    loadMore()
+                                }
                             }else {
                                 haveMoreData.value[tabName] = false;
                                 isBottom.value[tabName] = true
