@@ -346,7 +346,7 @@
 
         /*======= account =======*/
 
-
+        const casdoorUrl = {{.casdoorUrl}}
         const authInfo = {
             Google: {
                 scope: "profile+email",
@@ -680,12 +680,12 @@
         }
 
         function getAuthUrl(provider, method, code) {
-            if (provider === null) {
+            if (provider === null || !provider.type) {
                 return "";
-            }
-            console.log(provider)
+            }   
+            console.log("provider:", provider)
             let endpoint = authInfo[provider.type].endpoint;
-            let redirectUri = `{{.casdoorUrl}}/callback`;
+            let redirectUri = `${casdoorUrl}/callback`;
             const scope = authInfo[provider.type].scope;
 
             // rm (provider.type === "Twitter")
@@ -698,7 +698,7 @@
                     endpoint = endpoint.replace("common", provider.domain);
                 }
             } else if (provider.type === "Apple") {
-                redirectUri = `{{.casdoorUrl}}/api/callback`;
+                redirectUri = `${casdoorUrl}/api/callback`;
             }
 
             if (provider.type === "Google" || provider.type === "GitHub" || provider.type === "QQ" || provider.type === "Facebook"
@@ -722,7 +722,7 @@
                     return `${authInfo[provider.type].mpEndpoint}?appid=${provider.clientId2}&redirect_uri=${redirectUri}&state=${state}&scope=${authInfo[provider.type].mpScope}&response_type=code#wechat_redirect`;
                 } else {
                     if (provider.clientId2 && provider?.disableSsl && provider?.signName === "media") {
-                        return `{{.casdoorUrl}}/callback?state=${state}&code=${"wechat_oa:" + code}`;
+                        return `${casdoorUrl}/callback?state=${state}&code=${"wechat_oa:" + code}`;
                     }
                     return `${endpoint}?appid=${provider.clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code&state=${state}#wechat_redirect`;
                 }
@@ -764,7 +764,7 @@
             } else if (provider.type === "Apple") {
                 return `${endpoint}?client_id=${provider.clientId}&redirect_uri=${redirectUri}&state=${state}&response_type=code%20id_token&scope=${scope}&response_mode=form_post`;
             } else if (provider.type === "Steam") {
-                return `${endpoint}?openid.claimed_id=http://specs.openid.net/auth/2.0/identifier_select&openid.identity=http://specs.openid.net/auth/2.0/identifier_select&openid.mode=checkid_setup&openid.ns=http://specs.openid.net/auth/2.0&openid.realm={{.casdoorUrl}}&openid.return_to=${redirectUri}?state=${state}`;
+                return `${endpoint}?openid.claimed_id=http://specs.openid.net/auth/2.0/identifier_select&openid.identity=http://specs.openid.net/auth/2.0/identifier_select&openid.mode=checkid_setup&openid.ns=http://specs.openid.net/auth/2.0&openid.realm=${casdoorUrl}&openid.return_to=${redirectUri}?state=${state}`;
             } else if (provider.type === "Okta") {
                 return `${provider.domain}/v1/authorize?client_id=${provider.clientId}&redirect_uri=${redirectUri}&state=${state}&response_type=code&scope=${scope}`;
             } else if (provider.type === "Douyin" || provider.type === "TikTok") {
@@ -794,7 +794,7 @@
                 clearInterval(_wechatHook)
             }
             _wechatHook = setInterval(()=> {
-                fetch(`{{.casdoorUrl}}/api/get-webhook-event?ticket=${wechatModel.value.ticket}`, {method: "GET"}).then(res=>{
+                fetch(`${casdoorUrl}/api/get-webhook-event?ticket=${wechatModel.value.ticket}`, {method: "GET"}).then(res=>{
                     return res.json()
                 }).then(res=>{
                     if(res.status == "ok") {
