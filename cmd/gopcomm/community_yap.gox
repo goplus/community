@@ -106,8 +106,10 @@ get "/article/:id", ctx => {
 	if err == nil {
 		user, err = community.GetUser(token.Value)
 		if err != nil {
-			uid = user.Id
+		    xLog.Error("get user error:", err)
+		    return
 		}
+		uid = user.Id
 	}
 
 	id := ctx.param("id")
