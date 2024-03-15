@@ -3,14 +3,18 @@
 </template>
 
 <script>
+import 'https://goplus-builder.qiniu.io/widgets/loader.js';
 import Plyr from 'plyr';
-import 'plyr/dist/plyr.css'
-import 'https://goplus-builder.qiniu.io/widgets/loader.js'
+import 'plyr/dist/plyr.css';
 
-import 'https://builder.goplus.org/widgets/loader.js'
+import 'https://builder.goplus.org/widgets/loader.js';
 
 var cherrInstance = null
-
+// this is markdown change callback
+// TODO: In order to change the callback function by article_yap.html, this is the worst way to do this.
+// It should use the vue event to handle it, but the current attempt does not work.
+window.mdChange = ()=>{
+}
 var vtt_src = ""
 
 // var origin_vtt_src = ""
@@ -92,6 +96,12 @@ function initCherryMD(value, config) {
     cherrInstance = new Cherry({
         id: 'markdown-container',                    
         value: defaultValue,
+        callback: {
+            // In order to change the callback function, here is the reference relationship
+            afterChange: ()=>{
+                window.mdChange()
+            }
+        },
         customSyntax: {
             importHook: {
                 syntaxClass: CustomHookA, // 将自定义语法对象挂载到 importHook.syntaxClass上

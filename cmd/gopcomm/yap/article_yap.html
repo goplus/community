@@ -470,7 +470,7 @@
     </div>
 
     <script type="module">
-        const { reactive, toRefs, ref, h } = Vue;
+        const { reactive, toRefs, ref, h, nextTick } = Vue;
 
         /*======= article related =======*/
         const originArticle = {{.Article}};
@@ -544,10 +544,11 @@
         }
 
         /*======= toc related =======*/
-        const toc = ref([]);
+        const toc = ref([
+            "Loading..."
+        ]);
         function getArticleToc() {
             toc.value = window.GoplusMarkdown.MarkdownViewer.methods.getToc();
-
             let result = [];
             const stack = [{ children: result }];
             toc.value.forEach((item) => {
@@ -631,6 +632,9 @@
                 MarkdownViewer: window.GoplusMarkdown.MarkdownViewer
             },
             mounted() {
+                // set markdown change callback function
+                // look cmd/gopcomm/yap/markdown-vue/src/components/MarkdownViewer.vue
+                window.mdChange=getArticleToc
                 article.value.Content = originArticle.Content
                 // every video must new plyr
                 const video = document.querySelectorAll('video');
@@ -638,10 +642,6 @@
                     const player = new Plyr(video[i], { captions: { active: true, update: true, language: 'en' } });
                 }
                 var htmlStr = document.documentElement.outerHTML;
-
-                // get article toc
-                getArticleToc();
-                
             },
             watch: {
                 // automatically close notification after 3 seconds
