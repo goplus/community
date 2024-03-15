@@ -497,16 +497,11 @@
             }
         ];
         const isOrigin = ref(true)
-        function handleResize() {
-            console.log("????????????????")
-        }
         function selectDropdown(key) {
             if (key === 'original' && !isOrigin.value) {
-                console.log("origin")
                 article.value = originArticle
                 isOrigin.value = true
             } else if (key === 'english' && isOrigin.value) {
-                console.log("english")
                 // translate
                 if (transArticle.Content) {
                     article.value = transArticle
@@ -565,7 +560,6 @@
             });
 
             toc.value = result;
-            // console.log( toc.value)
         }
        
         /*======= share related =======*/
@@ -631,8 +625,7 @@
                 shareToFacebook,
                 shareToTwitter,
                 selectDropdown,
-                likeArticle,
-                handleResize
+                likeArticle
             },
             components: {
                 MarkdownViewer: window.GoplusMarkdown.MarkdownViewer
