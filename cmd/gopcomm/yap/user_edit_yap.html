@@ -276,7 +276,6 @@
         const canSubmit  = ref(true)
         function customRequest(option) {
             canSubmit.value = false
-            console.log("option", option)
             const file = option.file
             const avatarData = new FormData();
             avatarData.append('file', file.file);
@@ -683,7 +682,6 @@
             if (provider === null || !provider.type) {
                 return "";
             }   
-            console.log("provider:", provider)
             let endpoint = authInfo[provider.type].endpoint;
             let redirectUri = `${casdoorUrl}/callback`;
             const scope = authInfo[provider.type].scope;
@@ -928,12 +926,60 @@
             if(prov) {
                 return prov.provider
             }
-            return {};
+            return undefined;
         }
 
         /*======= register vue component =======*/
         const app = Vue.createApp({
             data() {
+                const accountList = []
+                let temp = [
+                        {
+                            img: "/static/img/social_github.png",
+                            platform: "GitHub",
+                            desc: "https://github.com",
+                            bind: accountBinds.Github,
+                            provider: authInfo.GitHub,
+                            url: ""
+                        },
+                        {
+                            img: "/static/img/social_twitter.png",
+                            platform: "Twitter",
+                            desc: "https://twitter.com",
+                            bind: accountBinds.Twitter,
+                            provider: authInfo.Twitter,
+                            url: ""
+                        },
+                        {
+                            img: "/static/img/social_facebook.png",
+                            platform: "Facebook",
+                            desc: "https://facebook.com",
+                            bind: accountBinds.Facebook,
+                            provider: authInfo.Facebook,
+                            url: ""
+                        },
+                        {
+                            img: "/static/img/social_wechat.png",
+                            platform: "WeChat",
+                            desc: "https://weixin.qq.com",
+                            bind: accountBinds.WeChat,
+                            provider: authInfo.WeChat,
+                            url: ""
+                        }
+                    ]
+                    temp.forEach((e,i) => {
+                        let provider = findProvider(e.platform)
+                        if(!provider) {
+                            return
+                        }
+                        if(e.platform === "WeChat") {
+                            e.url = "WeChat"
+                        }else {
+                            e.url = getAuthUrl(provider, "link")
+                        }
+                        
+                        accountList.push(e)
+                    })
                 return {
                     wechatModel,
                     buttonTheme,
@@ -948,40 +994,7 @@
                     genderOptions,
                     fileList,
                     user,
-                    accountList: [
-                        {
-                            img: "/static/img/social_github.png",
-                            platform: "GitHub",
-                            desc: "https://github.com",
-                            bind: accountBinds.Github,
-                            provider: authInfo.GitHub,
-                            url: getAuthUrl(findProvider("GitHub"), "link")
-                        },
-                        {
-                            img: "/static/img/social_twitter.png",
-                            platform: "Twitter",
-                            desc: "https://twitter.com",
-                            bind: accountBinds.Twitter,
-                            provider: authInfo.Twitter,
-                            url: getAuthUrl(findProvider("Twitter"), "link")
-                        },
-                        {
-                            img: "/static/img/social_facebook.png",
-                            platform: "Facebook",
-                            desc: "https://facebook.com",
-                            bind: accountBinds.Facebook,
-                            provider: authInfo.Facebook,
-                            url: getAuthUrl(findProvider("Facebook"), "link")
-                        },
-                        {
-                            img: "/static/img/social_wechat.png",
-                            platform: "WeChat",
-                            desc: "https://weixin.qq.com",
-                            bind: accountBinds.WeChat,
-                            provider: authInfo.WeChat,
-                            url: "WeChat"
-                        }
-                    ]
+                    accountList
                 }
             },
             methods: {
