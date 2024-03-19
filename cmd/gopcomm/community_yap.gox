@@ -9,7 +9,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/goplus/community/internal/core"
 	"github.com/goplus/community/translation"
@@ -106,8 +105,8 @@ get "/article/:id", ctx => {
 	if err == nil {
 		user, err = community.GetUser(token.Value)
 		if err != nil {
-		    xLog.Error("get user error:", err)
-		    return
+			xLog.Error("get user error:", err)
+			return
 		}
 		uid = user.Id
 	}
@@ -347,39 +346,7 @@ post "/api/article/commit", ctx => {
 
 // User
 //
-// User pages
-get "/user/:id", ctx => {
-	id := ctx.param("id")
-	// Get current User Info by id
-	userClaim, err := community.GetUserClaim(id)
-	if err != nil {
-		xLog.Error("get current user error:", err)
-	}
-	// get user by token
-	var user *core.User
-	token, err := ctx.Request.Cookie("token")
-	if err == nil {
-		user, _ = community.GetUser(token.Value)
-	}
-	// get article list published by uid
-	items, total, err := community.GetArticlesByUid(todo, id, firstConst, mediaLimitConst)
-	if err != nil {
-		xLog.Error("get article list error:", err)
-	}
-	// check admin
-	isAdmin, err := community.IsAdmin(id)
-	if err != nil {
-		xLog.Error("check admin error:", err)
-	}
-	ctx.yap "user", {
-		"Id":          id,
-		"CurrentUser": userClaim,
-		"User":        user,
-		"Items":       items,
-		"Total":       total,
-		"IsAdmin":     isAdmin,
-	}
-}
+
 
 get "/user/edit", ctx => {
 	var user *core.User
@@ -415,6 +382,41 @@ get "/user/edit", ctx => {
 		"Binds":       gac.GetProviderBindStatus(),
 		"casdoorUrl":  gopaccountsdk.GetCasdoorEndPoint(),
 		"providers":   providers,
+	}
+}
+
+
+// User pages
+get "/user/info/:id", ctx => {
+	id := ctx.param("id")
+	// Get current User Info by id
+	userClaim, err := community.GetUserClaim(id)
+	if err != nil {
+		xLog.Error("get current user error:", err)
+	}
+	// get user by token
+	var user *core.User
+	token, err := ctx.Request.Cookie("token")
+	if err == nil {
+		user, _ = community.GetUser(token.Value)
+	}
+	// get article list published by uid
+	items, total, err := community.GetArticlesByUid(todo, id, firstConst, mediaLimitConst)
+	if err != nil {
+		xLog.Error("get article list error:", err)
+	}
+	// check admin
+	isAdmin, err := community.IsAdmin(id)
+	if err != nil {
+		xLog.Error("check admin error:", err)
+	}
+	ctx.yap "user", {
+		"Id":          id,
+		"CurrentUser": userClaim,
+		"User":        user,
+		"Items":       items,
+		"Total":       total,
+		"IsAdmin":     isAdmin,
 	}
 }
 
@@ -630,7 +632,7 @@ get "/api/user/acoount/unlink", ctx => {
 	}
 }
 
-get "/api/user/:id/articles", ctx => {
+get "/api/user/articles/:id", ctx => {
 	id := ctx.param("id")
 	page := ctx.param("page")
 	limit := ctx.param("limit")
@@ -655,7 +657,7 @@ get "/api/user/:id/articles", ctx => {
 	}
 }
 
-get "/api/user/:id/medias", ctx => {
+get "/api/user/medias/:id", ctx => {
 	format := ctx.param("format")
 	uid := ctx.param("id")
 	page := ctx.param("page")
