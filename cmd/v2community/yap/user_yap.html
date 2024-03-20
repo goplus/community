@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Go+ Community - User</title>
+    <link rel="icon" href="static/img/favicon.svg">
+
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css">
+</head>
+
+<script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
+
+<body style="background-color: #f7fafc;">
+    {{ template "header" .}}
+
+    <div id="app" class="h-full w-full">
+        <n-breadcrumb style="margin: 10px 20px;">
+            <n-breadcrumb-item href="/">
+                <div class="flex items-center">
+                    <div>
+                        <span></span>
+                        <i class="ph-duotone ph-house" style="font-size: 18px; margin-right: 5px;"></i>
+                    </div>
+                    Home
+                </div>
+            </n-breadcrumb-item>
+            <n-breadcrumb-item href="'/user/'+user.Id">
+                <div class="flex items-center">
+                    <div>
+                        <span></span>
+                        <i class="ph-duotone ph-user" style="font-size: 18px; margin-right: 5px;"></i>
+                    </div>
+                    <span class="font-semibold">${ CurrentUser.displayName }</span>
+                </div>
+            </n-breadcrumb-item>
+        </n-breadcrumb>
+
+        <div style="padding: 40px 40px; margin: 30px auto;" class="container px-5 py-3 mx-auto bg-white rounded-lg">
+            <!-- Personal Profile -->
+            <n-grid :x-gap="12" :cols="8" style="padding: 0 20px;">
+                <!-- Avatar -->
+                <n-gi :span="1" class="flex justify-center items-center">
+                    <n-avatar v-if="CurrentUser.avatar" round :size="110" :src="CurrentUser.avatar"></n-avatar>
+                    <n-avatar v-else round :size="110" src="/static/img/gop-avatar.png"></n-avatar>
+                </n-gi>
+
+                <!-- Name & Description & Contact Info -->
+                <n-gi :span="5" class="flex flex-col justify-center">
+                    <!-- Name & Description -->
+                    <span class="text-3xl font-semibold mb-2">
+                        ${ CurrentUser.displayName }
+                    </span>
+
+                    <!-- Contact Info  -->
+                    <n-grid :x-gap="1" :y-gap="3" :cols="2" class="mt-3">
+                        <!-- Created Time -->
+                        <n-gi class="flex items-center">
+                            <i class="ph ph-calendar-check" style="color: #0284c7; font-size: 20px;"></i>
+                            <div class="flex items-center">
+                                <p class="ml-3">${ CurrentUser.createdTime.slice(0,10) }</p>
+                                <p class="ml-1 text-gray-400">Joined Go+ Community</p>
+                            </div>
+                        </n-gi>
+
+                        <!-- Gender & Birthday -->
+                        <n-gi class="flex items-center">
+                            <i class="ph ph-cake" style="color: #0284c7; font-size: 20px;"></i>
+                            <div class="flex items-center">
+                                <p class="ml-3 text-gray-400">Gender & Birthday:</p>
+                                <p v-if="CurrentUser.gender" class="ml-1">
+                                    ${ CurrentUser.gender }，
+                                </p>
+                                <p v-if="CurrentUser.birthday" class="ml-1"> born on ${ CurrentUser.birthday }
+                                </p>
+                                <p v-if="!CurrentUser.gender && !CurrentUser.birthday" class="ml-1">null</p>
+                            </div>
+                        </n-gi>
+
+                        <!-- Email -->
+                        <n-gi class="flex items-center">
+                            <i class="ph ph-envelope-simple" style="color: #0284c7; font-size: 20px;"></i>
+                            <div class="flex items-center">
+                                <p class="ml-3 text-gray-400">E-mail:</p>
+                                <p v-if="CurrentUser.email" class="ml-1">
+                                    ${ CurrentUser.email}
+                                </p>
+                                <p v-else class="ml-1">null</p>
+                            </div>
+                        </n-gi>
+
+                        <!-- Phone -->
+                        <n-gi class="flex items-center">
+                            <i class="ph ph-phone-call" style="color: #0284c7; font-size: 20px;"></i>
+                            <div class="flex items-center">
+                                <p class="ml-3 text-gray-400">Phone:</p>
+                                <p v-if="CurrentUser.phone" class="ml-1">
+                                    ${ CurrentUser.phone}
+                                </p>
+                                <p v-else class="ml-1">null</p>
+                            </div>
+                        </n-gi>
+                    </n-grid>
+                </n-gi>
+
+                <!-- Edit Button & Followers -->
+                <n-gi :span="2" class="flex flex-col justify-between items-end">
+                    <!-- Edit Button -->
+                    <n-button v-if="user && user.Id === CurrentUser.id" text color="#3182ce" size="large"
+                        onclick="window.location.href='/user/edit'" class="mb-4">
+                        <template #icon>
+                            <i class="ph ph-gear" style="color: #3182ce;"></i>
+                        </template>
+                        Settings
+                    </n-button>
+
+                    <!-- Following & Followers -->
+                    <!-- <div class="flex items-center mt-3">
+                        <div class="flex flex-col items-center">
+                            <p class="text-gray-400">Following</p>
+                            <p class="text-xl font-medium">123</p>
+                        </div>
+                        <n-divider vertical style="--n-color: #9ca3af; margin: 0 20px;"></n-divider>
+                        <div class="flex flex-col items-center">
+                            <p class="text-gray-400">Followers</p>
+                            <p class="text-xl font-medium">123</p>
+                        </div>
+                    </div> -->
+                </n-gi>
+            </n-grid>
+        </div>
+
+        <n-tabs type="line" :theme-overrides="themeOverrides" animated default-value="article"
+        @update:value="onChangeTab" style="padding: 0 20px; margin: 10px auto;" class="container px-5 py-3">
+            <!-- Article Management -->
+            <n-tab-pane name="article" tab="Articles">
+                <div class="container px-5 py-3 mx-auto bg-white rounded-lg"
+                    style="box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05); height: 65vh; overflow: auto;">
+                    <section v-if="articleList === null || articleList.length === 0">
+                        <div class="flex w-full flex-col items-center justify-center rounded-lg p-8">
+                            <div style="margin-top:200px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 fill-current text-gray-500"
+                                    viewBox="0 0 24 24">
+                                    <path fill-rule="evenodd"
+                                        d="M0 3.75A.75.75 0 01.75 3h7.497c1.566 0 2.945.8 3.751 2.014A4.496 4.496 0 0115.75 3h7.5a.75.75 0 01.75.75v15.063a.75.75 0 01-.755.75l-7.682-.052a3 3 0 00-2.142.878l-.89.891a.75.75 0 01-1.061 0l-.902-.901a3 3 0 00-2.121-.879H.75a.75.75 0 01-.75-.75v-15zm11.247 3.747a3 3 0 00-3-2.997H1.5V18h6.947a4.5 4.5 0 012.803.98l-.003-11.483zm1.503 11.485V7.5a3 3 0 013-3h6.75v13.558l-6.927-.047a4.5 4.5 0 00-2.823.971z">
+                                    </path>
+                                </svg>
+                            </div>
+
+                            <div class="mt-8 text-center">
+                                <h1 class="text-4xl"> Have no data!</h1>
+                            </div>
+
+                            <button
+                                class="mt-2 block rounded-lg bg-transparent py-1.5 px-4 font-medium text-blue-600 transition-colors hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50">
+                                <a href="/add">
+                                    Return to add article!
+                                </a>
+                            </button>
+                        </div>
+                    </section>
+
+                    <n-list v-else class="flex flex-col justify-center items-center">
+                        <!-- Article List Item -->
+                        <n-list-item v-for="(item,i) in articleList">
+                            <!-- prefix -->
+                            <div style="width: 20%; margin-right: 20px;">
+                                    <!-- Image -->
+                                    <img class="w-full object-cover rounded" style="height: 85%;"  :src="item.Cover || '/static/img/default-cover.jpg'" alt="">
+                                
+                                    <!-- Data -->
+                                    <div class="flex justify-center items-center mt-2" style="height: 2vh;">
+                                        <!-- Views -->
+                                        <div class="flex justify-center items-center" style="width: 40%;">
+                                            <i class="ph-duotone ph-eye" style="color: #7ba7d3; font-size: 18px;"></i>
+                                            <span class="ml-1 text-sm">${ item.ViewCount }</span>
+                                        </div>
+
+                                        <!-- Likes -->
+                                        <div class="flex justify-center items-center" style="width: 40%;">
+                                            <i class="ph-duotone ph-heart" style="color: #df8282; font-size: 18px;"></i>
+                                            <span class="ml-1 text-sm">${ item.LikeCount }</span>
+                                        </div>
+
+                                        <!-- Shares -->
+                                        <div class="flex justify-center items-center" style="width: 40%;">
+                                            <i class="ph-duotone ph-share-fat" style="color: #15aabf; font-size: 18px;"></i>
+                                            <span class="ml-1 mr-1 text-sm">
+                                                ${ item.ShareCount }
+                                            </span>
+
+                                            <n-tooltip placement="bottom" trigger="hover" v-if="item.PlatformCount">
+                                                <template #trigger>
+                                                    <i class="ph ph-question" style="color: #9ca3af; cursor: pointer;"></i>
+                                                </template>
+                                                <div v-for="(p, i) in item.PlatformCount">
+                                                    <!-- Facebook -->
+                                                    <div class="flex items-center" v-if="p.Platform === 'facebook'">
+                                                        <i class="ph-duotone ph-facebook-logo" style="color: white; font-size: 17px;"></i>
+                                                        <span class="ml-1 text-sm">Facebook: </span>
+                                                        <span class="ml-1 text-sm">${ p.ViewCount }</span>
+                                                    </div>
+        
+                                                    <!-- Twitter -->
+                                                    <div class="flex items-center" v-if="p.Platform === 'twitter'">
+                                                        <i class="ph-duotone ph-twitter-logo" style="color: white; font-size: 17px;"></i>
+                                                        <span class="ml-1 text-sm">Twitter / X: </span>
+                                                        <span class="ml-1 text-sm">${ p.ViewCount }</span>
+                                                    </div>
+                                                    
+                                                    <!-- WeChat -->
+                                                    <div class="flex items-center" v-if="p.Platform === 'wechat'">
+                                                        <i class="ph-duotone ph-wechat-logo" style="color: white; font-size: 17px;"></i>
+                                                        <span class="ml-1 text-sm">WeChat: </span>
+                                                        <span class="ml-1 text-sm">${ p.ViewCount }</span>
+                                                    </div>
+                                                </div>
+                                            </n-tooltip>
+                                        </div>
+                                    </div>
+                            </div>
+
+                            <!-- content -->
+                            <div style="width: 55%; margin-right: 30px;">
+                                <div class="absolute top-4" style="width: 60%;">
+                                    <!-- Title -->
+                                    <div class="text-xl font-semibold text-gray-900 title-font mb-2">
+                                        <a :href="'/article/' + item.ID">
+                                            <p>${ item.Title }</p>
+                                        </a>
+                                    </div>
+
+                                    <!-- Tags -->
+                                    <div class="flex flex-row items-center" v-if="item.Tags">
+                                        <span v-for="(tag, index) in item.Tags.split(';')" class="flex flex-row items-center">
+                                            <n-tag :bordered="false" size="small" class="mr-2">
+                                                <a :href="'/search?value=' + tag">
+                                                    ${ tag }
+                                                </a>
+                                            </n-tag>
+                                        </span>
+                                    </div>
+
+                                    <!-- Description -->
+                                    <p class="ellipsis">
+                                        ${ item.Abstract }
+                                    </p>
+                                </div>
+                                
+                                <!-- Update Time -->
+                                <div class="text-sm absolute bottom-3 flex justify-center items-center">
+                                    <span style="color: #A0AEC0; margin-right: 30px;">
+                                        ${ item.Ctime.slice(0,10) }
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- suffix -->
+                            <div style="width: 20%;" class="flex justify-end">
+                                <div class="flex" v-if="user && user.Id === CurrentUser.id">
+                                    <!-- Edit Button -->
+                                    <n-button 
+                                        tag="a"
+                                        :href="'/edit/' + item.ID"
+                                        style="--n-border-radius: 7px; --n-ripple-color: #7ba7d3; 
+                                        --n-text-color-hover: #3182ce; --n-text-color-pressed: #3182ce;
+                                        --n-text-color-focus: #3182ce; --n-border-hover: 1px solid #3182ce;
+                                        --n-border-pressed: 1px solid #3182ce; --n-border-focus: 1px solid #3182ce;">
+                                        <template #icon>
+                                            <i class="ph-bold ph-pencil-line" style="color: #3182ce;"></i>
+                                        </template>
+                                        Edit
+                                    </n-button>
+
+                                    <!-- Delete Button -->
+                                    <n-popconfirm :show="deleteId === item.ID">
+                                        <template #icon>
+                                            <i class="ph-duotone ph-warning" style="color: #f25858;"></i>
+                                        </template>
+                                        <template #trigger>
+                                            <n-button @click="deleteId = item.ID" class="ml-2"
+                                                style="--n-border-radius: 7px; --n-ripple-color: #fecaca; 
+                                            --n-text-color-hover: #f06464; --n-text-color-pressed: #f25858;
+                                            --n-text-color-focus: #f25858; --n-border-hover: 1px solid #f06464;
+                                            --n-border-pressed: 1px solid #f25858; --n-border-focus: 1px solid #f25858;">
+                                                <template #icon>
+                                                    <i class="ph-bold ph-trash" style="color: #f25858;"></i>
+                                                </template>
+                                                Delete
+                                            </n-button>
+                                        </template>
+                                        Are you sure to delete?
+                                        <template #action>
+                                            <n-button @click="deleteId = 0" size="tiny" strong
+                                                secondary>Cancel</n-button>
+                                            <n-button @click="deleteArticle(item.ID)" size="tiny" strong
+                                                secondary type="error">Delete</n-button>
+                                        </template>
+                                    </n-popconfirm>
+                                </div>
+                            </div>
+                        </n-list-item>
+
+                        <!-- Pagination -->
+                        <n-pagination v-if="totalArticlePage !== 1" class="mt-4"
+                            :theme-overrides="themeOverrides" v-model:page="curArticlePage" :page-size="pageSize"
+                            :page-count="totalArticlePage" :page-slot="5" @update:page="handleArticlePageChange">
+                        </n-pagination>
+                    </n-list>
+
+                </div>
+            </n-tab-pane>
+
+            <!-- Video Management -->
+            <n-tab-pane name="video" tab="Videos">
+                <n-spin :show="loading" size="large" stroke="#3182ce">
+                    <div class="container px-5 py-3 mx-auto bg-white rounded-lg"
+                        style="box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05); height: 65vh; overflow: auto;">
+                        <section v-if="videoList === null || videoList.length === 0">
+                            <div class="flex w-full flex-col items-center justify-center rounded-lg p-8">
+                                <div style="margin-top:200px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 fill-current text-gray-500"
+                                        viewBox="0 0 24 24">
+                                        <path fill-rule="evenodd"
+                                            d="M0 3.75A.75.75 0 01.75 3h7.497c1.566 0 2.945.8 3.751 2.014A4.496 4.496 0 0115.75 3h7.5a.75.75 0 01.75.75v15.063a.75.75 0 01-.755.75l-7.682-.052a3 3 0 00-2.142.878l-.89.891a.75.75 0 01-1.061 0l-.902-.901a3 3 0 00-2.121-.879H.75a.75.75 0 01-.75-.75v-15zm11.247 3.747a3 3 0 00-3-2.997H1.5V18h6.947a4.5 4.5 0 012.803.98l-.003-11.483zm1.503 11.485V7.5a3 3 0 013-3h6.75v13.558l-6.927-.047a4.5 4.5 0 00-2.823.971z">
+                                        </path>
+                                    </svg>
+                                </div>
+
+                                <div class="mt-8 text-center">
+                                    <h1 class="text-4xl"> Have no data!</h1>
+                                </div>
+
+                                <button
+                                    class="mt-2 block rounded-lg bg-transparent py-1.5 px-4 font-medium text-blue-600 transition-colors hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50">
+                                    <a href="/add">
+                                        Return to add article!
+                                    </a>
+                                </button>
+                            </div>
+                        </section>
+
+                        <div v-else class="flex flex-col justify-center items-center">
+                            <!-- Video List -->
+                            <n-list class="w-full">
+                                <!-- Video List Item -->
+                                <n-list-item v-for="(item,i) in videoList" :key="index" class="flex">
+                                    <!-- prefix -->
+                                    <template #prefix>
+                                        <n-image
+                                            class="w-full object-cover rounded" alt="" style="height: 20vh; width: 32vh;"
+                                            :src="item.FileKey+'?vframe/jpg/offset/7' || '/static/img/default-cover.jpg'"
+                                        />
+                                        <!-- <img v-if="imgVisible" class="w-full object-cover rounded" style="height: 20vh; width: 32vh;"
+                                            :src="item.FileKey+'?vframe/jpg/offset/7' || '/static/img/default-cover.jpg'" alt=""> -->
+                                    </template>
+
+                                    <!-- content -->
+                                    <div style="width: 70%;" class="flex flex-col items-start">
+                                        <!-- View Button -->
+                                        <n-button @click="showModal(item.Id)" text class="mb-2 absolute top-4"
+                                            style="width: 10%; --n-text-color-hover: #3182ce; --n-text-color-focus: #3182ce;">
+                                            <i class="ph-bold ph-video" style="font-size: 20px; margin-right: 5px;"></i>
+                                            View video source
+                                        </n-button>
+
+                                        <!-- View Video -->
+                                        <n-modal :show="viewVideoId === item.Id"
+                                            style="width: 60%; height: 75vh; overflow-y: auto;">
+                                            <n-card role="dialog" aria-modal="true" transform-origin="center"
+                                                :bordered="false" size="huge">
+                                                <template #header>
+                                                    <div class="flex items-center">
+                                                        <n-button quaternary size="small" @click="viewVideoId = 0">
+                                                            <i class="ph-bold ph-x" style="font-size: 15px;"></i>
+                                                        </n-button>
+                                                        <p class="ml-2">📺Video Source</p>
+                                                    </div>
+                                                </template>
+                                                <div>
+                                                    <video controls="" crossorigin="" playsinline="" :data-poster="item.FileKey + '/vframe/jpg/offset/7'" style="height: 100%; width: 100%;" id="videoPlayer">
+                                                        <source :src="item.FileKey" :type="item.Format" size="576"/>
+                                                        <track kind="captions" label="English" srclang="en" :src="item.Vtt" default/>
+                                                        <a :href="item.FileKey" download>Download</a>
+                                                    </video>
+                                                </div>
+                                            </n-card>
+                                        </n-modal>
+
+                                        <!-- Duration -->
+                                        <n-tag :bordered="false" size="small">
+                                            ${ item.Duration }
+                                        </n-tag>
+
+                                        <!-- Update Time -->
+                                        <span class="absolute bottom-4" style="color: #A0AEC0;">
+                                            ${ item.CreateAt.slice(0,10) }
+                                        </span>
+                                    </div>
+
+                                    <!-- suffix -->
+                                    <template #suffix>
+                                        <div class="flex" v-if="user">
+                                            <!-- Regenerate Button -->
+                                            <n-button v-if="user.Id === CurrentUser.id && !item.Vtt" @click="retryCaptionGenerate(user.Id, item.Id)"
+                                                style="--n-border-radius: 7px; --n-ripple-color: #7ba7d3; 
+                                                --n-text-color-hover: #2a82e4; --n-text-color-pressed: #3182ce;
+                                                --n-text-color-focus: #2a82e4; --n-border-hover: 1px solid #2a82e4;
+                                                --n-border-pressed: 1px solid #3182ce; --n-border-focus: 1px solid #2a82e4;">
+                                                <template #icon>
+                                                    <i class="ph-bold ph-closed-captioning" style="color: #3182ce;"></i>
+                                                </template>
+                                                Regenerate
+                                            </n-button>
+
+                                            <!-- Delete Button -->
+                                            <n-popconfirm :show="delVideoId === item.Id"
+                                                v-if="user.Id === CurrentUser.id">
+                                                <template #icon>
+                                                    <i class="ph-duotone ph-warning" style="color: #f25858;"></i>
+                                                </template>
+                                                <template #trigger>
+                                                    <n-button @click="delVideoId = item.Id" class="ml-2"
+                                                        style="--n-border-radius: 7px; --n-ripple-color: #fecaca; 
+                                                    --n-text-color-hover: #f06464; --n-text-color-pressed: #f25858;
+                                                    --n-text-color-focus: #f25858; --n-border-hover: 1px solid #f06464;
+                                                    --n-border-pressed: 1px solid #f25858; --n-border-focus: 1px solid #f25858;">
+                                                        <template #icon>
+                                                            <i class="ph-bold ph-trash" style="color: #f25858;"></i>
+                                                        </template>
+                                                        Delete
+                                                    </n-button>
+                                                </template>
+                                                Are you sure to delete?
+                                                <template #action>
+                                                    <n-button @click="delVideoId = 0" size="tiny" strong
+                                                        secondary>Cancel</n-button>
+                                                    <n-button @click="deleteMedia(item.Id,'video')" size="tiny" strong
+                                                        secondary type="error">Delete</n-button>
+                                                </template>
+                                            </n-popconfirm>
+                                        </div>
+                                    </template>
+                                </n-list-item>
+                            </n-list>
+
+                            <!-- Pagination -->
+                            <n-pagination v-if="totalVideoPage !== 1" class="mt-4"
+                                :theme-overrides="themeOverrides" v-model:page="curVideoPage" :page-size="pageSize"
+                                :page-count="totalVideoPage" :page-slot="5" @update:page="handleVideoPageChange">
+                            </n-pagination>
+                        </div>
+                    </div>
+                </n-spin>
+            </n-tab-pane>
+
+            <!-- Image Management -->
+            <n-tab-pane name="image" tab="Images">
+                <n-spin :show="loading" size="large" stroke="#3182ce">
+                    <div class="container px-5 py-3 mx-auto bg-white rounded-lg"
+                        style="box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05); height: 65vh; overflow: auto;">
+                        <section v-if="imageList === null || imageList.length === 0">
+                            <div class="flex w-full flex-col items-center justify-center rounded-lg p-8">
+                                <div style="margin-top:200px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 fill-current text-gray-500"
+                                        viewBox="0 0 24 24">
+                                        <path fill-rule="evenodd"
+                                            d="M0 3.75A.75.75 0 01.75 3h7.497c1.566 0 2.945.8 3.751 2.014A4.496 4.496 0 0115.75 3h7.5a.75.75 0 01.75.75v15.063a.75.75 0 01-.755.75l-7.682-.052a3 3 0 00-2.142.878l-.89.891a.75.75 0 01-1.061 0l-.902-.901a3 3 0 00-2.121-.879H.75a.75.75 0 01-.75-.75v-15zm11.247 3.747a3 3 0 00-3-2.997H1.5V18h6.947a4.5 4.5 0 012.803.98l-.003-11.483zm1.503 11.485V7.5a3 3 0 013-3h6.75v13.558l-6.927-.047a4.5 4.5 0 00-2.823.971z">
+                                        </path>
+                                    </svg>
+                                </div>
+
+                                <div class="mt-8 text-center">
+                                    <h1 class="text-4xl"> Have no data!</h1>
+                                </div>
+
+                                <button
+                                    class="mt-2 block rounded-lg bg-transparent py-1.5 px-4 font-medium text-blue-600 transition-colors hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50">
+                                    <a href="/add">
+                                        Return to add article!
+                                    </a>
+                                </button>
+                            </div>
+                        </section>
+
+                        <div class="video-cards" v-else>
+                            <!-- Image List -->
+                            <n-grid x-gap="20" y-gap="10" :cols="4">
+                                <n-gi :span="1" v-for="(item,index) in imageList" :key="index">
+                                    <n-card hoverable style="border-radius: 7px;">
+                                        <div class="image">
+                                            <n-image :src="item.FileKey || '/static/img/default-cover.jpg'" class="image-item" object-fit="cover"></n-image>
+                                        </div>
+                                        <div class="delete">
+                                            <div class="image-time">${ item.CreateAt.slice(0,10) }</div>
+                                            <n-popconfirm :show="delImageId === item.Id"
+                                                v-if="user && user.Id === CurrentUser.id">
+                                                <template #icon>
+                                                    <i class="ph-fill ph-siren" style="color: #f25858;"></i>
+                                                </template>
+                                                <template #trigger>
+                                                    <n-button @click="delImageId = item.Id" text class="col-span-1"
+                                                        style="--n-text-color-hover: #f25858; --n-text-color-focus: #f25858;">
+                                                        <template #icon>
+                                                            <i class="ph-duotone ph-trash-simple"
+                                                                style="color: #f25858;"></i>
+                                                        </template>
+                                                        Delete
+                                                    </n-button>
+                                                </template>
+                                                Are you sure to delete?
+                                                <template #action>
+                                                    <n-button @click="delImageId = 0" size="tiny" strong
+                                                        secondary>Cancel</n-button>
+                                                    <n-button @click="deleteMedia(item.Id,'image')" size="tiny" strong
+                                                        secondary type="error">Delete</n-button>
+                                                </template>
+                                            </n-popconfirm>
+                                        </div>
+                                    </n-card>
+                                </n-gi>
+                            </n-grid>
+
+                            <!-- Pagination -->
+                            <n-pagination v-if="totalImagePage !== 1" class="mt-4"
+                                :theme-overrides="themeOverrides" v-model:page="curImagePage" :page-size="pageSize"
+                                :page-count="totalImagePage" :page-slot="5" @update:page="handleImagePageChange">
+                            </n-pagination>
+                        </div>
+                    </div>
+                </n-spin>
+            </n-tab-pane>
+
+            <!-- Admin Management -->
+            {{ if .IsAdmin }}
+            <n-tab-pane name="users" tab="Users">
+                <n-spin :show="loading" size="large" stroke="#3182ce">
+                    <div class="container px-5 py-3 mx-auto bg-white rounded-lg"
+                        style="box-shadow: 0px 5px 14px rgba(0, 0, 0, 0.05); height: 65vh; overflow: auto;">
+                        <section v-if="userList === null">
+                            <div class="flex w-full flex-col items-center justify-center rounded-lg p-8">
+                                <div style="margin-top:200px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 fill-current text-gray-500"
+                                        viewBox="0 0 24 24">
+                                        <path fill-rule="evenodd"
+                                            d="M0 3.75A.75.75 0 01.75 3h7.497c1.566 0 2.945.8 3.751 2.014A4.496 4.496 0 0115.75 3h7.5a.75.75 0 01.75.75v15.063a.75.75 0 01-.755.75l-7.682-.052a3 3 0 00-2.142.878l-.89.891a.75.75 0 01-1.061 0l-.902-.901a3 3 0 00-2.121-.879H.75a.75.75 0 01-.75-.75v-15zm11.247 3.747a3 3 0 00-3-2.997H1.5V18h6.947a4.5 4.5 0 012.803.98l-.003-11.483zm1.503 11.485V7.5a3 3 0 013-3h6.75v13.558l-6.927-.047a4.5 4.5 0 00-2.823.971z">
+                                        </path>
+                                    </svg>
+                                </div>
+
+                                <div class="mt-8 text-center">
+                                    <h1 class="text-4xl"> Have no data!</h1>
+                                </div>
+
+                                <button
+                                    class="mt-2 block rounded-lg bg-transparent py-1.5 px-4 font-medium text-blue-600 transition-colors hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50">
+                                    <a href="/add">
+                                        Return to add article!
+                                    </a>
+                                </button>
+                            </div>
+                        </section>
+
+                        <div class="video-cards" v-else>
+                            <!-- User List -->
+                            <n-grid x-gap="20" y-gap="10" :cols="4">
+                                <n-gi :span="1" v-for="(item,index) in userList" :key="index">
+                                    <n-card hoverable style="border-radius: 7px;">
+                                        <div class="image">
+                                            <n-image :src="item.Avatar || '/static/img/default-cover.jpg'" class="image-item" object-fit="cover"></n-image>
+                                        </div>
+                                        <div class="delete">
+                                            <div class="image-time">
+                                                <a :href="'/user/' + item.Id">
+                                                ${ item.Name.slice(0,10) }
+                                                </a>
+                                            </div>
+                                            <div v-if="item.Status" class="flex flex-row items-center">
+                                                <span style="background-color: #cee1f5;"
+                                                    class="mr-3 inline-flex items-center font-medium px-2.5 py-0.5 rounded-full">
+                                                    <span class="w-2 h-2 me-1 rounded-full mr-1" style="background-color: #3182ce;"></span>
+                                                    IsPublic
+                                                </span>
+                                            </div>
+                                            <div v-else class="flex flex-row items-center">
+                                                <span style="background-color: #f9d8db;"
+                                                    class="mr-3 inline-flex items-center font-medium px-2.5 py-0.5 rounded-full">
+                                                    <span class="w-2 h-2 me-1 rounded-full mr-1" style="background-color: #f25858;"></span>
+                                                    IsLimited
+                                                </span>
+                                            </div>
+                                            <n-popconfirm :show="changeUserId === item.Id">
+                                                <template #icon>
+                                                    <i class="ph-fill ph-siren" style="color: #f25858;"></i>
+                                                </template>
+                                                <template #trigger>
+                                                    <n-button @click="changeUserId = item.Id" text class="col-span-1"
+                                                        style="--n-text-color-hover: #f25858; --n-text-color-focus: #f25858;">
+                                                        <template #icon>
+                                                            <i class="ph-bold ph-pencil-line" style="color: #3182ce;"></i>
+                                                        </template>
+                                                        Change
+                                                    </n-button>
+                                                </template>
+                                                Are you sure to change?
+                                                <template #action>
+                                                    <n-button @click="changeUserId = 0" size="tiny" strong
+                                                        secondary>Cancel</n-button>
+                                                    <n-button @click="changeUserStatus(changeUserId, !item.Status)" size="tiny" strong
+                                                        secondary type="error">Change</n-button>
+                                                </template>
+                                            </n-popconfirm>
+                                        </div>
+                                    </n-card>
+                                </n-gi>
+                            </n-grid>
+
+                            <!-- Pagination -->
+                            <n-pagination v-if="totalUserPage !== 1" class="mt-4"
+                                :theme-overrides="themeOverrides" v-model:page="curUserPage" :page-size="pageSize"
+                                :page-count="totalUserPage" :page-slot="5" @update:page="handleUserPageChange">
+                            </n-pagination>
+                        </div>
+                    </div>
+                </n-spin>
+            </n-tab-pane>
+            {{ end }}
+
+        </n-tabs>
+    </div>
+
+    <script>
+        const { reactive, toRefs, ref, h } = Vue;
+
+        // User
+        const CurrentUser = ref({{.CurrentUser}})
+        const articleList = ref({{.Items}});
+        const total = {{.Total}};
+        const user = ref({{.User}});
+
+        // Video List
+        let videoList = ref([]);
+        let videoGet = ref(false);
+        const curVideoPage = ref(1);
+        const totalVideoPage = ref();
+        const pageSize = ref(8);
+
+        // Image List
+        let imageList = ref([]);
+        let imageGet = ref(false);
+        const curImagePage = ref(1);
+        const totalImagePage = ref();
+
+        // User List
+        let userList = ref([]);
+        let userGet = ref(false);
+        const curUserPage = ref(1);
+        const totalUserPage = ref();
+
+        // article page
+        const curArticlePage = ref(1);
+        const totalArticlePage = ref(Math.ceil(total/pageSize.value));
+
+        const loading = ref(false)
+
+        // to change theme
+        const themeOverrides = {
+            common: {
+                primaryColor: '#3182ce'
+            },
+            Tab: {
+                backgroundColor: '#3182ce',
+            }
+        }
+
+        const viewVideoId = ref(0);
+
+        /*======= delete related =======*/
+        let deleteId = 0;
+        let delVideoId = 0;
+        let delImageId = 0;
+        let changeUserId = 0;
+        function deleteArticle(id) {
+            if (id !== 0) {
+                fetch("/api/article/" + id, {
+                    method: "DELETE",
+                }).then(res => {
+                    return res.json();
+                })
+                .then(todos => {
+                    if (todos.code === 200) {
+                        // success delete  articleList or get articleList
+                        // articleList.value = articleList.value.filter(item => item.ID !== id)
+                        loadMore(curArticlePage.value)
+                    }
+                    deleteId = 0
+                });
+            }
+        };
+
+        function onChangeTab(tab) {
+            if (tab === "video" && !videoGet.value) {
+                getMedias("video", curVideoPage.value)
+            } else if (tab === "image" && !imageGet.value) {
+                getMedias("image", curImagePage.value)
+            } else if (tab === "users" && !userGet.value) {
+                getUsers("users", curUserPage.value)
+            }
+        }
+
+        function handleImagePageChange(page) {
+            curImagePage.value = page
+            getMedias("image", page)
+        }
+
+        function handleVideoPageChange(page) {
+            curVideoPage.value = page
+            getMedias("video", page)
+        }
+
+        function handleUserPageChange(page) {
+            curUserPage.value = page
+            getUsers("users", page)
+        }
+
+        function handleArticlePageChange(page) {
+            curArticlePage.value = page
+            loadMore(page)
+        }
+
+        function showModal(id){
+            viewVideoId.value = id
+            this.$nextTick(() => {
+                const p = new Plyr('#videoPlayer', { captions: { active: true } });
+            });
+        }
+
+        function getMedias(format, curPage) {
+            loading.value = true
+            fetch("/api/user/"+ CurrentUser.value.id + "/medias" + "?format=" + format + "&page=" + curPage + "&limit=" + pageSize.value)
+                .then(res => {
+                    return res.json();
+                })
+                .then(todos => {
+                    if (todos.code === 200) {
+                        if (format === "video") {
+                            videoList.value = todos.items || []
+                            videoGet.value = true
+                            totalVideoPage.value = Math.ceil(todos.total/pageSize.value);
+                        } else {
+                            imageList.value = todos.items || []
+                            imageGet.value = true
+                            totalImagePage.value = Math.ceil(todos.total/pageSize.value);
+                        }
+                        loading.value = false
+                    }else {
+                        loading.value = false
+                    }
+                });
+        }
+
+        function getUsers(format, curPage) {
+            loading.value = true
+            fetch("/api/users" + "?from=" + curPage + "&limit=" + pageSize.value)
+                .then(res => {
+                    return res.json();
+                })
+                .then(todos => {
+                    if (todos.code === 200) {
+                        userGet.value = true
+                        userList.value = todos.items || []
+                        totalUserPage.value = Math.ceil(todos.total/pageSize.value);
+                        console.log("userList", userList.value)
+                        console.log("totalUserPage", totalUserPage.value)
+                        loading.value = false
+                    }
+                });
+        }
+
+        function retryCaptionGenerate(uid, vid) {
+            const formData = new FormData();
+            formData.append('uid', uid);
+            formData.append('vid', vid);
+
+            const requestOptions = {
+                method: "POST",
+                body: formData
+            };
+
+            fetch("/api/caption/task", requestOptions)
+                .then(res => {
+                    return res.json();
+                })
+                .then(todos => {
+                    if (todos.code === 200) {
+                        console.log("retryCaptionGenerate success")
+                    }
+                });
+        }
+
+        function deleteMedia(id, format) {
+            fetch("/api/media/" + id, {
+                method: "DELETE",
+            }).then(res => {
+                return res.json();
+            })
+            .then(todos => {
+                if (todos.code === 200) {
+                    if (format === "video") {
+                        // videoList.value = videoList.value.filter(item => item.Id !== id)
+                        getMedias("video", curVideoPage.value)
+                    } else {
+                        // imageList.value = imageList.value.filter(item => item.Id !== id)
+                        getMedias("image", curImagePage.value)
+                    }
+                }
+                delImageId = 0
+                delVideoId = 0
+            });
+        }
+
+        function changeUserStatus(id, status) {
+            // TODO: Fix request body
+            fetch("/api/user/public"+"?uid="+id+"&is_public="+status, {
+                method: "PUT",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    "uid": id,
+                    "is_public": status
+                })
+            }).then(res => {
+                return res.json();
+            })
+            .then(todos => {
+                if (todos.code === 200) {
+                    getUsers("users", curUserPage.value)
+                }
+                changeUserId = 0
+            });
+        }
+
+        function loadMore(page) {
+            let url = "/api/user/"+ CurrentUser.value.id + "/articles" + "?page=" + page;
+            // load a new page of articles, and append it to the articleList
+            fetch(url)
+                .then(res => {
+                    return res.json();
+                })
+                .then(todos => {
+                    if (todos.code === 200) {
+                        articleList.value = todos.items || [];
+                        totalArticlePage.value = Math.ceil(todos.total/pageSize.value);
+                        addShareCount();
+                    }
+                });
+        };
+
+        function addShareCount() {
+            articleList.value.forEach(item => {
+                if (item.PlatformCount) {
+                    item.ShareCount = calcShare(item.PlatformCount);
+                } else {
+                    item.ShareCount = 0;
+                }
+            });
+        };
+
+        function calcShare(platform) {
+            let sum = 0;
+            for (let i = 0; i < platform.length; i++) {
+                sum += parseInt(platform[i].ViewCount);
+            }
+            return sum;
+        }
+
+        const app = Vue.createApp({
+            mounted() {
+                addShareCount();
+            },
+            data() {
+                return {
+                    CurrentUser,
+                    articleList,
+                    videoList,
+                    curVideoPage,
+                    totalVideoPage,
+                    pageSize,
+                    imageList,
+                    userList,
+                    curImagePage,
+                    totalImagePage,
+                    totalUserPage,
+                    curArticlePage,
+                    totalArticlePage,
+                    viewVideoId,
+                    deleteId,
+                    delImageId,
+                    delVideoId,
+                    changeUserId,
+                    themeOverrides,
+                    user,
+                    loading,
+                }
+            },
+            methods: {
+                deleteArticle,
+                deleteMedia,
+                retryCaptionGenerate,
+                onChangeTab,
+                showModal,
+                handleArticlePageChange,
+                changeUserStatus,
+            },
+            watch: {
+                curVideoPage(newValue) {
+                    if (newValue) {
+                        getMedias("video", newValue);
+                    }
+                },
+                curImagePage(newValue) {
+                    if (newValue) {
+                        getMedias("image", newValue);
+                    }
+                },
+            },
+        })
+
+        app.use(naive)
+        app.config.compilerOptions.delimiters = ['${', '}']
+        app.mount('#app')
+    </script>
+
+    <!-- Footer -->
+    <p class="fixed bottom-0 left-1/2 transform -translate-x-1/2" style="font-size: xx-small;">
+        ©2024, powered by
+        <a href="https://www.qiniu.com/" target="_blank" style="color: #3182ce;">Qiniu Cloud</a>
+    </p>
+</body>
+
+</html>
+
+<style>
+    a:hover {
+        color: #3182ce;
+    }
+
+    .n-list .n-list-item .n-list-item__main {
+        display: flex;
+        flex-direction: row;
+    }
+
+    .n-card>.n-card__content,
+    .n-card>.n-card__footer {
+        padding: 0;
+    }
+
+    .n-card>.n-card__content:first-child,
+    .n-card>.n-card__footer:first-child {
+        padding: 0;
+    }
+
+    .n-list .n-list-item{
+        width: 100%;
+    }
+
+    .ellipsis {
+        margin: 7px 0 20px 0;
+        color: #80878e; 
+        font-size: 15px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2; /* 控制文本的行数 */
+        -webkit-box-orient: vertical;
+        /* max-height: 50px; 根据行高和行数调整 */
+        /* line-height: 18px; 示例行高 */
+    }
+
+    img {
+        max-width: 100%;
+    }
+
+    .video-cards {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+
+        .image {
+            background-color: #efeff5e2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            border-radius: 7px;
+            overflow: hidden;
+            width: 100%;
+            height: 180px;
+
+            .image-item {
+                transition: all 0.5s;
+                width: 100%;
+                height: auto;
+                object-fit: contain;
+                object-position: center;
+            }
+
+            .image-item:hover {
+                transform: scale(1.05);
+            }
+        }
+
+        .delete {
+            display: flex;
+            flex-flow: row nowrap;
+            justify-content: space-between;
+            color: gray;
+            margin: 10px;
+            border-radius: 8px;
+
+            .image-time {
+                font-size: 14px;
+                color: #A0AEC0;
+                margin-top: 4px;
+            }
+        }
+    }
+</style>

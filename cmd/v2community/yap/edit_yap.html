@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Markdown Editor</title>
+    <link rel="icon" href="static/img/favicon.svg">
+
+    <!-- Vue -->
+    <script src="https://unpkg.com/vue"></script>
+
+    <!-- UI -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+    <script src="https://unpkg.com/naive-ui"></script>
+
+    <!-- Icon -->
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/bold/style.css" />
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Font -->
+    <link href="https://fonts.cdnfonts.com/css/inter" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.proxy.ustclug.org">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.proxy.ustclug.org/css2?family=Noto+Sans+SC&display=swap" rel="stylesheet">
+    
+    <!-- Plyr组件-->
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+
+    <!-- Go+ Builder -->
+    <script type="module" src="https://builder.goplus.org/widgets/loader.js"></script>
+
+    <style type="text/css" media="screen, print">
+        body {
+            font-family: 'Inter', 'Noto Sans SC';
+            height: 100vh;
+        }
+    </style>
+
+    <!-- markdown -->
+    <link rel="stylesheet" href="/static/GoplusMarkdown/style.css">
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css">
+</head>
+
+<!-- <script src="https://cdn.plyr.io/3.6.8/plyr.js"></script> -->
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script data-widgets="code" src="https://goplus.org/widgets/loader.js"></script>
+<script src="/static/GoplusMarkdown/GoplusMarkdown.umd.cjs"></script>
+<script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
+
+<body>
+    {{ template "header" .}}
+
+    <div id="app" class="h-full w-full" style="background: url('/static/img/editor-background.svg') top no-repeat;
+            background-size: 100% auto;">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-2 px-2">
+            <!-- Back Button -->
+            <n-button quaternary color="#808080" @click="goBack">
+                <template #icon>
+                    <i class="ph-fill ph-arrow-line-left" style="font-size: 24px;"></i>
+                </template>
+            </n-button>
+
+            <span v-if="isAdd" style="color: #3182ce; font-weight: 700; font-size: medium; white-space: nowrap;"
+                class="ml-2">New Article</span>
+            <span v-else style="color: #3182ce; font-weight: 700; font-size: medium; white-space: nowrap;"
+                class="ml-2">Edit Article</span>
+
+            <n-divider vertical style="--n-color: #e0e0e6; margin: 0 0.5rem;"></n-divider>
+
+            <!-- Title Input -->
+            <n-input v-model:value="articleForm.title" placeholder="Input the article title" clearable size="large"
+                maxlength="50" show-count :theme-overrides="inputTheme">
+            </n-input>
+
+            <!-- TODO: Export Button -->
+            <!-- <n-button class="ml-2" style="--n-border-radius: 7px; --n-ripple-color: #7ba7d3; 
+                    --n-text-color-hover: #2a82e4; --n-text-color-pressed: #3182ce;
+                    --n-text-color-focus: #2a82e4; --n-border-hover: 1px solid #2a82e4;
+                    --n-border-pressed: 1px solid #3182ce; --n-border-focus: 1px solid #2a82e4;">
+                <template #icon>
+                    <i class="ph-bold ph-export"></i>
+                </template>
+                <span style="font-weight: 600;">Export</span>
+            </n-button> -->
+
+            <!-- Translate Button -->
+            <n-tooltip trigger="hover" placement="bottom">
+                <template #trigger>
+                    <n-button @click="showTranNotice=true" class="ml-2" :theme-overrides="buttonTheme">
+                        <template #icon>
+                            <i class="ph-bold ph-translate"></i>
+                        </template>
+                        <span style="font-weight: 600;">Translate</span>
+                    </n-button>
+                </template>
+                translate into English
+            </n-tooltip>
+
+            <!-- Submit Button -->
+            <n-button @click="modalVisible" class="ml-2" color="#3182ce"
+                style="--n-border-radius: 7px; background-color: #3182ce;">
+                <template #icon>
+                    <i class="ph-bold ph-paper-plane-tilt"></i>
+                </template>
+                <span style="font-weight: 600;">Submit</span>
+            </n-button>
+
+            <!-- Submit Form -->
+            <n-modal v-model:show="showModal" preset="card" size="huge" :bordered="false" :segmented="true"
+                style="width: 60%; height: 75vh; overflow-y: auto;">
+                <template #header>
+                    <div style="text-align: center;">
+                        <span style="font-weight: 600; font-size: larger;">📫Post this article</span>
+                    </div>
+                </template>
+
+                <n-form ref="formRef" :label-width="200" :model="articleForm" :rules="rules">
+                    <!-- Tags -->
+                    <n-form-item path="tags">
+                        <template #label>
+                            <p class="font-semibold text-gray-900 truncate">Tags</p>
+                        </template>
+                        <n-dynamic-tags v-model:value="articleForm.tags" :max="5"
+                        :theme-overrides="dynamicTagsTheme"
+                        :rule="{
+                                required: true,
+                                message: 'Please input at least one tag',
+                                trigger: ['change']
+                            }"></n-dynamic-tags>
+                    </n-form-item>
+
+                    <!-- Abstract -->
+                    <n-form-item path="abstract">
+                        <template #label>
+                            <p class="font-semibold text-gray-900 truncate">Abstract</p>
+                        </template>
+                        <n-input v-model:value="articleForm.abstract" type="textarea" show-count :min-length="15" :max-length="100"
+                            placeholder="write an abstract for your article" 
+                            :theme-overrides="inputTheme"
+                            :rule="{
+                                required: true,
+                                message: 'Please input abstract',
+                                trigger: ['input', 'blur']
+                            }"></n-input>
+                    </n-form-item>
+
+                    <!-- Translate to en -->
+                    <n-form-item path="translate">
+                        <template #label>
+                            <p class="font-semibold text-gray-900 truncate">Translated into English</p>
+                        </template>
+                        <n-switch v-model:value="articleForm.trans" @update:value="changeTrans" 
+                        :theme-overrides="switchTheme"></n-switch>
+                    </n-form-item>
+
+                    <!-- Label -->
+                    <n-form-item path="label">
+                        <template #label>
+                            <p class="font-semibold text-gray-900 truncate">Label</p>
+                        </template>
+                        <n-radio-group v-model:value="articleForm.label" name="radiogroup">
+                            <n-space>
+                              <n-radio v-for="label in labels" :key="label.value" :value="label.value"
+                              :theme-overrides="radioTheme">
+                                ${ label.label }
+                              </n-radio>
+                            </n-space>
+                          </n-radio-group>
+                    </n-form-item>
+
+                    <!-- Cover -->
+                    <n-form-item path="cover">
+                        <template #label>
+                            <p class="font-semibold text-gray-900 truncate">Cover</p>
+                        </template>
+                        <n-upload :max="1" directory-dnd @change="changeCover"
+                            :custom-request="customRequest" :default-file-list="fileList" 
+                            :theme-overrides="draggerTheme" list-type="image-card">
+                            <n-upload-dragger>
+                                <div class="mb-1">
+                                    <i class="ph-duotone ph-images"
+                                        style="font-size: 40px; color: #808080;"></i>
+                                </div>
+                            </n-upload-dragger>
+                        </n-upload>
+                    </n-form-item>
+                </n-form>
+
+                <!-- Cancel Button & Submit Button -->
+                <template #footer>
+                    <div class="w-full flex justify-end">
+                        <!-- Cancel Button -->
+                        <n-button @click="showModal = false" :theme-overrides="buttonTheme">
+                            <span>Cancel</span>
+                        </n-button>
+
+                        <!-- Submit Button -->
+                        <n-button @click="submitArticle" :loading="!canSubmit" :disabled="!canSubmit" class="ml-2" color="#3182ce"
+                            style="--n-border-radius: 5px; background-color: #3182ce;">
+                            <span>Confirm</span>
+                        </n-button>
+                    </div>
+                </template>
+            </n-modal>
+
+            <!-- Message Prompts -->
+            <transition enter-active-class="ease-out duration-300 transform"
+                leave-active-class="ease-in duration-300 transform" enter-class="scale-50 opacity-0"
+                enter-to-class="scale-100 opacity-100" leave-class="scale-100 opacity-100"
+                leave-to-class="scale-50 opacity-0">
+                <!-- Fill in Title and Content -->
+                <div v-if="showBothNotice" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-10">
+                    <div class="bg-white shadow-xl rounded-lg p-4 right-0 mr-4 mt-4 border border-gray-300">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center">
+                                <div class="text-red-500 mr-1">
+                                    <i class="ph-duotone ph-warning" style="font-size: 27px;"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-lg font-semibold text-red-500">Please fill in the article title
+                                        and content!
+                                    </p>
+                                    <p class="text-sm text-gray-500">Your article information is incomplete.</p>
+                                </div>
+                            </div>
+                            <n-button quaternary size="tiny" class="ml-3" @click="showBothNotice=false">
+                                <i class="ph-bold ph-x" style="font-size: 15px;"></i>
+                            </n-button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Current user is private -->
+                <div v-if="showArticlePublicNotice" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-10">
+                    <div class="bg-white shadow-xl rounded-lg p-4 right-0 mr-4 mt-4 border border-gray-300">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center">
+                                <div class="text-red-500 mr-1">
+                                    <i class="ph-duotone ph-warning" style="font-size: 27px;"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-lg font-semibold text-red-500">Please contact admin to be public!
+                                    </p>
+                                    <p class="text-sm text-gray-500">Your article is private.</p>
+                                </div>
+                            </div>
+                            <n-button quaternary size="tiny" class="ml-3" @click="showArticlePublicNotice=false">
+                                <i class="ph-bold ph-x" style="font-size: 15px;"></i>
+                            </n-button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fill in Title -->
+                <div v-if="showTitleNotice" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-10">
+                    <div class="bg-white shadow-xl rounded-lg p-4 right-0 mr-4 mt-4 border border-gray-300">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center">
+                                <div class="text-red-500 mr-1">
+                                    <i class="ph-duotone ph-warning" style="font-size: 27px;"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-lg font-semibold text-red-500">Please fill in the article title!
+                                    </p>
+                                    <p class="text-sm text-gray-500">Your article information is incomplete.</p>
+                                </div>
+                            </div>
+                            <n-button quaternary size="tiny" class="ml-3" @click="showTitleNotice=false">
+                                <i class="ph-bold ph-x" style="font-size: 15px;"></i>
+                            </n-button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fill in Content -->
+                <div v-if="showContentNotice" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-10">
+                    <div class="bg-white shadow-xl rounded-lg p-4 right-0 mr-4 mt-4 border border-gray-300">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center">
+                                <div class="text-red-500 mr-1">
+                                    <i class="ph-duotone ph-warning" style="font-size: 27px;"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-lg font-semibold text-red-500">Please fill in the article
+                                        content!
+                                    </p>
+                                    <p class="text-sm text-gray-500">Your article information is incomplete.</p>
+                                </div>
+                            </div>
+                            <n-button quaternary size="tiny" class="ml-3" @click="showContentNotice=false">
+                                <i class="ph-bold ph-x" style="font-size: 15px;"></i>
+                            </n-button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sure to translate -->
+                <div v-if="showTranNotice" class="fixed inset-0 flex items-center justify-center z-10">
+                    <div class="bg-white shadow-xl rounded-lg px-5 py-4 right-0 mr-4 mt-4 border border-gray-300">
+                        <div class="flex items-start">
+                            <div class="text-yellow-400 mr-1">
+                                <i class="ph-duotone ph-warning-circle" style="font-size: 27px;"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-lg font-semibold" style="color: #e3a008;">TIPS</p>
+                                <p class="text-gray-500">Are you sure to translate all article content into English?</p>
+                                <p class="text-gray-500">Note: This action is irreversible.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-end mt-2">
+                            <n-button strong secondary size="small" style="font-weight: 600;"
+                                @click="showTranNotice=false">
+                                Cancel
+                            </n-button>
+                            <n-button strong secondary type="warning" size="small" style="font-weight: 600;"
+                                class="ml-3" @click="translateMd">
+                                Confirm
+                            </n-button>
+                        </div>
+                    </div>
+                </div>
+
+                 <!-- Translate fails -->
+                <div v-if="showFailedTrans" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-10">
+                    <div class="bg-white shadow-xl rounded-lg p-4 right-0 mr-4 mt-4 border border-gray-300">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center">
+                                <div class="text-red-500 mr-1">
+                                    <i class="ph-duotone ph-warning" style="font-size: 27px;"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-lg font-semibold text-red-500">Warning
+                                    </p>
+                                    <p class="text-sm text-gray-500">Translation fails.</p>
+                                </div>
+                            </div>
+                            <n-button quaternary size="tiny" class="ml-3" @click="showFailedTrans=false">
+                                <i class="ph-bold ph-x" style="font-size: 15px;"></i>
+                            </n-button>
+                        </div>
+                    </div>
+                </div>
+            </transition>
+        </div>
+
+        <!-- Content -->
+        <markdown-editor></markdown-editor>
+    </div>
+
+    <script>
+        const { reactive, toRefs, ref, h } = Vue;
+
+        const goArticle = {{.Article}}
+
+        /*======= article info =======*/
+        const showBothNotice = ref(false);
+        const showTitleNotice = ref(false);
+        const showArticlePublicNotice = ref(false);
+        const showContentNotice = ref(false);
+        const showTranNotice = ref(false);
+        const showFailedTrans = ref(false);
+        const showModal = ref(false);
+        const formRef = ref(null);
+        const canSubmit = ref(true);
+
+        // a form to be filled out by user in frontend
+        const articleForm = ref({
+            title: '',
+            tags: [],
+            abstract: '',
+            trans: false,
+            label: 'article',
+        });
+        let coverUrl = "";
+
+        // form validate
+        const rules = {
+            abstract: {
+                required: true,
+                message: 'Please input abstract',
+                trigger: ['input', 'blur']
+            },
+        }
+
+        const labels = [
+            {
+                value: "article",
+                label: "blog"
+            },
+            {
+                value: 'video',
+                label: 'video'
+            },
+            {
+                value: 'stem',
+                label: 'stem'
+            },
+        ]
+
+        // edit
+        const isAdd = window.location.href.indexOf("edit") !== -1 ? ref(false) : ref(true)
+        const article = isAdd.value ? {} : goArticle
+        // article.Cover = "https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg"
+        const fileList = (isAdd.value || article.Cover === '') ? ref([]) : ref([{
+            id: "cover",
+            status: "finished",
+            url: article.Cover,
+        }])
+
+        // a form to be submitted to backend
+        const formData = new FormData();
+
+        // step1: user uploads a cover file
+        async function changeCover(f) {
+            // wait for the file to be added successfully
+            await new Promise((resolve) => {
+                resolve();
+            });
+        }
+
+        // step2: organize the formData in frontend
+        function submitArticle(e) {
+            this.$nextTick(() => {
+                this.$refs.formRef?.validate((errors) => {
+                    if (!errors) {
+                        // convert the tags array into a string, separated by "; "
+                        let tags = ref();
+                        if (Array.isArray(articleForm.value.tags) && articleForm.value.tags.length > 0) {
+                            tags.value = articleForm.value.tags.join(';');
+                        } else {
+                            tags.value = "";
+                        }
+                        console.log('tags:', tags.value);
+
+                        if (!isAdd.value) {
+                            formData.append("id", article.ID)
+                        }
+                        let content = window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown()
+                        let vtt_id = window.GoplusMarkdown.MarkdownEditor.methods.getVttId()
+                        // organize the formData
+                        formData.append("title", articleForm.value.title);
+                        formData.append("tags", tags.value);
+                        formData.append("abstract", articleForm.value.abstract);
+                        formData.append("label", articleForm.value.label);
+                        formData.append("cover", coverUrl);
+                        formData.append("content", content)
+                        formData.append("vtt_id", vtt_id.join(';'))
+                        formData.append("trans", articleForm.value.trans)
+                        // upload the formData to backend
+                        uploadArticle(formData);
+                    } else {
+                        console.log(errors);
+                    }
+                });
+            });
+
+        }
+
+        // step3: upload the formData to backend 
+        function uploadArticle(formData) {
+            console.log("submit")
+            const options = {
+                method: 'POST',
+                body: formData,
+                // headers: {
+                //     'Content-Type': 'multipart/form-data'
+                // },
+            }
+            fetch("/api/article/commit", options)
+                .then(res => {
+                    return res.json();
+                })
+                .then(todos => {
+                    if (todos.code === 200) {
+                        // success delete  articleList or get articleList
+                        window.location.href = "/article/" + todos.data
+                    }
+                });
+        }
+
+        // translate md
+        function translateMd() {
+            showTranNotice.value = false;
+
+            const md = window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown()
+            const transMd = new FormData();
+            transMd.append("content", md)
+            fetch("/api/translation", {
+                method: 'POST',
+                body: transMd,
+            })
+                .then(res => {
+                    return res.json();
+                })
+                .then(todos => {
+                    if (todos.code === 200) {
+                        // save origin content
+                        content = md
+                        window.GoplusMarkdown.MarkdownEditor.methods.setMarkdown(todos.data)
+                    } else {
+                        showFailedTrans.value = true;
+                    }
+                });
+        }
+
+        function customRequest(option) {
+            canSubmit.value = false
+            const file = option.file
+            const coverData = new FormData();
+            coverData.append('file', file.file);
+
+            const options = {
+                method: 'POST',
+                body: coverData,
+                // headers: {
+                //     'Content-Type': 'multipart/form-data'
+                // },
+            }
+            fetch("/api/media", options)
+                .then(res => {
+                    return res.json();
+                })
+                .then(todos => {
+                    fetch('/api/media/' + todos + "/url")
+                        .then(resUrl => {
+                            return resUrl.json();
+                        })
+                        .then(todosUrl => {
+                            if (todosUrl.code === 200) {
+                                coverUrl = todosUrl.url
+                            }
+                            canSubmit.value = true
+                        });
+
+                });
+        }
+
+        function modalVisible() {
+            if (articleForm.value.title === "" && window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown() === "") {
+                showBothNotice.value = true;
+                return
+            } else if (articleForm.value.title === "") {
+                showTitleNotice.value = true;
+                return
+            } else if (window.GoplusMarkdown.MarkdownEditor.methods.getMarkdown() === "") {
+                showContentNotice.value = true;
+                return
+            }
+
+            // Check user is public
+            showArticlePublicNotice.value = true;
+
+            // Extract summaries automatically
+            const cherryHtml = window.GoplusMarkdown.MarkdownEditor.methods.getCherryHtml()
+            let template = document.createElement('div');
+            template.innerHTML = cherryHtml;
+            const firstParagraph = template.querySelector('p[data-type="p"]')
+            if (isAdd.value && firstParagraph) {
+                articleForm.value.abstract = firstParagraph.innerText.trim().slice(0,100) || "";
+            } 
+
+            showModal.value = true;
+        }
+
+        function goBack() {
+            window.history.back();
+        }
+
+        function changeTrans(value) {
+            articleForm.value.trans = value
+        }
+
+        /*======= change theme =======*/
+        const buttonTheme = {
+            borderRadiusMedium: '7px',
+            rippleColor: '#7ba7d3',
+            textColorHover: '#3182ce',
+            textColorFocus: '#3182ce',
+            textColorPressed: '#3d82d1',
+            borderHover: '1px solid #3182ce',
+            borderFocus: '1px solid #3182ce',
+            borderPressed: '1px solid #3d82d1',
+        }
+        const inputTheme =  {
+            caretColor: '#3182ce',
+            borderHover: '1px solid #3182ce',
+            borderFocus: '1px solid #3182ce',
+            boxShadowFocus: '0 0 0 2px #cee1f5'
+        }
+        const selectTheme = {
+            peers: {
+                InternalSelection: {
+                    caretColor: '#3182ce',
+                    borderHover: '1px solid #3182ce',
+                    borderFocus: '1px solid #3182ce',
+                    borderActive: '1px solid #3182ce',
+                    boxShadowFocus: '0 0 0 2px #cee1f5',
+                    boxShadowActive: '0 0 0 2px #cee1f5'
+                },
+                
+                InternalSelectMenu: {
+                    optionTextColorPressed: '#3182ce',
+                    optionTextColorActive: '#3182ce',
+                    optionCheckColor: '#3182ce'
+                },
+            }
+        }
+        const dynamicTagsTheme = {
+            peers: {
+                Input: {
+                    caretColor: '#3182ce',
+                    borderHover: '1px solid #3182ce',
+                    borderFocus: '1px solid #3182ce',
+                    boxShadowFocus: '0 0 0 2px #cee1f5'
+                },
+                Button: {
+                    rippleColor: '#7ba7d3',
+                    textColorHover: '#3182ce',
+                    textColorFocus: '#3182ce',
+                    textColorPressed: '#3d82d1',
+                    borderHover: '1px solid #3182ce',
+                    borderFocus: '1px solid #3182ce',
+                    borderPressed: '1px solid #3d82d1',
+                }
+            }
+        }
+        const switchTheme = {
+            railColorActive: '#3182ce',
+            boxShadowFocus: '0 0 0 2px #cee1f5'
+        }
+        const radioTheme = {
+            dotColorActive: '#3182ce',
+            boxShadowHover: '0 0 0 1px #7ba7d3',
+            boxShadowFocus: '0 0 0 1px #7ba7d3',
+            boxShadowActive: '0 0 0 1px #3182ce'
+        }
+        const draggerTheme = {
+            borderRadius: '7px',
+            draggerBorderHover: '1px dashed #3182ce'
+        }
+
+        /*======= register vue component =======*/
+        const app = Vue.createApp({
+            data() {
+                return {
+                    showBothNotice,
+                    showTitleNotice,
+                    showContentNotice,
+                    showArticlePublicNotice,
+                    showTranNotice,
+                    showModal,
+                    showFailedTrans,
+
+                    articleForm,
+                    isAdd,
+                    fileList,
+                    rules,
+                    formRef,
+                    canSubmit,
+                    labels,
+
+                    buttonTheme,
+                    inputTheme,
+                    selectTheme,
+                    dynamicTagsTheme,
+                    switchTheme,
+                    radioTheme,
+                    draggerTheme
+                }
+            },
+            methods: {
+                changeCover,
+                submitArticle,
+                translateMd,
+                customRequest,
+                modalVisible,
+                goBack,
+                changeTrans
+            },
+            components: {
+                MarkdownEditor: window.GoplusMarkdown.MarkdownEditor
+            },
+            mounted() {
+                if (!isAdd.value) {
+                    articleForm.value.title = article.Title
+                    articleForm.value.tags = article.Tags === "" ? [] : article.Tags.split(";")
+                    articleForm.value.abstract = article.Abstract
+                    articleForm.value.label = article.Label
+                    articleForm.value.trans = article.Trans
+                    coverUrl = article.Cover
+                    window.GoplusMarkdown.MarkdownEditor.methods.setMarkdown(article.Content)
+                }
+            },
+            watch: {
+                // automatically close notification after 3 seconds
+                showBothNotice(newValue) {
+                    if (newValue) {
+                        setTimeout(() => {
+                            showBothNotice.value = false;
+                        }, 3000);
+                    }
+                },
+                showTitleNotice(newValue) {
+                    if (newValue) {
+                        setTimeout(() => {
+                            showTitleNotice.value = false;
+                        }, 3000);
+                    }
+                },
+                showContentNotice(newValue) {
+                    if (newValue) {
+                        setTimeout(() => {
+                            showContentNotice.value = false;
+                        }, 3000);
+                    }
+                },
+                showArticlePublicNotice(newValue) {
+                    if (newValue) {
+                        setTimeout(() => {
+                            showArticlePublicNotice.value = false;
+                        }, 3000);
+                    }
+                },
+                showFailedTrans(newValue) {
+                    if (newValue) {
+                        setTimeout(() => {
+                            showFailedTrans.value = false;
+                        }, 3000);
+                    }
+                },
+            },
+        });
+
+        app.use(naive)
+        app.config.compilerOptions.delimiters = ['${', '}']
+        app.mount('#app')
+    </script>
+</body>
+
+</html>
+
+<style>
+    a:hover {
+        color: #3182ce;
+    }
+    .cherry-markdown ul li, .cherry-markdown ol li {
+        list-style: disc;
+    }
+
+    .cherry .cherry-highlight-line {
+        background-color: #cee4f9;
+    }
+
+    body {
+        background-image: url('static/img/md-background.svg');
+        background-size: cover;
+        background-repeat: no-repeat;
+    }
+</style>
