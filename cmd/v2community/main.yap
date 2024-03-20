@@ -15,6 +15,7 @@ var (
 
 xLog := xlog.New("")
 todo := context.TODO()
+static "/static"
 configFile := ".env"
 flag.StringVar(&configFile, "config", ".env", "Path to the config file")
 flag.Parse()

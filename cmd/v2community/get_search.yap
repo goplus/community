@@ -4,21 +4,24 @@ import (
 	"github.com/qiniu/x/xlog"
 )
 
-const (
-	limitConst = 10
-	labelConst = "article"
+var (
+	user      *core.User
 )
 
 xLog := xlog.New("")
 todo := c.TODO()
-var user *core.User
+searchValue := param("value")
+label := param("label")
+if label == "" {
+	label = "article"
+}
+
 token, err := Request.Cookie("token")
 if err == nil {
 	user, _ = community.GetUser(token.Value)
 }
 
-// Get Article Info
-articles, next, err := community.ListArticle(todo, core.MarkBegin, limitConst, "", labelConst)
+articles, next, err := community.ListArticle(todo, core.MarkBegin, limitConst, searchValue, label)
 if err != nil {
 	xLog.Error("get article error:", err)
 }
@@ -30,5 +33,7 @@ if err != nil {
 yap "home", {
 	"User":  user,
 	"Items": articles,
+	"Value": searchValue,
 	"Next":  next,
+	"Tab":   label,
 }

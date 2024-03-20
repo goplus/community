@@ -1,13 +1,16 @@
 import (
 	"github.com/goplus/community/internal/core"
 )
-var user *core.User
+
+var (
+	community *core.Community
+	user      *core.User
+)
 
 token, err := Request.Cookie("token")
 if err == nil {
 	user, _ = community.GetUser(token.Value)
 }
-
-yap "4xx", {
+yap "edit", {
 	"User": user,
 }
