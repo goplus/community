@@ -12,7 +12,7 @@ RUN cd .. && git clone -b v1.2.0-pre.1 https://github.com/goplus/gop.git && cd g
 COPY . .
 
 WORKDIR /community/cmd/gopcomm
-RUN gop mod tidy
+RUN go mod tidy
 RUN gop build -o ./community 
 
 # Run
