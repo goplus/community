@@ -22,7 +22,7 @@
                     Home
                 </div>
             </n-breadcrumb-item>
-            <n-breadcrumb-item :href="'/user/'+user.Id">
+            <n-breadcrumb-item :href="'/user/info/'+user.Id">
                 <div class="flex items-center">
                     <div>
                         <span></span>
@@ -336,7 +336,7 @@
                         })
                         .then(todos => {
                             if (todos.code === 200) {
-                                window.location.href = "/user/" + userProfile.value.id
+                                window.location.href = "/user/info/" + userProfile.value.id
                             }
                         });
                 }

@@ -26,7 +26,7 @@
                     Home
                 </div>
             </n-breadcrumb-item>
-            <n-breadcrumb-item href="'/user/'+user.Id">
+            <n-breadcrumb-item href="'/user/info/'+user.Id">
                 <div class="flex items-center">
                     <div>
                         <span></span>
@@ -572,7 +572,7 @@
                                         </div>
                                         <div class="delete">
                                             <div class="image-time">
-                                                <a :href="'/user/' + item.Id">
+                                                <a :href="'/user/info/' + item.Id">
                                                 ${ item.Name.slice(0,10) }
                                                 </a>
                                             </div>
@@ -738,7 +738,7 @@
 
         function getMedias(format, curPage) {
             loading.value = true
-            fetch("/api/user/"+ CurrentUser.value.id + "/medias" + "?format=" + format + "&page=" + curPage + "&limit=" + pageSize.value)
+            fetch("/api/user/medias/"+ CurrentUser.value.id + "?format=" + format + "&page=" + curPage + "&limit=" + pageSize.value)
                 .then(res => {
                     return res.json();
                 })
@@ -843,7 +843,7 @@
         }
 
         function loadMore(page) {
-            let url = "/api/user/"+ CurrentUser.value.id + "/articles" + "?page=" + page;
+            let url = "/api/user/articles/"+CurrentUser.value.id + "?page=" + page;
             // load a new page of articles, and append it to the articleList
             fetch(url)
                 .then(res => {

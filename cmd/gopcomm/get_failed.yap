@@ -1,15 +1,19 @@
 import (
+	"github.com/qiniu/x/log"
 	"github.com/goplus/community/internal/core"
 )
 
-var (
-	user *core.User
-)
-
-
+var user *core.User
 token, err := Request.Cookie("token")
-if err == nil {
-	user, _ = community.GetUser(token.Value)
+if token!=nil{
+    user, err = community.GetUser(token.Value)
+    if err != nil {
+    	log.Error("get user error")
+    	json {
+    		"code": 0,
+    		"err":  err.Error(),
+    	}
+    }
 }
 
 yap "5xx", {

@@ -1,36 +1,39 @@
 import (
-	"github.com/goplus/community/internal/core"
+    "net/http"
+
 	gopaccountsdk "github.com/liuscraft/gop-casdoor-account-sdk"
-	"github.com/qiniu/x/xlog"
-	"net/http"
+	"github.com/goplus/community/internal/core"
+	"github.com/qiniu/x/log"
 )
 
-var (
-	user      *core.User
-)
-
-xLog := xlog.New("")
+var user *core.User
 var uid string
 token, err := Request.Cookie("token")
-if err == nil {
+if token!=nil {
 	user, err = community.GetUser(token.Value)
-	if err != nil {
-		xLog.Error("get user error:", err)
+	if err!=nil{
+        log.Error("get user error:", err)
+        json {
+            "code":  0,
+            "msg":   "get user failed",
+            "users": nil,
+            "next":  1,
+        }
 	}
 	uid = user.Id
 }
 userClaim, err := community.GetUserClaim(uid)
 if err != nil {
-	xLog.Error("get current user error:", err)
+	log.Error("get current user error:", err)
 }
 gac, err := gopaccountsdk.GetClient(token.Value)
 if err != nil {
-	xLog.Info("gac", err)
+	log.Info("gac", err)
 	http.Redirect(ResponseWriter, Request, "/error", http.StatusTemporaryRedirect)
 }
 appInfo, err := community.GetApplicationInfo()
 if err != nil {
-	xLog.Error("get application info error:", err)
+	log.Error("get application info error:", err)
 	http.Redirect(ResponseWriter, Request, "/error", http.StatusTemporaryRedirect)
 }
 providers := gac.GetProviders()

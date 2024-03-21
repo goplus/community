@@ -159,7 +159,7 @@
                                     <div class="flex justify-between items-center">
                                         <!-- Avatar & Nick Name & Update Time -->
                                         <div class="flex items-center">
-                                            <a class="flex items-center" :href="'/user/' + item.User.Id">
+                                            <a class="flex items-center" :href="'/user/info/' + item.User.Id">
                                                 <!-- Avatar -->
                                                 <n-avatar class="mr-2" round :size="28"
                                                     :src="item.User.Avatar || './static/img/gop-avatar.png'"></n-avatar>
@@ -283,7 +283,7 @@
                                     <div class="flex justify-between items-center">
                                         <!-- Avatar & Nick Name & Update Time -->
                                         <div class="flex items-center">
-                                            <a class="flex items-center" :href="'/user/' + item.User.Id">
+                                            <a class="flex items-center" :href="'/user/info/' + item.User.Id">
                                                 <!-- Avatar -->
                                                 <n-avatar class="mr-2" round :size="28"
                                                     :src="item.User.Avatar || './static/img/gop-avatar.png'"></n-avatar>
@@ -407,7 +407,7 @@
                                     <div class="flex justify-between items-center">
                                         <!-- Avatar & Nick Name & Update Time -->
                                         <div class="flex items-center">
-                                            <a class="flex items-center" :href="'/user/' + item.User.Id">
+                                            <a class="flex items-center" :href="'/user/info/' + item.User.Id">
                                                 <!-- Avatar -->
                                                 <n-avatar class="mr-2" round :size="28"
                                                     :src="item.User.Avatar || './static/img/gop-avatar.png'"></n-avatar>
@@ -554,7 +554,7 @@
         function selectDropdown(key) {
             if (key === 'profile') {
                 if (user) {
-                    window.location.href = '/user/' + user.Id;
+                    window.location.href = '/user/info/' + user.Id;
                 }
             } else if (key === 'settings') {
                 window.location.href = '/user/edit';

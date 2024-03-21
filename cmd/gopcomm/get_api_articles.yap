@@ -1,11 +1,11 @@
 import (
 	c "context"
-	"github.com/qiniu/x/xlog"
 	"strconv"
+
+	"github.com/qiniu/x/log"
 )
 
-xLog := xlog.New("")
-todo := c.TODO()
+
 from := param("from")
 limit := param("limit")
 searchValue := param("value")
@@ -17,9 +17,9 @@ if err != nil {
 }
 
 // Get Article Info
-articles, next, err := community.ListArticle(todo, from, limitInt, searchValue, label)
+articles, next, err := community.ListArticle(c.TODO(), from, limitInt, searchValue, label)
 if err != nil {
-	xLog.Error("get article error:", err)
+	log.Error("get article error:", err)
 	json {
 		"code": 0,
 		"err":  "get article failed",

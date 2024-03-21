@@ -3,7 +3,6 @@ import (
 	"strconv"
 )
 
-todo := c.TODO()
 format := param("format")
 uid := param("id")
 page := param("page")
@@ -21,7 +20,7 @@ if err != nil {
 		"err":   err.Error(),
 	}
 }
-files, total, err := community.ListMediaByUserId(todo, uid, format, pageInt, limitInt)
+files, total, err := community.ListMediaByUserId(c.TODO(), uid, format, pageInt, limitInt)
 if err != nil {
 	json {
 		"code":  0,

@@ -1,11 +1,10 @@
 import (
 	c "context"
-	"github.com/qiniu/x/xlog"
 	"strconv"
+
+	"github.com/qiniu/x/log"
 )
 
-xLog := xlog.New("")
-todo := c.TODO()
 articleId := param("articleId")
 articleIdInt, err := strconv.Atoi(articleId)
 if err != nil {
@@ -16,7 +15,7 @@ if err != nil {
 }
 token, err := Request.Cookie("token")
 if err != nil {
-	xLog.Info("token", err)
+	log.Info("token", err)
 	json {
 		"code": 0,
 		"err":  "no token",
@@ -29,7 +28,7 @@ if err != nil {
 		"err":  err.Error(),
 	}
 }
-res, err := community.ArticleLike(todo, articleIdInt, uid)
+res, err := community.ArticleLike(c.TODO(), articleIdInt, uid)
 if err != nil {
 	json {
 		"code": 500,

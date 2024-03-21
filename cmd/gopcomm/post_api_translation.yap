@@ -1,13 +1,11 @@
 import (
 	c "context"
+
 	language "golang.org/x/text/language"
 )
 
-
-
-todo := c.TODO()
 mdData := param("content")
-transData, err := community.TranslateMarkdownText(todo, mdData, "auto", language.English)
+transData, err := community.TranslateMarkdownText(c.TODO(), mdData, "auto", language.English)
 if err != nil {
 	json {
 		"code": 500,

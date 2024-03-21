@@ -1,31 +1,31 @@
 import (
-	"github.com/gabriel-vasile/mimetype"
-	"github.com/qiniu/x/xlog"
-	"os"
+    "os"
 	"io"
 	c "context"
 	"strings"
 	"strconv"
+
+	"github.com/gabriel-vasile/mimetype"
+	"github.com/qiniu/x/log"
 )
-todo := c.TODO()
-xLog := xlog.New("")
+
 file, header, err := FormFile("file")
 if err != nil {
-	xLog.Error("upload file error:", header)
+	log.Error("upload file error:", header)
 	JSON(500, err.Error())
 	return
 }
 filename := header.Filename
 err = ParseMultipartForm(10 << 20)
 if err != nil {
-	xLog.Error("upload file error:", filename)
+	log.Error("upload file error:", filename)
 	JSON(500, err.Error())
 	return
 }
 
 dst, err := os.Create(filename)
 if err != nil {
-	xLog.Error("create file error:", file)
+	log.Error("create file error:", file)
 	JSON(500, err.Error())
 	return
 }
@@ -34,21 +34,21 @@ defer func() {
 	dst.Close()
 	err = os.Remove(filename)
 	if err != nil {
-		xLog.Error("delete file error:", filename)
+		log.Error("delete file error:", filename)
 		return
 	}
 }()
 
 _, err = io.Copy(dst, file)
 if err != nil {
-	xLog.Error("copy file errer:", filename)
+	log.Error("copy file errer:", filename)
 	JSON(500, err.Error())
 	return
 }
 
 bytes, err := os.ReadFile(filename)
 if err != nil {
-	xLog.Error("read file errer:", filename)
+	log.Error("read file errer:", filename)
 	JSON(500, err.Error())
 	return
 }
@@ -63,9 +63,9 @@ if err != nil {
 	JSON(500, err.Error())
 }
 ext := mimetype.Detect(bytes).String()
-id, err := community.SaveMedia(todo, uid, bytes, ext)
+id, err := community.SaveMedia(c.TODO(), uid, bytes, ext)
 if err != nil {
-	xLog.Error("save file", err.Error())
+	log.Error("save file", err.Error())
 	JSON(500, err.Error())
 	return
 }
@@ -73,9 +73,9 @@ if err != nil {
 // Judge the file type and start the corresponding task
 if strings.Contains(ext, "video") {
 	// Start captioning task
-	err := community.NewVideoTask(todo, uid, strconv.FormatInt(id, 10))
+	err := community.NewVideoTask(c.TODO(), uid, strconv.FormatInt(id, 10))
 	if err != nil {
-		xLog.Error("start video task error:", err)
+		log.Error("start video task error:", err)
 	}
 }
 

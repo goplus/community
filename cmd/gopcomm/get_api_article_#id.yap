@@ -1,14 +1,13 @@
 import (
 	c "context"
-	"github.com/qiniu/x/xlog"
+
+	"github.com/qiniu/x/log"
 )
 
-xLog := xlog.New("")
-todo := c.TODO()
 id := param("id")
-article, err := community.Article(todo, id)
+article, err := community.Article(c.TODO(), id)
 if err != nil {
-	xLog.Error("get article error:", err)
+	log.Error("get article error:", err)
 	json {
 		"code": 0,
 		"err":  "get article failed",

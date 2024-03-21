@@ -1,24 +1,24 @@
 import (
 	"fmt"
-	"github.com/qiniu/x/xlog"
 	"net/http"
 	"net/url"
+
+	"github.com/qiniu/x/log"
 )
 
-xLog := xlog.New("")
+
 tokenCookie, err := Request.Cookie("token")
 if err != nil {
-	xLog.Error("remove token error:", err)
+	log.Error("remove token error:", err)
 	return
 }
 
-// Delete token
 tokenCookie.MaxAge = -1
 http.SetCookie(ResponseWriter, tokenCookie)
 
 refererURL, err := url.Parse(Request.Referer())
 if err != nil {
-	xLog.Infof("Error parsing Referer: %#v", err)
+	log.Infof("Error parsing Referer: %#v", err)
 	return
 }
 

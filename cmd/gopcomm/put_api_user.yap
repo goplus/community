@@ -1,9 +1,8 @@
 import (
 	"github.com/goplus/community/internal/core"
-	"github.com/qiniu/x/xlog"
+	"github.com/qiniu/x/log"
 )
 
-xLog := xlog.New("")
 
 token, err := Request.Cookie("token")
 uid, err := community.ParseJwtToken(token.Value)
@@ -19,10 +18,9 @@ user := &core.UserInfo{
 	DisplayName: param("displayName"),
 }
 
-// _, err = community.UpdateUserById(fmt.Sprintf("%s/%s", user.Owner, user.Name), user)
 _, err = community.UpdateUser(user)
 if err != nil {
-	xLog.Info(err)
+	log.Info(err)
 	json {
 		"code": 0,
 		"msg":  "update failed",

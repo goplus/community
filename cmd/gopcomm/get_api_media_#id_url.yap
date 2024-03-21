@@ -3,10 +3,8 @@ import (
 	"fmt"
 )
 
-
-todo := c.TODO()
 id := param("id")
-fileKey, err := community.GetMediaUrl(todo, id)
+fileKey, err := community.GetMediaUrl(c.TODO(), id)
 htmlUrl := fmt.Sprintf("%s%s", domain, fileKey)
 if err != nil {
 	json {

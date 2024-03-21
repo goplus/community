@@ -1,34 +1,43 @@
 import (
 	"context"
 	"flag"
+	"net/http"
+
 	"github.com/goplus/community/internal/core"
 	"github.com/joho/godotenv"
 	_ "github.com/joho/godotenv/autoload"
-	"github.com/qiniu/x/xlog"
-	"net/http"
+	"github.com/qiniu/x/log"
 )
-
+const (
+	limitConst = 10
+	labelConst = "article"
+	mediaLimitConst = 8
+    firstConst      = "1"
+)
 var (
 	community *core.Community
 	domain    string
 )
 
-xLog := xlog.New("")
-todo := context.TODO()
+
 static "/static"
 configFile := ".env"
 flag.StringVar(&configFile, "config", ".env", "Path to the config file")
 flag.Parse()
-if err := godotenv.Load(configFile); err != nil {
-	xLog.Error(err)
+err := godotenv.Load(configFile)
+if err != nil {
+	log.Error(err)
 }
 
 conf := core.NewConfigFromEnv()
-community, _ = core.New(todo, conf)
+community, err = core.New(context.TODO(), conf)
+if err != nil {
+	log.Error(err)
+}
 domain = conf.QiNiuConfig.Domain
 endpoint := conf.AppConfig.EndPoint
 
-xLog.Info "Started in endpoint: ", endpoint
+log.Info "Started in endpoint: ", endpoint
 
 run(endpoint, func(h http.Handler) http.Handler {
 
@@ -36,7 +45,7 @@ run(endpoint, func(h http.Handler) http.Handler {
 		defer func() {
 
 			if err := recover(); err != nil {
-				xLog.Error(err)
+				log.Error(err)
 				http.Redirect(w, r, "/failed", http.StatusFound)
 			}
 		}()

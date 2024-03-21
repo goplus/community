@@ -1,16 +1,16 @@
 import (
 	"fmt"
-	"github.com/qiniu/x/xlog"
 	"net/http"
-	"net/url"
+    "net/url"
+
+	"github.com/qiniu/x/log"
 )
 
-xLog := xlog.New("")
 code := URL.Query().Get("code")
 state := URL.Query().Get("state")
 token, err := community.GetOAuthToken(code, state)
 if err != nil {
-	xLog.Error("set token error:", err)
+	log.Error("set token error:", err)
 }
 cookie := http.Cookie{
 	Name:     "token",
@@ -24,7 +24,7 @@ http.SetCookie(ResponseWriter, &cookie)
 origin_path := URL.Query().Get("origin_path")
 unurl, err := url.QueryUnescape(origin_path)
 if err != nil {
-	xLog.Info("Unurl error", err)
+	log.Info("Unurl error", err)
 	unurl = "/"
 }
 

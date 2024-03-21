@@ -1,41 +1,44 @@
 import (
 	c "context"
-	"github.com/goplus/community/internal/core"
-	"github.com/qiniu/x/xlog"
 	"net/http"
+
+	"github.com/qiniu/x/log"
+	"github.com/goplus/community/internal/core"
 )
 
-var (
-	user      *core.User
-)
-
-xLog := xlog.New("")
-todo := c.TODO()
+var user *core.User
 token, err := Request.Cookie("token")
-if err == nil {
-	user, _ = community.GetUser(token.Value)
+if token!=nil{
+    user, err = community.GetUser(token.Value)
+    if err != nil {
+    	log.Error("get user error")
+    	json {
+    		"code": 0,
+    		"err":  err.Error(),
+    	}
+    }
 }
 
 uid := user.Id
 id := param("id")
 if id != "" {
-	editable, err := community.CanEditable(todo, uid, id)
+	editable, err := community.CanEditable(c.TODO(), uid, id)
 	if err != nil {
-		xLog.Error("can editable error:", err)
+		log.Error("can editable error:", err)
 		http.Redirect(ResponseWriter, Request, "/error", http.StatusTemporaryRedirect)
 	}
 	if !editable {
-		xLog.Error("no permissions")
+		log.Error("no permissions")
 		http.Redirect(ResponseWriter, Request, "/error", http.StatusTemporaryRedirect)
 	}
-	article, err := community.Article(todo, id)
+	article, err := community.Article(c.TODO(), id)
 	if err != nil {
-		xLog.Error("get article error:", err)
+		log.Error("get article error:", err)
 		http.Redirect(ResponseWriter, Request, "/error", http.StatusTemporaryRedirect)
 	}
 	// articleJson, err := json.Marshal(&article)
 	if err != nil {
-		xLog.Error("json marshal error:", err)
+		log.Error("json marshal error:", err)
 		http.Redirect(ResponseWriter, Request, "/error", http.StatusTemporaryRedirect)
 	}
 	yap "edit", {

@@ -2,16 +2,13 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"github.com/qiniu/x/xlog"
+
+	"github.com/qiniu/x/log"
 )
-// Get URL from query string
-// redirectURL := ctx.URL.Query().Get("redirect_url")
-// Get current request page URL from
-// Concatenate the current request page URL from refer
-xLog := xlog.New("")
+
 refererURL, err := url.Parse(Request.Referer())
 if err != nil {
-	xLog.Infof("Error parsing Referer: %#v", err)
+	log.Infof("Error parsing Referer: %#v", err)
 	return
 }
 

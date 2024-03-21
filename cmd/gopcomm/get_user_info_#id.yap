@@ -1,44 +1,45 @@
 import (
 	c "context"
+
+	"github.com/qiniu/x/log"
 	"github.com/goplus/community/internal/core"
-	"github.com/qiniu/x/xlog"
 )
-
-const (
-	mediaLimitConst = 8
-	firstConst      = "1"
-)
-
-var (
-	user      *core.User
-)
-
-xLog := xlog.New("")
-todo := c.TODO()
+var user *core.User
 id := param("id")
 
 // Get current User Info by id
 userClaim, err := community.GetUserClaim(id)
 if err != nil {
-	xLog.Error("get current user error:", err)
+	log.Error("get current user error:", err)
+	json {
+		"code": 0,
+		"err":  err.Error(),
+	}
 }
 
-// get user by token
 token, err := Request.Cookie("token")
-if err == nil {
-	user, _ = community.GetUser(token.Value)
+if token!=nil {
+	user, err = community.GetUser(token.Value)
+	if err!=nil{
+        log.Error("get user error:", err)
+        json {
+            "code":  0,
+            "msg":   "get user failed",
+            "users": nil,
+            "next":  1,
+        }
+	}
 }
 
 // get article list published by uid
-items, total, err := community.GetArticlesByUid(todo, id, firstConst, mediaLimitConst)
+items, total, err := community.GetArticlesByUid(c.TODO(), id, firstConst, mediaLimitConst)
 if err != nil {
-	xLog.Error("get article list error:", err)
+	log.Error("get article list error:", err)
 }
 
-// check admin
 isAdmin, err := community.IsAdmin(id)
 if err != nil {
-	xLog.Error("check admin error:", err)
+	log.Error("check admin error:", err)
 }
 yap "user", {
 	"Id":          id,

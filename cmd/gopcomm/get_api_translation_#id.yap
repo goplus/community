@@ -1,16 +1,15 @@
 import (
 	c "context"
-	"github.com/qiniu/x/xlog"
+
+	"github.com/qiniu/x/log"
 )
 
 
-xLog := xlog.New("")
-todo := c.TODO()
 id := param("id")
-article, err := community.GetTranslateArticle(todo, id)
+article, err := community.GetTranslateArticle(c.TODO(), id)
 
 if err != nil {
-	xLog.Info(err)
+	log.Info(err)
 	json {
 		"code": 0,
 	}

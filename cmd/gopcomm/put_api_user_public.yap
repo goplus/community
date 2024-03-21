@@ -1,22 +1,13 @@
 import (
-	"github.com/goplus/community/internal/core"
-	"github.com/qiniu/x/xlog"
 	"strconv"
+
+	"github.com/goplus/community/internal/core"
+	"github.com/qiniu/x/log"
 )
 
-var (
-	user      *core.User
-)
-
-xLog := xlog.New("")
 token, err := Request.Cookie("token")
-if err == nil {
-	casdoorUser, _ := community.GetUser(token.Value)
-	user = &core.User{
-		Id: casdoorUser.Id,
-	}
-} else {
-	xLog.Error("get token error:", err)
+if err != nil {
+	log.Error("get token error:", err)
 	json {
 		"code":  0,
 		"msg":   "get token failed",
@@ -24,11 +15,22 @@ if err == nil {
 		"next":  1,
 	}
 }
-
-// Get current user auth Info by id
+casdoorUser, e := community.GetUser(token.Value)
+if e != nil {
+	log.Error("get user error:", err)
+	json {
+		"code":  0,
+		"msg":   "get user failed",
+		"users": nil,
+		"next":  1,
+	}
+}
+user := &core.User{
+	Id: casdoorUser.Id,
+}
 userAuth, err := community.GetUserAuthById(user.Id)
 if err != nil {
-	xLog.Error("get current user auth error:", err)
+	log.Error("get current user auth error:", err)
 }
 
 if !userAuth.Status {
@@ -45,7 +47,7 @@ uid := Param("uid")
 isPublic := Param("is_public")
 isPublicBool, err := strconv.ParseBool(isPublic)
 if err != nil {
-	xLog.Error("parse bool error:", err)
+	log.Error("parse bool error:", err)
 	json {
 		"code": 0,
 		"msg":  "parse bool failed",
@@ -54,7 +56,7 @@ if err != nil {
 
 res, err := community.UpdateUserPublicAuth(uid, isPublicBool)
 if err != nil || !res {
-	xLog.Info(err)
+	log.Info(err)
 	json {
 		"code": 0,
 		"msg":  "update failed",

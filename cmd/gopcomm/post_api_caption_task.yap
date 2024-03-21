@@ -2,7 +2,6 @@ import (
 	c "context"
 )
 
-todo := c.TODO()
 uid := param("uid")
 vid := param("vid")
 
@@ -13,7 +12,7 @@ if uid == "" || vid == "" {
 	}
 }
 
-if err := community.RetryCaptionGenerate(todo, uid, vid); err != nil {
+if err := community.RetryCaptionGenerate(c.TODO(), uid, vid); err != nil {
 	json {
 		"code": 200,
 		"msg":  "Request task error",
