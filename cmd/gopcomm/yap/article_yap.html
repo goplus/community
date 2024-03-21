@@ -230,8 +230,7 @@
 
                     <hr class="hr-edge-weak" style="margin: 15px 0;">
                 </header>
-
-                <markdown-viewer :md="article.Content" style="height: auto;"></markdown-viewer>
+                <markdown-viewer  :md="article.Content" style="height: auto;"></markdown-viewer>
             </div>
 
             <!-- Toc -->
@@ -428,8 +427,8 @@
                 </div>
 
                 <hr class="hr-edge-weak" style="margin: 15px 0;">
+                
             </header>
-
             <markdown-viewer :md="article.Content" style="height: auto;"></markdown-viewer>
         </div>
 
@@ -471,13 +470,14 @@
     </div>
 
     <script type="module">
-        const { reactive, toRefs, ref, h } = Vue;
+        const { reactive, toRefs, ref, h, nextTick } = Vue;
 
         /*======= article related =======*/
         const originArticle = {{.Article}};
         const likeState = {{.LikeState}}
         const user = {{.User}}
         const article = ref({{.Article}});
+        article.value.Content = ""
 
         /*======= translate related =======*/
         const showFailedTrans = ref(false);
@@ -499,11 +499,9 @@
         const isOrigin = ref(true)
         function selectDropdown(key) {
             if (key === 'original' && !isOrigin.value) {
-                console.log("origin")
                 article.value = originArticle
                 isOrigin.value = true
             } else if (key === 'english' && isOrigin.value) {
-                console.log("english")
                 // translate
                 if (transArticle.Content) {
                     article.value = transArticle
@@ -546,10 +544,11 @@
         }
 
         /*======= toc related =======*/
-        const toc = ref([]);
+        const toc = ref([
+            "Loading..."
+        ]);
         function getArticleToc() {
             toc.value = window.GoplusMarkdown.MarkdownViewer.methods.getToc();
-
             let result = [];
             const stack = [{ children: result }];
             toc.value.forEach((item) => {
@@ -562,7 +561,6 @@
             });
 
             toc.value = result;
-            // console.log( toc.value)
         }
        
         /*======= share related =======*/
@@ -628,21 +626,22 @@
                 shareToFacebook,
                 shareToTwitter,
                 selectDropdown,
-                likeArticle,
+                likeArticle
             },
             components: {
                 MarkdownViewer: window.GoplusMarkdown.MarkdownViewer
             },
             mounted() {
+                // set markdown change callback function
+                // look cmd/gopcomm/yap/markdown-vue/src/components/MarkdownViewer.vue
+                window.mdChange=getArticleToc
+                article.value.Content = originArticle.Content
                 // every video must new plyr
                 const video = document.querySelectorAll('video');
                 for (var i = 0; i < video.length; i++) {
                     const player = new Plyr(video[i], { captions: { active: true, update: true, language: 'en' } });
                 }
                 var htmlStr = document.documentElement.outerHTML;
-
-                // get article toc
-                getArticleToc();
             },
             watch: {
                 // automatically close notification after 3 seconds
