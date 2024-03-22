@@ -1,13 +1,13 @@
 import (
 	c "context"
 
-	"github.com/qiniu/x/log"
 	"github.com/goplus/community/internal/core"
+	"github.com/qiniu/x/log"
 )
-var user *core.User
-id := param("id")
 
-// Get current User Info by id
+var user *core.User
+
+id := param("id")
 userClaim, err := community.GetUserClaim(id)
 if err != nil {
 	log.Error("get current user error:", err)
@@ -18,16 +18,16 @@ if err != nil {
 }
 
 token, err := Request.Cookie("token")
-if token!=nil {
+if token != nil {
 	user, err = community.GetUser(token.Value)
-	if err!=nil{
-        log.Error("get user error:", err)
-        json {
-            "code":  0,
-            "msg":   "get user failed",
-            "users": nil,
-            "next":  1,
-        }
+	if err != nil {
+		log.Error("get user error:", err)
+		json {
+			"code":  0,
+			"msg":   "get user failed",
+			"users": nil,
+			"next":  1,
+		}
 	}
 }
 

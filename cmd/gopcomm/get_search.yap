@@ -5,7 +5,6 @@ import (
 	"github.com/qiniu/x/log"
 )
 
-
 searchValue := param("value")
 label := param("label")
 if label == "" {
@@ -13,15 +12,15 @@ if label == "" {
 }
 var user *core.User
 token, err := Request.Cookie("token")
-if token!=nil{
-    user, err = community.GetUser(token.Value)
-    if err != nil {
-    	log.Error("get user error")
-    	json {
-    		"code": 0,
-    		"err":  err.Error(),
-    	}
-    }
+if token != nil {
+	user, err = community.GetUser(token.Value)
+	if err != nil {
+		log.Error("get user error")
+		json {
+			"code": 0,
+			"err":  err.Error(),
+		}
+	}
 }
 
 articles, next, err := community.ListArticle(c.TODO(), core.MarkBegin, limitConst, searchValue, label)

@@ -4,7 +4,6 @@ import (
 	"github.com/qiniu/x/log"
 )
 
-
 id := param("id")
 article, err := community.GetTranslateArticle(c.TODO(), id)
 

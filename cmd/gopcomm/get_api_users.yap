@@ -1,8 +1,8 @@
 import (
 	"strconv"
 
-	"github.com/qiniu/x/log"
 	"github.com/goplus/community/internal/core"
+	"github.com/qiniu/x/log"
 )
 
 token, err := Request.Cookie("token")

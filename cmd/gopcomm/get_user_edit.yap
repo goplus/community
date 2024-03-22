@@ -1,24 +1,25 @@
 import (
-    "net/http"
+	"net/http"
 
-	gopaccountsdk "github.com/liuscraft/gop-casdoor-account-sdk"
 	"github.com/goplus/community/internal/core"
+	gopaccountsdk "github.com/liuscraft/gop-casdoor-account-sdk"
 	"github.com/qiniu/x/log"
 )
 
 var user *core.User
 var uid string
+
 token, err := Request.Cookie("token")
-if token!=nil {
+if token != nil {
 	user, err = community.GetUser(token.Value)
-	if err!=nil{
-        log.Error("get user error:", err)
-        json {
-            "code":  0,
-            "msg":   "get user failed",
-            "users": nil,
-            "next":  1,
-        }
+	if err != nil {
+		log.Error("get user error:", err)
+		json {
+			"code":  0,
+			"msg":   "get user failed",
+			"users": nil,
+			"next":  1,
+		}
 	}
 	uid = user.Id
 }

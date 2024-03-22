@@ -1,7 +1,7 @@
 import (
 	"fmt"
 	"net/http"
-    "net/url"
+	"net/url"
 
 	"github.com/qiniu/x/log"
 )

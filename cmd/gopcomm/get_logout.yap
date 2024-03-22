@@ -6,7 +6,6 @@ import (
 	"github.com/qiniu/x/log"
 )
 
-
 tokenCookie, err := Request.Cookie("token")
 if err != nil {
 	log.Error("remove token error:", err)

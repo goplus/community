@@ -8,17 +8,18 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/qiniu/x/log"
 )
+
 const (
-	limitConst = 10
-	labelConst = "article"
+	limitConst      = 10
+	labelConst      = "article"
 	mediaLimitConst = 8
-    firstConst      = "1"
+	firstConst      = "1"
 )
+
 var (
 	community *core.Community
 	domain    string
 )
-
 
 static "/static"
 configFile := ".env"

@@ -1,9 +1,9 @@
 import (
-    "os"
-	"io"
 	c "context"
-	"strings"
+	"io"
+	"os"
 	"strconv"
+	"strings"
 
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/qiniu/x/log"

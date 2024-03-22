@@ -6,7 +6,6 @@ import (
 	"github.com/qiniu/x/log"
 )
 
-
 id := param("id")
 content := param("content")
 title := param("title")

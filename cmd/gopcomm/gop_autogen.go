@@ -176,55 +176,55 @@ type put_api_user_public struct {
 	*AppV2
 }
 
-//line cmd/gopcomm/main.yap:23
+//line cmd/gopcomm/main.yap:24
 func (this *AppV2) MainEntry() {
-//line cmd/gopcomm/main.yap:23:1
-	this.Static__0("/static")
 //line cmd/gopcomm/main.yap:24:1
-	configFile := ".env"
+	this.Static__0("/static")
 //line cmd/gopcomm/main.yap:25:1
-	flag.StringVar(&configFile, "config", ".env", "Path to the config file")
+	configFile := ".env"
 //line cmd/gopcomm/main.yap:26:1
-	flag.Parse()
+	flag.StringVar(&configFile, "config", ".env", "Path to the config file")
 //line cmd/gopcomm/main.yap:27:1
-	err := godotenv.Load(configFile)
+	flag.Parse()
 //line cmd/gopcomm/main.yap:28:1
-	if err != nil {
+	err := godotenv.Load(configFile)
 //line cmd/gopcomm/main.yap:29:1
-		log.Error(err)
-	}
-//line cmd/gopcomm/main.yap:32:1
-	conf := core.NewConfigFromEnv()
-//line cmd/gopcomm/main.yap:33:1
-	this.community, err = core.New(context.TODO(), conf)
-//line cmd/gopcomm/main.yap:34:1
 	if err != nil {
-//line cmd/gopcomm/main.yap:35:1
+//line cmd/gopcomm/main.yap:30:1
 		log.Error(err)
 	}
-//line cmd/gopcomm/main.yap:37:1
-	this.domain = conf.QiNiuConfig.Domain
+//line cmd/gopcomm/main.yap:33:1
+	conf := core.NewConfigFromEnv()
+//line cmd/gopcomm/main.yap:34:1
+	this.community, err = core.New(context.TODO(), conf)
+//line cmd/gopcomm/main.yap:35:1
+	if err != nil {
+//line cmd/gopcomm/main.yap:36:1
+		log.Error(err)
+	}
 //line cmd/gopcomm/main.yap:38:1
+	this.domain = conf.QiNiuConfig.Domain
+//line cmd/gopcomm/main.yap:39:1
 	endpoint := conf.AppConfig.EndPoint
-//line cmd/gopcomm/main.yap:40:1
+//line cmd/gopcomm/main.yap:41:1
 	log.Info("Started in endpoint: ", endpoint)
-//line cmd/gopcomm/main.yap:42:1
+//line cmd/gopcomm/main.yap:43:1
 	this.Run(endpoint, func(h http.Handler) http.Handler {
-//line cmd/gopcomm/main.yap:44:1
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 //line cmd/gopcomm/main.yap:45:1
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//line cmd/gopcomm/main.yap:46:1
 			defer func() {
-//line cmd/gopcomm/main.yap:47:1
-				if
-//line cmd/gopcomm/main.yap:47:1
-				err := recover(); err != nil {
 //line cmd/gopcomm/main.yap:48:1
-					log.Error(err)
+				if
+//line cmd/gopcomm/main.yap:48:1
+				err := recover(); err != nil {
 //line cmd/gopcomm/main.yap:49:1
+					log.Error(err)
+//line cmd/gopcomm/main.yap:50:1
 					http.Redirect(w, r, "/failed", http.StatusFound)
 				}
 			}()
-//line cmd/gopcomm/main.yap:53:1
+//line cmd/gopcomm/main.yap:54:1
 			h.ServeHTTP(w, r)
 		})
 	})
@@ -295,55 +295,55 @@ func (this *delete_api_media_id) Classfname() string {
 	return "delete_api_media_#id"
 }
 
-//line cmd/gopcomm/get.yap:9
+//line cmd/gopcomm/get.yap:10
 func (this *get) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
-//line cmd/gopcomm/get.yap:9:1
-	token, err := this.Request.Cookie("token")
 //line cmd/gopcomm/get.yap:10:1
-	if token != nil {
+	token, err := this.Request.Cookie("token")
 //line cmd/gopcomm/get.yap:11:1
-		this.user, err = this.community.GetUser(token.Value)
+	if token != nil {
 //line cmd/gopcomm/get.yap:12:1
-		if err != nil {
+		this.user, err = this.community.GetUser(token.Value)
 //line cmd/gopcomm/get.yap:13:1
-			log.Error("get user error")
+		if err != nil {
 //line cmd/gopcomm/get.yap:14:1
+			log.Error("get user error")
+//line cmd/gopcomm/get.yap:15:1
 			this.Json__1(map[string]interface{}{"code": 0, "err": err.Error()})
 		}
 	}
-//line cmd/gopcomm/get.yap:22:1
-	articles, next, err := this.community.ListArticle(context.TODO(), core.MarkBegin, limitConst, "", labelConst)
 //line cmd/gopcomm/get.yap:23:1
-	if err != nil {
+	articles, next, err := this.community.ListArticle(context.TODO(), core.MarkBegin, limitConst, "", labelConst)
 //line cmd/gopcomm/get.yap:24:1
+	if err != nil {
+//line cmd/gopcomm/get.yap:25:1
 		log.Error("get article error:", err)
 	}
-//line cmd/gopcomm/get.yap:27:1
+//line cmd/gopcomm/get.yap:28:1
 	this.Yap__1("home", map[string]interface{}{"User": this.user, "Items": articles, "Next": next})
 }
 func (this *get) Classfname() string {
 	return "get"
 }
 
-//line cmd/gopcomm/get_add.yap:7
+//line cmd/gopcomm/get_add.yap:8
 func (this *get_add) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
-//line cmd/gopcomm/get_add.yap:7:1
-	token, err := this.Request.Cookie("token")
 //line cmd/gopcomm/get_add.yap:8:1
-	if token != nil {
+	token, err := this.Request.Cookie("token")
 //line cmd/gopcomm/get_add.yap:9:1
-		this.user, err = this.community.GetUser(token.Value)
+	if token != nil {
 //line cmd/gopcomm/get_add.yap:10:1
-		if err != nil {
+		this.user, err = this.community.GetUser(token.Value)
 //line cmd/gopcomm/get_add.yap:11:1
-			log.Error("get user error")
+		if err != nil {
 //line cmd/gopcomm/get_add.yap:12:1
+			log.Error("get user error")
+//line cmd/gopcomm/get_add.yap:13:1
 			this.Json__1(map[string]interface{}{"code": 0, "err": err.Error()})
 		}
 	}
-//line cmd/gopcomm/get_add.yap:18:1
+//line cmd/gopcomm/get_add.yap:19:1
 	this.Yap__1("edit", map[string]*core.User{"User": this.user})
 }
 func (this *get_add) Classfname() string {
@@ -371,34 +371,34 @@ func (this *get_api_article_id) Classfname() string {
 	return "get_api_article_#id"
 }
 
-//line cmd/gopcomm/get_api_articles.yap:9
+//line cmd/gopcomm/get_api_articles.yap:8
 func (this *get_api_articles) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
-//line cmd/gopcomm/get_api_articles.yap:9:1
+//line cmd/gopcomm/get_api_articles.yap:8:1
 	from := this.Param("from")
-//line cmd/gopcomm/get_api_articles.yap:10:1
+//line cmd/gopcomm/get_api_articles.yap:9:1
 	limit := this.Param("limit")
-//line cmd/gopcomm/get_api_articles.yap:11:1
+//line cmd/gopcomm/get_api_articles.yap:10:1
 	searchValue := this.Param("value")
-//line cmd/gopcomm/get_api_articles.yap:12:1
+//line cmd/gopcomm/get_api_articles.yap:11:1
 	label := this.Param("label")
-//line cmd/gopcomm/get_api_articles.yap:14:1
+//line cmd/gopcomm/get_api_articles.yap:13:1
 	limitInt, err := strconv.Atoi(limit)
-//line cmd/gopcomm/get_api_articles.yap:15:1
+//line cmd/gopcomm/get_api_articles.yap:14:1
 	if err != nil {
-//line cmd/gopcomm/get_api_articles.yap:16:1
+//line cmd/gopcomm/get_api_articles.yap:15:1
 		limitInt = limitConst
 	}
-//line cmd/gopcomm/get_api_articles.yap:20:1
+//line cmd/gopcomm/get_api_articles.yap:19:1
 	articles, next, err := this.community.ListArticle(context.TODO(), from, limitInt, searchValue, label)
-//line cmd/gopcomm/get_api_articles.yap:21:1
+//line cmd/gopcomm/get_api_articles.yap:20:1
 	if err != nil {
-//line cmd/gopcomm/get_api_articles.yap:22:1
+//line cmd/gopcomm/get_api_articles.yap:21:1
 		log.Error("get article error:", err)
-//line cmd/gopcomm/get_api_articles.yap:23:1
+//line cmd/gopcomm/get_api_articles.yap:22:1
 		this.Json__1(map[string]interface{}{"code": 0, "err": "get article failed"})
 	}
-//line cmd/gopcomm/get_api_articles.yap:28:1
+//line cmd/gopcomm/get_api_articles.yap:27:1
 	this.Json__1(map[string]interface{}{"code": 200, "items": articles, "next": next, "value": searchValue})
 }
 func (this *get_api_articles) Classfname() string {
@@ -426,21 +426,21 @@ func (this *get_api_media_id_url) Classfname() string {
 	return "get_api_media_#id_url"
 }
 
-//line cmd/gopcomm/get_api_translation_#id.yap:8
+//line cmd/gopcomm/get_api_translation_#id.yap:7
 func (this *get_api_translation_id) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
-//line cmd/gopcomm/get_api_translation_#id.yap:8:1
+//line cmd/gopcomm/get_api_translation_#id.yap:7:1
 	id := this.Param("id")
-//line cmd/gopcomm/get_api_translation_#id.yap:9:1
+//line cmd/gopcomm/get_api_translation_#id.yap:8:1
 	article, err := this.community.GetTranslateArticle(context.TODO(), id)
-//line cmd/gopcomm/get_api_translation_#id.yap:11:1
+//line cmd/gopcomm/get_api_translation_#id.yap:10:1
 	if err != nil {
-//line cmd/gopcomm/get_api_translation_#id.yap:12:1
+//line cmd/gopcomm/get_api_translation_#id.yap:11:1
 		log.Info(err)
-//line cmd/gopcomm/get_api_translation_#id.yap:13:1
+//line cmd/gopcomm/get_api_translation_#id.yap:12:1
 		this.Json__1(map[string]int{"code": 0})
 	}
-//line cmd/gopcomm/get_api_translation_#id.yap:17:1
+//line cmd/gopcomm/get_api_translation_#id.yap:16:1
 	this.Json__1(map[string]interface{}{"code": 200, "content": article.Content, "tags": article.Tags, "title": article.Title})
 }
 func (this *get_api_translation_id) Classfname() string {
@@ -781,62 +781,62 @@ func (this *get_article_id) Classfname() string {
 	return "get_article_#id"
 }
 
-//line cmd/gopcomm/get_edit_#id.yap:10
+//line cmd/gopcomm/get_edit_#id.yap:11
 func (this *get_edit_id) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
-//line cmd/gopcomm/get_edit_#id.yap:10:1
-	token, err := this.Request.Cookie("token")
 //line cmd/gopcomm/get_edit_#id.yap:11:1
-	if token != nil {
+	token, err := this.Request.Cookie("token")
 //line cmd/gopcomm/get_edit_#id.yap:12:1
-		this.user, err = this.community.GetUser(token.Value)
+	if token != nil {
 //line cmd/gopcomm/get_edit_#id.yap:13:1
-		if err != nil {
+		this.user, err = this.community.GetUser(token.Value)
 //line cmd/gopcomm/get_edit_#id.yap:14:1
-			log.Error("get user error")
+		if err != nil {
 //line cmd/gopcomm/get_edit_#id.yap:15:1
+			log.Error("get user error")
+//line cmd/gopcomm/get_edit_#id.yap:16:1
 			this.Json__1(map[string]interface{}{"code": 0, "err": err.Error()})
 		}
 	}
-//line cmd/gopcomm/get_edit_#id.yap:22:1
-	uid := this.user.Id
 //line cmd/gopcomm/get_edit_#id.yap:23:1
-	id := this.Param("id")
+	uid := this.user.Id
 //line cmd/gopcomm/get_edit_#id.yap:24:1
-	if id != "" {
+	id := this.Param("id")
 //line cmd/gopcomm/get_edit_#id.yap:25:1
-		editable, err := this.community.CanEditable(context.TODO(), uid, id)
+	if id != "" {
 //line cmd/gopcomm/get_edit_#id.yap:26:1
-		if err != nil {
+		editable, err := this.community.CanEditable(context.TODO(), uid, id)
 //line cmd/gopcomm/get_edit_#id.yap:27:1
-			log.Error("can editable error:", err)
+		if err != nil {
 //line cmd/gopcomm/get_edit_#id.yap:28:1
+			log.Error("can editable error:", err)
+//line cmd/gopcomm/get_edit_#id.yap:29:1
 			http.Redirect(this.ResponseWriter, this.Request, "/error", http.StatusTemporaryRedirect)
 		}
-//line cmd/gopcomm/get_edit_#id.yap:30:1
-		if !editable {
 //line cmd/gopcomm/get_edit_#id.yap:31:1
-			log.Error("no permissions")
+		if !editable {
 //line cmd/gopcomm/get_edit_#id.yap:32:1
+			log.Error("no permissions")
+//line cmd/gopcomm/get_edit_#id.yap:33:1
 			http.Redirect(this.ResponseWriter, this.Request, "/error", http.StatusTemporaryRedirect)
 		}
-//line cmd/gopcomm/get_edit_#id.yap:34:1
-		article, err := this.community.Article(context.TODO(), id)
 //line cmd/gopcomm/get_edit_#id.yap:35:1
-		if err != nil {
+		article, err := this.community.Article(context.TODO(), id)
 //line cmd/gopcomm/get_edit_#id.yap:36:1
-			log.Error("get article error:", err)
-//line cmd/gopcomm/get_edit_#id.yap:37:1
-			http.Redirect(this.ResponseWriter, this.Request, "/error", http.StatusTemporaryRedirect)
-		}
-//line cmd/gopcomm/get_edit_#id.yap:40:1
 		if err != nil {
-//line cmd/gopcomm/get_edit_#id.yap:41:1
-			log.Error("json marshal error:", err)
-//line cmd/gopcomm/get_edit_#id.yap:42:1
+//line cmd/gopcomm/get_edit_#id.yap:37:1
+			log.Error("get article error:", err)
+//line cmd/gopcomm/get_edit_#id.yap:38:1
 			http.Redirect(this.ResponseWriter, this.Request, "/error", http.StatusTemporaryRedirect)
 		}
-//line cmd/gopcomm/get_edit_#id.yap:44:1
+//line cmd/gopcomm/get_edit_#id.yap:41:1
+		if err != nil {
+//line cmd/gopcomm/get_edit_#id.yap:42:1
+			log.Error("json marshal error:", err)
+//line cmd/gopcomm/get_edit_#id.yap:43:1
+			http.Redirect(this.ResponseWriter, this.Request, "/error", http.StatusTemporaryRedirect)
+		}
+//line cmd/gopcomm/get_edit_#id.yap:45:1
 		this.Yap__1("edit", map[string]interface{}{"User": this.user, "Article": article})
 	}
 }
@@ -868,24 +868,24 @@ func (this *get_error) Classfname() string {
 	return "get_error"
 }
 
-//line cmd/gopcomm/get_failed.yap:7
+//line cmd/gopcomm/get_failed.yap:8
 func (this *get_failed) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
-//line cmd/gopcomm/get_failed.yap:7:1
-	token, err := this.Request.Cookie("token")
 //line cmd/gopcomm/get_failed.yap:8:1
-	if token != nil {
+	token, err := this.Request.Cookie("token")
 //line cmd/gopcomm/get_failed.yap:9:1
-		this.user, err = this.community.GetUser(token.Value)
+	if token != nil {
 //line cmd/gopcomm/get_failed.yap:10:1
-		if err != nil {
+		this.user, err = this.community.GetUser(token.Value)
 //line cmd/gopcomm/get_failed.yap:11:1
-			log.Error("get user error")
+		if err != nil {
 //line cmd/gopcomm/get_failed.yap:12:1
+			log.Error("get user error")
+//line cmd/gopcomm/get_failed.yap:13:1
 			this.Json__1(map[string]interface{}{"code": 0, "err": err.Error()})
 		}
 	}
-//line cmd/gopcomm/get_failed.yap:19:1
+//line cmd/gopcomm/get_failed.yap:20:1
 	this.Yap__1("5xx", map[string]*core.User{"User": this.user})
 }
 func (this *get_failed) Classfname() string {
@@ -958,86 +958,86 @@ func (this *get_login_callback) Classfname() string {
 	return "get_login_callback"
 }
 
-//line cmd/gopcomm/get_logout.yap:10
+//line cmd/gopcomm/get_logout.yap:9
 func (this *get_logout) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
-//line cmd/gopcomm/get_logout.yap:10:1
+//line cmd/gopcomm/get_logout.yap:9:1
 	tokenCookie, err := this.Request.Cookie("token")
+//line cmd/gopcomm/get_logout.yap:10:1
+	if err != nil {
 //line cmd/gopcomm/get_logout.yap:11:1
-	if err != nil {
-//line cmd/gopcomm/get_logout.yap:12:1
 		log.Error("remove token error:", err)
-//line cmd/gopcomm/get_logout.yap:13:1
+//line cmd/gopcomm/get_logout.yap:12:1
 		return
 	}
-//line cmd/gopcomm/get_logout.yap:16:1
+//line cmd/gopcomm/get_logout.yap:15:1
 	tokenCookie.MaxAge = -1
-//line cmd/gopcomm/get_logout.yap:17:1
+//line cmd/gopcomm/get_logout.yap:16:1
 	http.SetCookie(this.ResponseWriter, tokenCookie)
-//line cmd/gopcomm/get_logout.yap:19:1
+//line cmd/gopcomm/get_logout.yap:18:1
 	refererURL, err := url.Parse(this.Request.Referer())
-//line cmd/gopcomm/get_logout.yap:20:1
+//line cmd/gopcomm/get_logout.yap:19:1
 	if err != nil {
-//line cmd/gopcomm/get_logout.yap:21:1
+//line cmd/gopcomm/get_logout.yap:20:1
 		log.Infof("Error parsing Referer: %#v", err)
-//line cmd/gopcomm/get_logout.yap:22:1
+//line cmd/gopcomm/get_logout.yap:21:1
 		return
 	}
-//line cmd/gopcomm/get_logout.yap:25:1
+//line cmd/gopcomm/get_logout.yap:24:1
 	refererPath := refererURL.Path
-//line cmd/gopcomm/get_logout.yap:26:1
+//line cmd/gopcomm/get_logout.yap:25:1
 	if refererURL.RawQuery != "" {
-//line cmd/gopcomm/get_logout.yap:27:1
+//line cmd/gopcomm/get_logout.yap:26:1
 		refererPath = fmt.Sprintf("%s?%s", refererURL.Path, refererURL.RawQuery)
 	}
-//line cmd/gopcomm/get_logout.yap:30:1
+//line cmd/gopcomm/get_logout.yap:29:1
 	http.Redirect(this.ResponseWriter, this.Request, refererPath, http.StatusFound)
 }
 func (this *get_logout) Classfname() string {
 	return "get_logout"
 }
 
-//line cmd/gopcomm/get_search.yap:9
+//line cmd/gopcomm/get_search.yap:8
 func (this *get_search) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
-//line cmd/gopcomm/get_search.yap:9:1
+//line cmd/gopcomm/get_search.yap:8:1
 	searchValue := this.Param("value")
-//line cmd/gopcomm/get_search.yap:10:1
+//line cmd/gopcomm/get_search.yap:9:1
 	label := this.Param("label")
-//line cmd/gopcomm/get_search.yap:11:1
+//line cmd/gopcomm/get_search.yap:10:1
 	if label == "" {
-//line cmd/gopcomm/get_search.yap:12:1
+//line cmd/gopcomm/get_search.yap:11:1
 		label = "article"
 	}
-//line cmd/gopcomm/get_search.yap:14:1
+//line cmd/gopcomm/get_search.yap:13:1
 	var user *core.User
-//line cmd/gopcomm/get_search.yap:15:1
+//line cmd/gopcomm/get_search.yap:14:1
 	token, err := this.Request.Cookie("token")
-//line cmd/gopcomm/get_search.yap:16:1
+//line cmd/gopcomm/get_search.yap:15:1
 	if token != nil {
-//line cmd/gopcomm/get_search.yap:17:1
+//line cmd/gopcomm/get_search.yap:16:1
 		user, err = this.community.GetUser(token.Value)
-//line cmd/gopcomm/get_search.yap:18:1
+//line cmd/gopcomm/get_search.yap:17:1
 		if err != nil {
-//line cmd/gopcomm/get_search.yap:19:1
+//line cmd/gopcomm/get_search.yap:18:1
 			log.Error("get user error")
-//line cmd/gopcomm/get_search.yap:20:1
+//line cmd/gopcomm/get_search.yap:19:1
 			this.Json__1(map[string]interface{}{"code": 0, "err": err.Error()})
 		}
 	}
-//line cmd/gopcomm/get_search.yap:27:1
+//line cmd/gopcomm/get_search.yap:26:1
 	articles, next, err := this.community.ListArticle(context.TODO(), core.MarkBegin, limitConst, searchValue, label)
-//line cmd/gopcomm/get_search.yap:28:1
+//line cmd/gopcomm/get_search.yap:27:1
 	if err != nil {
-//line cmd/gopcomm/get_search.yap:29:1
+//line cmd/gopcomm/get_search.yap:28:1
 		log.Error("get article error:", err)
 	}
-//line cmd/gopcomm/get_search.yap:32:1
+//line cmd/gopcomm/get_search.yap:31:1
 	if err != nil {
-//line cmd/gopcomm/get_search.yap:33:1
+//line cmd/gopcomm/get_search.yap:32:1
 		log.Error("json marshal error:", err)
 	}
-//line cmd/gopcomm/get_search.yap:35:1
+//line cmd/gopcomm/get_search.yap:34:1
 	this.Yap__1("home", map[string]interface{}{"User": user, "Items": articles, "Value": searchValue, "Next": next, "Tab": label})
 }
 func (this *get_search) Classfname() string {
@@ -1056,63 +1056,63 @@ func (this *get_success) Classfname() string {
 
 var uid string
 
-//line cmd/gopcomm/get_user_edit.yap:11
+//line cmd/gopcomm/get_user_edit.yap:12
 func (this *get_user_edit) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
-//line cmd/gopcomm/get_user_edit.yap:11:1
-	token, err := this.Request.Cookie("token")
 //line cmd/gopcomm/get_user_edit.yap:12:1
-	if token != nil {
+	token, err := this.Request.Cookie("token")
 //line cmd/gopcomm/get_user_edit.yap:13:1
-		this.user, err = this.community.GetUser(token.Value)
+	if token != nil {
 //line cmd/gopcomm/get_user_edit.yap:14:1
-		if err != nil {
+		this.user, err = this.community.GetUser(token.Value)
 //line cmd/gopcomm/get_user_edit.yap:15:1
-			log.Error("get user error:", err)
+		if err != nil {
 //line cmd/gopcomm/get_user_edit.yap:16:1
+			log.Error("get user error:", err)
+//line cmd/gopcomm/get_user_edit.yap:17:1
 			this.Json__1(map[string]interface{}{"code": 0, "msg": "get user failed", "users": nil, "next": 1})
 		}
-//line cmd/gopcomm/get_user_edit.yap:23:1
+//line cmd/gopcomm/get_user_edit.yap:24:1
 		uid = this.user.Id
 	}
-//line cmd/gopcomm/get_user_edit.yap:25:1
-	userClaim, err := this.community.GetUserClaim(uid)
 //line cmd/gopcomm/get_user_edit.yap:26:1
-	if err != nil {
+	userClaim, err := this.community.GetUserClaim(uid)
 //line cmd/gopcomm/get_user_edit.yap:27:1
+	if err != nil {
+//line cmd/gopcomm/get_user_edit.yap:28:1
 		log.Error("get current user error:", err)
 	}
-//line cmd/gopcomm/get_user_edit.yap:29:1
-	gac, err := gopaccountsdk.GetClient(token.Value)
 //line cmd/gopcomm/get_user_edit.yap:30:1
-	if err != nil {
+	gac, err := gopaccountsdk.GetClient(token.Value)
 //line cmd/gopcomm/get_user_edit.yap:31:1
-		log.Info("gac", err)
-//line cmd/gopcomm/get_user_edit.yap:32:1
-		http.Redirect(this.ResponseWriter, this.Request, "/error", http.StatusTemporaryRedirect)
-	}
-//line cmd/gopcomm/get_user_edit.yap:34:1
-	appInfo, err := this.community.GetApplicationInfo()
-//line cmd/gopcomm/get_user_edit.yap:35:1
 	if err != nil {
-//line cmd/gopcomm/get_user_edit.yap:36:1
-		log.Error("get application info error:", err)
-//line cmd/gopcomm/get_user_edit.yap:37:1
+//line cmd/gopcomm/get_user_edit.yap:32:1
+		log.Info("gac", err)
+//line cmd/gopcomm/get_user_edit.yap:33:1
 		http.Redirect(this.ResponseWriter, this.Request, "/error", http.StatusTemporaryRedirect)
 	}
-//line cmd/gopcomm/get_user_edit.yap:39:1
+//line cmd/gopcomm/get_user_edit.yap:35:1
+	appInfo, err := this.community.GetApplicationInfo()
+//line cmd/gopcomm/get_user_edit.yap:36:1
+	if err != nil {
+//line cmd/gopcomm/get_user_edit.yap:37:1
+		log.Error("get application info error:", err)
+//line cmd/gopcomm/get_user_edit.yap:38:1
+		http.Redirect(this.ResponseWriter, this.Request, "/error", http.StatusTemporaryRedirect)
+	}
+//line cmd/gopcomm/get_user_edit.yap:40:1
 	providers := gac.GetProviders()
-//line cmd/gopcomm/get_user_edit.yap:41:1
+//line cmd/gopcomm/get_user_edit.yap:42:1
 	this.Yap__1("user_edit", map[string]interface{}{"User": this.user, "CurrentUser": userClaim, "Application": appInfo, "Binds": gac.GetProviderBindStatus(), "casdoorUrl": gopaccountsdk.GetCasdoorEndPoint(), "providers": providers})
 }
 func (this *get_user_edit) Classfname() string {
 	return "get_user_edit"
 }
 
-//line cmd/gopcomm/get_user_info_#id.yap:8
+//line cmd/gopcomm/get_user_info_#id.yap:10
 func (this *get_user_info_id) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
-//line cmd/gopcomm/get_user_info_#id.yap:8:1
+//line cmd/gopcomm/get_user_info_#id.yap:10:1
 	id := this.Param("id")
 //line cmd/gopcomm/get_user_info_#id.yap:11:1
 	userClaim, err := this.community.GetUserClaim(id)
@@ -1168,63 +1168,63 @@ func (this *handle) Classfname() string {
 	return "handle"
 }
 
-//line cmd/gopcomm/post_api_article_commit.yap:10
+//line cmd/gopcomm/post_api_article_commit.yap:9
 func (this *post_api_article_commit) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
-//line cmd/gopcomm/post_api_article_commit.yap:10:1
+//line cmd/gopcomm/post_api_article_commit.yap:9:1
 	id := this.Param("id")
-//line cmd/gopcomm/post_api_article_commit.yap:11:1
+//line cmd/gopcomm/post_api_article_commit.yap:10:1
 	content := this.Param("content")
-//line cmd/gopcomm/post_api_article_commit.yap:12:1
+//line cmd/gopcomm/post_api_article_commit.yap:11:1
 	title := this.Param("title")
-//line cmd/gopcomm/post_api_article_commit.yap:13:1
+//line cmd/gopcomm/post_api_article_commit.yap:12:1
 	tags := this.Param("tags")
-//line cmd/gopcomm/post_api_article_commit.yap:14:1
+//line cmd/gopcomm/post_api_article_commit.yap:13:1
 	abstract := this.Param("abstract")
-//line cmd/gopcomm/post_api_article_commit.yap:15:1
+//line cmd/gopcomm/post_api_article_commit.yap:14:1
 	label := this.Param("label")
-//line cmd/gopcomm/post_api_article_commit.yap:16:1
+//line cmd/gopcomm/post_api_article_commit.yap:15:1
 	trans, err := strconv.ParseBool(this.Param("trans"))
-//line cmd/gopcomm/post_api_article_commit.yap:17:1
+//line cmd/gopcomm/post_api_article_commit.yap:16:1
 	if err != nil {
-//line cmd/gopcomm/post_api_article_commit.yap:18:1
+//line cmd/gopcomm/post_api_article_commit.yap:17:1
 		log.Error("parse bool error:", err)
 	}
-//line cmd/gopcomm/post_api_article_commit.yap:22:1
+//line cmd/gopcomm/post_api_article_commit.yap:21:1
 	token, err := this.Request.Cookie("token")
-//line cmd/gopcomm/post_api_article_commit.yap:23:1
+//line cmd/gopcomm/post_api_article_commit.yap:22:1
 	if err != nil {
-//line cmd/gopcomm/post_api_article_commit.yap:24:1
+//line cmd/gopcomm/post_api_article_commit.yap:23:1
 		log.Info("token", err)
-//line cmd/gopcomm/post_api_article_commit.yap:25:1
+//line cmd/gopcomm/post_api_article_commit.yap:24:1
 		this.Json__1(map[string]interface{}{"code": 0, "err": "no token"})
 	}
-//line cmd/gopcomm/post_api_article_commit.yap:30:1
+//line cmd/gopcomm/post_api_article_commit.yap:29:1
 	uid, err := this.community.ParseJwtToken(token.Value)
-//line cmd/gopcomm/post_api_article_commit.yap:31:1
+//line cmd/gopcomm/post_api_article_commit.yap:30:1
 	if err != nil {
-//line cmd/gopcomm/post_api_article_commit.yap:32:1
+//line cmd/gopcomm/post_api_article_commit.yap:31:1
 		log.Info("uid", err)
-//line cmd/gopcomm/post_api_article_commit.yap:33:1
+//line cmd/gopcomm/post_api_article_commit.yap:32:1
 		this.Json__1(map[string]interface{}{"code": 0, "err": err.Error()})
 	}
-//line cmd/gopcomm/post_api_article_commit.yap:38:1
+//line cmd/gopcomm/post_api_article_commit.yap:37:1
 	article := &core.Article{ArticleEntry: core.ArticleEntry{ID: id, Title: title, UId: uid, Cover: this.Param("cover"), Tags: tags, Abstract: abstract, Label: label}, Content: content, Trans: trans, VttId: this.Param("vtt_id")}
-//line cmd/gopcomm/post_api_article_commit.yap:53:1
+//line cmd/gopcomm/post_api_article_commit.yap:52:1
 	if trans {
-//line cmd/gopcomm/post_api_article_commit.yap:54:1
+//line cmd/gopcomm/post_api_article_commit.yap:53:1
 		article, _ = this.community.TranslateArticle(context.TODO(), article)
 	}
-//line cmd/gopcomm/post_api_article_commit.yap:57:1
+//line cmd/gopcomm/post_api_article_commit.yap:56:1
 	id, err = this.community.PutArticle(context.TODO(), uid, article)
-//line cmd/gopcomm/post_api_article_commit.yap:58:1
+//line cmd/gopcomm/post_api_article_commit.yap:57:1
 	if err != nil {
-//line cmd/gopcomm/post_api_article_commit.yap:59:1
+//line cmd/gopcomm/post_api_article_commit.yap:58:1
 		log.Info(err)
-//line cmd/gopcomm/post_api_article_commit.yap:60:1
+//line cmd/gopcomm/post_api_article_commit.yap:59:1
 		this.Json__1(map[string]interface{}{"code": 0, "err": "add failed"})
 	}
-//line cmd/gopcomm/post_api_article_commit.yap:65:1
+//line cmd/gopcomm/post_api_article_commit.yap:64:1
 	this.Json__1(map[string]interface{}{"code": 200, "data": id})
 }
 func (this *post_api_article_commit) Classfname() string {
@@ -1438,25 +1438,25 @@ func (this *post_api_translation) Classfname() string {
 	return "post_api_translation"
 }
 
-//line cmd/gopcomm/put_api_user.yap:7
+//line cmd/gopcomm/put_api_user.yap:6
 func (this *put_api_user) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
-//line cmd/gopcomm/put_api_user.yap:7:1
+//line cmd/gopcomm/put_api_user.yap:6:1
 	token, err := this.Request.Cookie("token")
-//line cmd/gopcomm/put_api_user.yap:8:1
+//line cmd/gopcomm/put_api_user.yap:7:1
 	uid, err := this.community.ParseJwtToken(token.Value)
-//line cmd/gopcomm/put_api_user.yap:9:1
+//line cmd/gopcomm/put_api_user.yap:8:1
 	user := &core.UserInfo{Id: uid, Name: this.Param("name"), Birthday: this.Param("birthday"), Gender: this.Param("gender"), Phone: this.Param("phone"), Email: this.Param("email"), Avatar: this.Param("avatar"), Owner: this.Param("owner"), DisplayName: this.Param("displayName")}
-//line cmd/gopcomm/put_api_user.yap:21:1
+//line cmd/gopcomm/put_api_user.yap:20:1
 	_, err = this.community.UpdateUser(user)
-//line cmd/gopcomm/put_api_user.yap:22:1
+//line cmd/gopcomm/put_api_user.yap:21:1
 	if err != nil {
-//line cmd/gopcomm/put_api_user.yap:23:1
+//line cmd/gopcomm/put_api_user.yap:22:1
 		log.Info(err)
-//line cmd/gopcomm/put_api_user.yap:24:1
+//line cmd/gopcomm/put_api_user.yap:23:1
 		this.Json__1(map[string]interface{}{"code": 0, "msg": "update failed"})
 	}
-//line cmd/gopcomm/put_api_user.yap:29:1
+//line cmd/gopcomm/put_api_user.yap:28:1
 	this.Json__1(map[string]int{"code": 200})
 }
 func (this *put_api_user) Classfname() string {

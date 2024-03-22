@@ -3,7 +3,6 @@ import (
 	"github.com/qiniu/x/log"
 )
 
-
 token, err := Request.Cookie("token")
 uid, err := community.ParseJwtToken(token.Value)
 user := &core.UserInfo{
