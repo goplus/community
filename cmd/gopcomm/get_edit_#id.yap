@@ -7,7 +7,7 @@ import (
 )
 
 var user *core.User
-
+uid := ""
 token, err := Request.Cookie("token")
 if token != nil {
 	user, err = community.GetUser(token.Value)
@@ -18,9 +18,9 @@ if token != nil {
 			"err":  err.Error(),
 		}
 	}
+	uid = user.Id
 }
 
-uid := user.Id
 id := param("id")
 if id != "" {
 	editable, err := community.CanEditable(c.TODO(), uid, id)

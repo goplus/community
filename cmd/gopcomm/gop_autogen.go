@@ -214,17 +214,17 @@ func (this *AppV2) MainEntry() {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 //line cmd/gopcomm/main.yap:46:1
 			defer func() {
-//line cmd/gopcomm/main.yap:48:1
+//line cmd/gopcomm/main.yap:47:1
 				if
-//line cmd/gopcomm/main.yap:48:1
+//line cmd/gopcomm/main.yap:47:1
 				err := recover(); err != nil {
-//line cmd/gopcomm/main.yap:49:1
+//line cmd/gopcomm/main.yap:48:1
 					log.Error(err)
-//line cmd/gopcomm/main.yap:50:1
+//line cmd/gopcomm/main.yap:49:1
 					http.Redirect(w, r, "/failed", http.StatusFound)
 				}
 			}()
-//line cmd/gopcomm/main.yap:54:1
+//line cmd/gopcomm/main.yap:53:1
 			h.ServeHTTP(w, r)
 		})
 	})
@@ -745,9 +745,9 @@ func (this *get_article_id) Main(_gop_arg0 *yap.Context) {
 //line cmd/gopcomm/get_article_#id.yap:15:1
 			this.Json__1(map[string]interface{}{"code": 0, "err": err.Error()})
 		}
+//line cmd/gopcomm/get_article_#id.yap:20:1
+		uid = user.Id
 	}
-//line cmd/gopcomm/get_article_#id.yap:21:1
-	uid = user.Id
 //line cmd/gopcomm/get_article_#id.yap:22:1
 	id := this.Param("id")
 //line cmd/gopcomm/get_article_#id.yap:23:1
@@ -781,9 +781,11 @@ func (this *get_article_id) Classfname() string {
 	return "get_article_#id"
 }
 
-//line cmd/gopcomm/get_edit_#id.yap:11
+//line cmd/gopcomm/get_edit_#id.yap:10
 func (this *get_edit_id) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
+//line cmd/gopcomm/get_edit_#id.yap:10:1
+	uid := ""
 //line cmd/gopcomm/get_edit_#id.yap:11:1
 	token, err := this.Request.Cookie("token")
 //line cmd/gopcomm/get_edit_#id.yap:12:1
@@ -797,9 +799,9 @@ func (this *get_edit_id) Main(_gop_arg0 *yap.Context) {
 //line cmd/gopcomm/get_edit_#id.yap:16:1
 			this.Json__1(map[string]interface{}{"code": 0, "err": err.Error()})
 		}
+//line cmd/gopcomm/get_edit_#id.yap:21:1
+		uid = this.user.Id
 	}
-//line cmd/gopcomm/get_edit_#id.yap:23:1
-	uid := this.user.Id
 //line cmd/gopcomm/get_edit_#id.yap:24:1
 	id := this.Param("id")
 //line cmd/gopcomm/get_edit_#id.yap:25:1

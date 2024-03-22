@@ -17,8 +17,8 @@ if token != nil {
 			"err":  err.Error(),
 		}
 	}
+	uid = user.Id
 }
-uid = user.Id
 id := param("id")
 platform := Param("platform")
 ip := community.GetClientIP(Request)
