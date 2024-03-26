@@ -16,7 +16,7 @@ RUN gop mod tidy
 RUN gop build -o ./community 
 
 # Run
-FROM alpine:latest
+FROM FROM frolvlad/alpine-glibc:alpine-3.14_glibc-2.33
 
 RUN apk update && apk upgrade
 RUN apk --no-cache add libc6-compat
