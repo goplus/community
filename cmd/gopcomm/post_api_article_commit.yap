@@ -50,7 +50,8 @@ article := &core.Article{
 }
 
 if trans {
-	article, _ = community.TranslateArticle(c.TODO(), article)
+	article, err = community.TranslateArticle(c.TODO(), article)
+	log.Info(err)
 }
 
 id, err = community.PutArticle(c.TODO(), uid, article)

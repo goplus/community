@@ -214,17 +214,17 @@ func (this *AppV2) MainEntry() {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 //line cmd/gopcomm/main.yap:46:1
 			defer func() {
-//line cmd/gopcomm/main.yap:47:1
-				if
-//line cmd/gopcomm/main.yap:47:1
-				err := recover(); err != nil {
 //line cmd/gopcomm/main.yap:48:1
-					log.Error(err)
+				if
+//line cmd/gopcomm/main.yap:48:1
+				err := recover(); err != nil {
 //line cmd/gopcomm/main.yap:49:1
+					log.Error(err)
+//line cmd/gopcomm/main.yap:50:1
 					http.Redirect(w, r, "/failed", http.StatusFound)
 				}
 			}()
-//line cmd/gopcomm/main.yap:53:1
+//line cmd/gopcomm/main.yap:54:1
 			h.ServeHTTP(w, r)
 		})
 	})
@@ -1215,18 +1215,20 @@ func (this *post_api_article_commit) Main(_gop_arg0 *yap.Context) {
 //line cmd/gopcomm/post_api_article_commit.yap:52:1
 	if trans {
 //line cmd/gopcomm/post_api_article_commit.yap:53:1
-		article, _ = this.community.TranslateArticle(context.TODO(), article)
-	}
-//line cmd/gopcomm/post_api_article_commit.yap:56:1
-	id, err = this.community.PutArticle(context.TODO(), uid, article)
-//line cmd/gopcomm/post_api_article_commit.yap:57:1
-	if err != nil {
-//line cmd/gopcomm/post_api_article_commit.yap:58:1
+		article, err = this.community.TranslateArticle(context.TODO(), article)
+//line cmd/gopcomm/post_api_article_commit.yap:54:1
 		log.Info(err)
+	}
+//line cmd/gopcomm/post_api_article_commit.yap:57:1
+	id, err = this.community.PutArticle(context.TODO(), uid, article)
+//line cmd/gopcomm/post_api_article_commit.yap:58:1
+	if err != nil {
 //line cmd/gopcomm/post_api_article_commit.yap:59:1
+		log.Info(err)
+//line cmd/gopcomm/post_api_article_commit.yap:60:1
 		this.Json__1(map[string]interface{}{"code": 0, "err": "add failed"})
 	}
-//line cmd/gopcomm/post_api_article_commit.yap:64:1
+//line cmd/gopcomm/post_api_article_commit.yap:65:1
 	this.Json__1(map[string]interface{}{"code": 200, "data": id})
 }
 func (this *post_api_article_commit) Classfname() string {
