@@ -18,9 +18,6 @@ RUN gop build -o ./community
 # Run
 FROM ubuntu:22.04
 
-RUN apk update && apk upgrade
-RUN apk --no-cache add libc6-compat
-
 WORKDIR /community/cmd/gopcomm
 
 RUN ln -s /config/.env .env
