@@ -18,8 +18,6 @@ RUN gop build -o ./community
 # Run
 FROM ubuntu:22.04
 
-RUN apt-get update
-
 WORKDIR /community/cmd/gopcomm
 
 RUN ln -s /config/.env .env
