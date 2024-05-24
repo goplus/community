@@ -9,7 +9,7 @@ require (
 	github.com/qiniu/go-sdk/v7 v7.20.0
 	github.com/yuin/goldmark v1.7.1
 	gocloud.dev v0.36.0
-	golang.org/x/text v0.14.0
+	golang.org/x/text v0.15.0
 )
 
 require (
@@ -20,7 +20,7 @@ require (
 )
 
 require (
-	github.com/gabriel-vasile/mimetype v1.4.3
+	github.com/gabriel-vasile/mimetype v1.4.4
 	github.com/joho/godotenv v1.5.1
 	github.com/liuscraft/gop-casdoor-account-sdk v1.2.0
 	github.com/mattn/go-sqlite3 v1.14.22
@@ -43,9 +43,9 @@ require (
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	golang.org/x/net v0.21.0 // indirect
+	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect
-	golang.org/x/sys v0.17.0 // indirect
+	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/tools v0.17.0 // indirect
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 	google.golang.org/api v0.151.0 // indirect
