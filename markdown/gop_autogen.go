@@ -3,7 +3,6 @@
 package markdown
 
 const _ = true
-
 //line markdown/render.gop:19:1
 // Render renders a markdown text into html.
 func Render(md string) (html string, err error) {

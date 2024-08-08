@@ -175,7 +175,6 @@ type put_api_user_public struct {
 	yap.Handler
 	*AppV2
 }
-
 //line cmd/gopcomm/main.yap:24
 func (this *AppV2) MainEntry() {
 //line cmd/gopcomm/main.yap:24:1
@@ -232,7 +231,6 @@ func (this *AppV2) MainEntry() {
 func (this *AppV2) Main() {
 	yap.Gopt_AppV2_Main(this, new(delete_api_article_id), new(delete_api_media_id), new(get), new(get_add), new(get_api_article_id), new(get_api_articles), new(get_api_media_id_url), new(get_api_translation_id), new(get_api_user_acoount_unlink), new(get_api_user_articles_id), new(get_api_user_get_qrcode), new(get_api_user_medias_id), new(get_api_users), new(get_api_video_id), new(get_article_id), new(get_edit_id), new(get_error), new(get_failed), new(get_login), new(get_login_callback), new(get_logout), new(get_search), new(get_success), new(get_user_edit), new(get_user_info_id), new(handle), new(post_api_article_commit), new(post_api_article_like), new(post_api_caption_task), new(post_api_media), new(post_api_translation), new(put_api_user), new(put_api_user_public))
 }
-
 //line cmd/gopcomm/delete_api_article_#id.yap:7
 func (this *delete_api_article_id) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -263,7 +261,6 @@ func (this *delete_api_article_id) Main(_gop_arg0 *yap.Context) {
 func (this *delete_api_article_id) Classfname() string {
 	return "delete_api_article_#id"
 }
-
 //line cmd/gopcomm/delete_api_media_#id.yap:7
 func (this *delete_api_media_id) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -294,7 +291,6 @@ func (this *delete_api_media_id) Main(_gop_arg0 *yap.Context) {
 func (this *delete_api_media_id) Classfname() string {
 	return "delete_api_media_#id"
 }
-
 //line cmd/gopcomm/get.yap:10
 func (this *get) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -325,7 +321,6 @@ func (this *get) Main(_gop_arg0 *yap.Context) {
 func (this *get) Classfname() string {
 	return "get"
 }
-
 //line cmd/gopcomm/get_add.yap:8
 func (this *get_add) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -349,7 +344,6 @@ func (this *get_add) Main(_gop_arg0 *yap.Context) {
 func (this *get_add) Classfname() string {
 	return "get_add"
 }
-
 //line cmd/gopcomm/get_api_article_#id.yap:7
 func (this *get_api_article_id) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -370,7 +364,6 @@ func (this *get_api_article_id) Main(_gop_arg0 *yap.Context) {
 func (this *get_api_article_id) Classfname() string {
 	return "get_api_article_#id"
 }
-
 //line cmd/gopcomm/get_api_articles.yap:8
 func (this *get_api_articles) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -404,7 +397,6 @@ func (this *get_api_articles) Main(_gop_arg0 *yap.Context) {
 func (this *get_api_articles) Classfname() string {
 	return "get_api_articles"
 }
-
 //line cmd/gopcomm/get_api_media_#id_url.yap:6
 func (this *get_api_media_id_url) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -425,7 +417,6 @@ func (this *get_api_media_id_url) Main(_gop_arg0 *yap.Context) {
 func (this *get_api_media_id_url) Classfname() string {
 	return "get_api_media_#id_url"
 }
-
 //line cmd/gopcomm/get_api_translation_#id.yap:7
 func (this *get_api_translation_id) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -446,7 +437,6 @@ func (this *get_api_translation_id) Main(_gop_arg0 *yap.Context) {
 func (this *get_api_translation_id) Classfname() string {
 	return "get_api_translation_#id"
 }
-
 //line cmd/gopcomm/get_api_user_acoount_unlink.yap:5
 func (this *get_api_user_acoount_unlink) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -489,7 +479,6 @@ func (this *get_api_user_acoount_unlink) Main(_gop_arg0 *yap.Context) {
 func (this *get_api_user_acoount_unlink) Classfname() string {
 	return "get_api_user_acoount_unlink"
 }
-
 //line cmd/gopcomm/get_api_user_articles_#id.yap:8
 func (this *get_api_user_articles_id) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -521,7 +510,6 @@ func (this *get_api_user_articles_id) Main(_gop_arg0 *yap.Context) {
 func (this *get_api_user_articles_id) Classfname() string {
 	return "get_api_user_articles_#id"
 }
-
 //line cmd/gopcomm/get_api_user_get-qrcode.yap:5
 func (this *get_api_user_get_qrcode) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -558,7 +546,6 @@ func (this *get_api_user_get_qrcode) Main(_gop_arg0 *yap.Context) {
 func (this *get_api_user_get_qrcode) Classfname() string {
 	return "get_api_user_get-qrcode"
 }
-
 //line cmd/gopcomm/get_api_user_medias_#id.yap:6
 func (this *get_api_user_medias_id) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -598,7 +585,6 @@ func (this *get_api_user_medias_id) Main(_gop_arg0 *yap.Context) {
 func (this *get_api_user_medias_id) Classfname() string {
 	return "get_api_user_medias_#id"
 }
-
 //line cmd/gopcomm/get_api_users.yap:8
 func (this *get_api_users) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -667,7 +653,6 @@ func (this *get_api_users) Main(_gop_arg0 *yap.Context) {
 func (this *get_api_users) Classfname() string {
 	return "get_api_users"
 }
-
 //line cmd/gopcomm/get_api_video_#id.yap:7
 func (this *get_api_video_id) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -724,7 +709,6 @@ func (this *get_api_video_id) Main(_gop_arg0 *yap.Context) {
 func (this *get_api_video_id) Classfname() string {
 	return "get_api_video_#id"
 }
-
 //line cmd/gopcomm/get_article_#id.yap:8
 func (this *get_article_id) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -780,7 +764,6 @@ func (this *get_article_id) Main(_gop_arg0 *yap.Context) {
 func (this *get_article_id) Classfname() string {
 	return "get_article_#id"
 }
-
 //line cmd/gopcomm/get_edit_#id.yap:10
 func (this *get_edit_id) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -845,7 +828,6 @@ func (this *get_edit_id) Main(_gop_arg0 *yap.Context) {
 func (this *get_edit_id) Classfname() string {
 	return "get_edit_#id"
 }
-
 //line cmd/gopcomm/get_error.yap:8
 func (this *get_error) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -869,7 +851,6 @@ func (this *get_error) Main(_gop_arg0 *yap.Context) {
 func (this *get_error) Classfname() string {
 	return "get_error"
 }
-
 //line cmd/gopcomm/get_failed.yap:8
 func (this *get_failed) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -893,7 +874,6 @@ func (this *get_failed) Main(_gop_arg0 *yap.Context) {
 func (this *get_failed) Classfname() string {
 	return "get_failed"
 }
-
 //line cmd/gopcomm/get_login.yap:9
 func (this *get_login) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -923,7 +903,6 @@ func (this *get_login) Main(_gop_arg0 *yap.Context) {
 func (this *get_login) Classfname() string {
 	return "get_login"
 }
-
 //line cmd/gopcomm/get_login_callback.yap:9
 func (this *get_login_callback) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -959,7 +938,6 @@ func (this *get_login_callback) Main(_gop_arg0 *yap.Context) {
 func (this *get_login_callback) Classfname() string {
 	return "get_login_callback"
 }
-
 //line cmd/gopcomm/get_logout.yap:9
 func (this *get_logout) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -998,7 +976,6 @@ func (this *get_logout) Main(_gop_arg0 *yap.Context) {
 func (this *get_logout) Classfname() string {
 	return "get_logout"
 }
-
 //line cmd/gopcomm/get_search.yap:8
 func (this *get_search) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -1045,7 +1022,6 @@ func (this *get_search) Main(_gop_arg0 *yap.Context) {
 func (this *get_search) Classfname() string {
 	return "get_search"
 }
-
 //line cmd/gopcomm/get_success.yap:1
 func (this *get_success) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -1057,7 +1033,6 @@ func (this *get_success) Classfname() string {
 }
 
 var uid string
-
 //line cmd/gopcomm/get_user_edit.yap:12
 func (this *get_user_edit) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -1110,7 +1085,6 @@ func (this *get_user_edit) Main(_gop_arg0 *yap.Context) {
 func (this *get_user_edit) Classfname() string {
 	return "get_user_edit"
 }
-
 //line cmd/gopcomm/get_user_info_#id.yap:10
 func (this *get_user_info_id) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -1159,7 +1133,6 @@ func (this *get_user_info_id) Main(_gop_arg0 *yap.Context) {
 func (this *get_user_info_id) Classfname() string {
 	return "get_user_info_#id"
 }
-
 //line cmd/gopcomm/handle.yap:1
 func (this *handle) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -1169,7 +1142,6 @@ func (this *handle) Main(_gop_arg0 *yap.Context) {
 func (this *handle) Classfname() string {
 	return "handle"
 }
-
 //line cmd/gopcomm/post_api_article_commit.yap:9
 func (this *post_api_article_commit) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -1234,7 +1206,6 @@ func (this *post_api_article_commit) Main(_gop_arg0 *yap.Context) {
 func (this *post_api_article_commit) Classfname() string {
 	return "post_api_article_commit"
 }
-
 //line cmd/gopcomm/post_api_article_like.yap:8
 func (this *post_api_article_like) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -1276,7 +1247,6 @@ func (this *post_api_article_like) Main(_gop_arg0 *yap.Context) {
 func (this *post_api_article_like) Classfname() string {
 	return "post_api_article_like"
 }
-
 //line cmd/gopcomm/post_api_caption_task.yap:5
 func (this *post_api_caption_task) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -1302,7 +1272,6 @@ func (this *post_api_caption_task) Main(_gop_arg0 *yap.Context) {
 func (this *post_api_caption_task) Classfname() string {
 	return "post_api_caption_task"
 }
-
 //line cmd/gopcomm/post_api_media.yap:12
 func (this *post_api_media) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -1422,7 +1391,6 @@ func (this *post_api_media) Main(_gop_arg0 *yap.Context) {
 func (this *post_api_media) Classfname() string {
 	return "post_api_media"
 }
-
 //line cmd/gopcomm/post_api_translation.yap:7
 func (this *post_api_translation) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -1441,7 +1409,6 @@ func (this *post_api_translation) Main(_gop_arg0 *yap.Context) {
 func (this *post_api_translation) Classfname() string {
 	return "post_api_translation"
 }
-
 //line cmd/gopcomm/put_api_user.yap:6
 func (this *put_api_user) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
@@ -1466,7 +1433,6 @@ func (this *put_api_user) Main(_gop_arg0 *yap.Context) {
 func (this *put_api_user) Classfname() string {
 	return "put_api_user"
 }
-
 //line cmd/gopcomm/put_api_user_public.yap:8
 func (this *put_api_user_public) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
