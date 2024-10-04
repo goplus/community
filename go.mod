@@ -9,7 +9,7 @@ require (
 	github.com/qiniu/go-sdk/v7 v7.20.0
 	github.com/yuin/goldmark v1.7.4
 	gocloud.dev v0.36.0
-	golang.org/x/text v0.17.0
+	golang.org/x/text v0.19.0
 )
 
 require (
