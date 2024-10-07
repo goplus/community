@@ -23,7 +23,7 @@ require (
 	github.com/gabriel-vasile/mimetype v1.4.5
 	github.com/joho/godotenv v1.5.1
 	github.com/liuscraft/gop-casdoor-account-sdk v1.2.0
-	github.com/mattn/go-sqlite3 v1.14.22
+	github.com/mattn/go-sqlite3 v1.14.24
 	github.com/stretchr/testify v1.9.0
 )
 
