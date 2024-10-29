@@ -13,7 +13,7 @@ require (
 )
 
 require (
-	github.com/casdoor/casdoor-go-sdk v0.46.0
+	github.com/casdoor/casdoor-go-sdk v1.3.0
 	github.com/qiniu/go-cdk-driver v0.1.0
 	github.com/qiniu/x v1.13.10
 	golang.org/x/oauth2 v0.22.0
