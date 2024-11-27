@@ -24,7 +24,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/liuscraft/gop-casdoor-account-sdk v1.2.0
 	github.com/mattn/go-sqlite3 v1.14.24
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 )
 
 replace github.com/qiniu/go-cdk-driver v0.1.0 => github.com/xhyqaq/go-cdk-driver v1.0.0
