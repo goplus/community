@@ -120,8 +120,8 @@ github.com/qiniu/dyn v1.3.0/go.mod h1:E8oERcm8TtwJiZvkQPbcAh0RL8jO1G0VXJMW3FAWdk
 github.com/qiniu/go-sdk/v7 v7.20.0 h1:pK2tk2qWpNtY0MWjc32oRlf3EHt6BaeWexl74jXkOTg=
 github.com/qiniu/go-sdk/v7 v7.20.0/go.mod h1:ZnEP1rOOi7weF+yzM2qZMHI0z1ht+KjVuNAuKTQW3aM=
 github.com/qiniu/x v1.10.5/go.mod h1:03Ni9tj+N2h2aKnAz+6N0Xfl8FwMEDRC2PAlxekASDs=
-github.com/qiniu/x v1.13.10 h1:J4Z3XugYzAq85SlyAfqlKVrbf05glMbAOh+QncsDQpE=
-github.com/qiniu/x v1.13.10/go.mod h1:INZ2TSWSJVWO/RuELQROERcslBwVgFG7MkTfEdaQz9E=
+github.com/qiniu/x v1.13.11 h1:zlFLY9zFXOwKEjx0SQXRBunhFjDVpEY+pRGL/4shd5U=
+github.com/qiniu/x v1.13.11/go.mod h1:INZ2TSWSJVWO/RuELQROERcslBwVgFG7MkTfEdaQz9E=
 github.com/rogpeppe/go-internal v1.6.1/go.mod h1:xXDCJY+GAPziupqXw64V24skbSoqbTEfhy4qGm1nDQc=
 github.com/rogpeppe/go-internal v1.8.0 h1:FCbCCtXNOY3UtUuHUYaghJg4y7Fd14rXifAYUAtL9R8=
 github.com/rogpeppe/go-internal v1.8.0/go.mod h1:WmiCO8CzOY8rg0OYDC4/i/2WRWAB6poM+XZ2dLUbcbE=
