@@ -16,7 +16,7 @@ require (
 	github.com/casdoor/casdoor-go-sdk v1.3.0
 	github.com/qiniu/go-cdk-driver v0.1.0
 	github.com/qiniu/x v1.13.11
-	golang.org/x/oauth2 v0.24.0
+	golang.org/x/oauth2 v0.26.0
 )
 
 require (
